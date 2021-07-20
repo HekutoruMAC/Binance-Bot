@@ -20,7 +20,7 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 15
+  TRADE_TOTAL: 300
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -34,23 +34,23 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 7
+  TRADE_SLOTS: 10
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
-  TIME_DIFFERENCE: 2
+  TIME_DIFFERENCE: 1
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 8
+  RECHECK_INTERVAL: 6
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 2
+  CHANGE_IN_PRICE: 0.25
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 3
+  STOP_LOSS: 5
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: .8
+  TAKE_PROFIT: 0.75
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -62,15 +62,15 @@ trading_options:
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
   # NOTE -SELL_ON_SIGNAL_ONLY will override USE_TRAILING_STOP_LOSS
   USE_TRAILING_STOP_LOSS: True
-  TRAILING_STOP_LOSS: .4
-  TRAILING_TAKE_PROFIT: .1
+  TRAILING_STOP_LOSS: .1
+  TRAILING_TAKE_PROFIT: .3
 
   # Following are used to override SL, TP, TSL & TTP & SELL_ON_SIGNAL_ONLY in the case of a market crash
   # when hit SESSION_TAKE_PROFIT %, sell all coins and stop bot
   # when hit SESSION_STOP_LOSS %, sell all coins and stop bot.
   # Note, SESSION_STOP_LOSS needs to be a NEGATIVE number i.e. -2
-  SESSION_TPSL_OVERRIDE: False
-  SESSION_TAKE_PROFIT: 5
+  SESSION_TPSL_OVERRIDE: True
+  SESSION_TAKE_PROFIT: 0.34
   SESSION_STOP_LOSS: -2
 
   # Let a signalling module control sell of coin
@@ -90,9 +90,18 @@ trading_options:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
     # the default ones WILL NOT work due to customisations for my specific purposes
     #
-    # - os_signalbuy_RECOMM
-    # - os_signalsell_RECOMM
-    # - os_signalbuy_3SMAv2
-    - os_pausebot_MAv2
-    
-  
+     - custsignalmod
+     - djcommie_signalbuy_rsi_stoch
+     - djcommie_signalsell_rsi_stoch
+     - nigec_signalbuy_RSI
+     - nigec_signalsell_RSI
+     - os_pausebot_MA
+     - os_pausebot_MAOSC
+     - os_pausebot_MAv2
+     - os_signalbuy_3SMA
+     - os_signalbuy_3SMAv2
+     - os_signalsell_3SMA
+     - os_signalsell_3SMAv2
+     - pausebotmod
+     - signalsample
+     - signalsamplemod
