@@ -91,17 +91,17 @@ trading_options:
     # the default ones WILL NOT work due to customisations for my specific purposes
     #
      - custsignalmod
-     - djcommie_signalbuy_rsi_stoch
-     - djcommie_signalsell_rsi_stoch
-     - nigec_signalbuy_RSI
-     - nigec_signalsell_RSI
-     - os_pausebot_MA
-     - os_pausebot_MAOSC
-     - os_pausebot_MAv2
-     - os_signalbuy_3SMA
-     - os_signalbuy_3SMAv2
-     - os_signalsell_3SMA
-     - os_signalsell_3SMAv2
+     #- djcommie_signalbuy_rsi_stoch
+     #- djcommie_signalsell_rsi_stoch
+     #- nigec_signalbuy_RSI
+     #- nigec_signalsell_RSI
+     #- os_pausebot_MA
+     #- os_pausebot_MAOSC
+     #- os_pausebot_MAv2
+     #- os_signalbuy_3SMA
+     #- os_signalbuy_3SMAv2
+     #- os_signalsell_3SMA
+     #- os_signalsell_3SMAv2
      - pausebotmod
-     - signalsample
+     #- signalsample
      - signalsamplemod
