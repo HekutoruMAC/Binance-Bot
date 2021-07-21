@@ -338,7 +338,7 @@ def balance_report(last_price):
     print(f'Buying Paused   : {bot_paused}')
     print(f'')
     print(f'--------')
-    print(f'En cours : {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{unrealised_session_profit_incfees_perc:.4f}% Est:${unrealised_session_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
+    print(f'Pending  : {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{unrealised_session_profit_incfees_perc:.4f}% Est:${unrealised_session_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
     print(f'--------')
     print(f'')
     print(f'--------')
