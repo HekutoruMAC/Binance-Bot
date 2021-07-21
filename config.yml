@@ -70,7 +70,7 @@ trading_options:
   # when hit SESSION_STOP_LOSS %, sell all coins and stop bot.
   # Note, SESSION_STOP_LOSS needs to be a NEGATIVE number i.e. -2
   SESSION_TPSL_OVERRIDE: True
-  SESSION_TAKE_PROFIT: 0.34
+  SESSION_TAKE_PROFIT: 0.2
   SESSION_STOP_LOSS: -2
 
   # Let a signalling module control sell of coin
@@ -90,18 +90,18 @@ trading_options:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
     # the default ones WILL NOT work due to customisations for my specific purposes
     #
-     - custsignalmod
+     #- custsignalmod
      #- djcommie_signalbuy_rsi_stoch
      #- djcommie_signalsell_rsi_stoch
      #- nigec_signalbuy_RSI
      #- nigec_signalsell_RSI
      #- os_pausebot_MA
      #- os_pausebot_MAOSC
-     #- os_pausebot_MAv2
+     - os_pausebot_MAv2
      #- os_signalbuy_3SMA
      #- os_signalbuy_3SMAv2
      #- os_signalsell_3SMA
      #- os_signalsell_3SMAv2
-     - pausebotmod
+     #- pausebotmod
      #- signalsample
-     - signalsamplemod
+     #- signalsamplemod
