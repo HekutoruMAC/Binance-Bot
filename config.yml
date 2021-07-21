@@ -63,14 +63,14 @@ trading_options:
   # NOTE -SELL_ON_SIGNAL_ONLY will override USE_TRAILING_STOP_LOSS
   USE_TRAILING_STOP_LOSS: True
   TRAILING_STOP_LOSS: .1
-  TRAILING_TAKE_PROFIT: .3
+  TRAILING_TAKE_PROFIT: .2
 
   # Following are used to override SL, TP, TSL & TTP & SELL_ON_SIGNAL_ONLY in the case of a market crash
   # when hit SESSION_TAKE_PROFIT %, sell all coins and stop bot
   # when hit SESSION_STOP_LOSS %, sell all coins and stop bot.
   # Note, SESSION_STOP_LOSS needs to be a NEGATIVE number i.e. -2
   SESSION_TPSL_OVERRIDE: True
-  SESSION_TAKE_PROFIT: 0.2
+  SESSION_TAKE_PROFIT: 1
   SESSION_STOP_LOSS: -2
 
   # Let a signalling module control sell of coin
