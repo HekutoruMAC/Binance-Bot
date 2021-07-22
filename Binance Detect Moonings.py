@@ -15,12 +15,14 @@ See requirements.txt for versions of modules needed
 Requires Python version 3.9.x to run
 """
 
-
 # use for environment variables
 import os
 
 # use if needed to pass args to external modules
 import sys
+
+# used for math functions
+import math
 
 # used to create threads & dynamic loading of modules
 import threading
@@ -485,7 +487,8 @@ def convert_volume():
             if lot_size[coin] == 0:
                 volume[coin] = int(volume[coin])
             else:
-                volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
+                #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
+                volume[coin] = truncate(volume[coin], lot_size[coin])
 
     return volume, last_price
 
@@ -637,18 +640,7 @@ def sell_coins(tpsl_override = False):
             msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4))
             msg_discord(msg1)
 
-            # try to create a real order
-            try:
-                rounded_amount = round_step_size(coins_bought[coin]['volume'], coins_bought[coin]['step_size'])
-            except Exception:
-                try:
-                    tick_size = float(next(
-                        filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(coin)['filters'])
-                    )['stepSize'])
-                    rounded_amount = round_step_size(coins_bought[coin]['volume'], tick_size)
-                except Exception:
-                    rounded_amount = coins_bought[coin]['volume']
-            
+            # try to create a real order          
             try:
                 if not TEST_MODE:
                     order_details = client.create_order(
@@ -656,19 +648,12 @@ def sell_coins(tpsl_override = False):
                         side = 'SELL',
                         type = 'MARKET',
                         quantity = coins_bought[coin]['volume']
-                        #quantity = rounded_amount
                     )
 
             # error handling here in case position cannot be placed
             except Exception as e:
-                if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
-                    
-                    print(f"sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume: {coins_bought[coin]['volume']}\nSell Volume Rounded: {rounded_amount}\nPrice:{LastPrice}\nException: {e}")
-                    print(f"Setting volume from {coins_bought[coin]['volume']} to {rounded_amount} and will retry sell!")
-
-                    coins_bought[coin]['volume'] = rounded_amount
-                else:
-                    print(f"sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume: {coins_bought[coin]['volume']}\nSell Volume Rounded: {rounded_amount}\nPrice:{LastPrice}\nException: {e}")
+                #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
+                print(f"sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
 
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
@@ -688,13 +673,13 @@ def sell_coins(tpsl_override = False):
                 volatility_cooloff[coin] = datetime.now()
 
                 if DEBUG:
-                    print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Sell Volume Rounded: {rounded_amount} | Price:{LastPrice}")
+                    print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
 
                 # Log trade
                 #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
                 profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
                 #write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
-                write_log(f"\tSell\t{coin}\t{coins_sold[coin]['volume']}\t{BuyPrice}\t{PAIR_WITH}\t{LastPrice}\t{profit_incfees_total:.{decimals()}f}\t{PriceChange_Perc:.2f}\t{sell_reason}\t{rounded_amount}")
+                write_log(f"\tSell\t{coin}\t{coins_sold[coin]['volume']}\t{BuyPrice}\t{PAIR_WITH}\t{LastPrice}\t{profit_incfees_total:.{decimals()}f}\t{PriceChange_Perc:.2f}\t{sell_reason}")
                 
                 #this is good
                 session_profit_incfees_total = session_profit_incfees_total + profit_incfees_total
@@ -936,6 +921,21 @@ def stop_signal_threads():
             signalthread.terminate()
     except:
         pass
+
+def truncate(number, decimals=0):
+    """
+    Returns a value truncated to a specific number of decimal places.
+    Better than rounding
+    """
+    if not isinstance(decimals, int):
+        raise TypeError("decimal places must be an integer.")
+    elif decimals < 0:
+        raise ValueError("decimal places has to be 0 or more.")
+    elif decimals == 0:
+        return math.trunc(number)
+
+    factor = 10.0 ** decimals
+    return math.trunc(number * factor) / factor
 
 if __name__ == '__main__':
 
