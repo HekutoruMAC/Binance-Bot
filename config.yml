@@ -71,7 +71,7 @@ trading_options:
   # Note, SESSION_STOP_LOSS needs to be a NEGATIVE number i.e. -2
   SESSION_TPSL_OVERRIDE: True
   SESSION_TAKE_PROFIT: 0.2
-  SESSION_STOP_LOSS: -2
+  SESSION_STOP_LOSS: -1
 
   # Let a signalling module control sell of coin
   # NOTE - If USE_TRAILING_STOP_LOSS: True then this needs to be False
