@@ -1,4 +1,7 @@
 """
+Olorin Sledge Fork
+Version: 1.09
+
 Disclaimer
 
 All investment strategies and investments involve risk of loss.
@@ -12,7 +15,10 @@ and that no claims can be made against the developers,
 or others connected with the program.
 
 See requirements.txt for versions of modules needed
-Requires Python version 3.9.x to run
+
+Notes:
+- Requires Python version 3.9.x to run
+
 """
 
 # use for environment variables
@@ -643,6 +649,13 @@ def sell_coins(tpsl_override = False):
             # try to create a real order          
             try:
                 if not TEST_MODE:
+                    #lot_size = coins_bought[coin]['step_size']
+                    #if lot_size == 0:
+                    #    lot_size = 1
+                    #lot_size = lot_size.index('1') - 1
+                    #if lot_size < 0:
+                    #    lot_size = 0
+                    
                     order_details = client.create_order(
                         symbol = coin,
                         side = 'SELL',
@@ -755,6 +768,19 @@ def extract_order_data(order_details):
     # Olorin Sledge: I only want fee at the unit level, not the total level
     tradeFeeApprox = float(FILL_AVG) * (TRADING_FEE/100)
 
+    # the volume size is sometimes outside of precision, correct it
+    try:
+        info = client.get_symbol_info(coin)
+        step_size = info['filters'][2]['stepSize']
+        lot_size = step_size.index('1') - 1
+
+        if lot_size <= 0:
+            FILLS_QTY = int(FILLS_QTY)
+        else:
+            FILLS_QTY = truncate(FILLS_QTY, lot_size)
+    except Exception as e:
+        print(f"extract_order_data(): Exception getting coin {coin} step size! Exception: {e}")
+
     # create object with received data from Binance
     transactionInfo = {
         'symbol': order_details['symbol'],
@@ -815,6 +841,7 @@ def update_portfolio(orders, last_price, volume):
                'timestamp': orders[coin]['timestamp'],
                'bought_at': orders[coin]['avgPrice'],
                'volume': orders[coin]['volume'],
+               'volume_debug': volume[coin],
                'buyFeeBNB': orders[coin]['tradeFeeBNB'],
                'buyFee': orders[coin]['tradeFeeUnit'] * orders[coin]['volume'],
                'stop_loss': -STOP_LOSS,
@@ -1070,7 +1097,11 @@ if __name__ == '__main__':
         with open(bot_stats_file_path) as file:
             bot_stats = json.load(file)
             # load bot stats:
-
+            try:
+                bot_started_datetime = datetime.strptime(bot_stats['botstart_datetime'], '%Y-%m-%d %H:%M:%S.%f')
+            except Exception as e:
+                print (f'Exception on reading botstart_datetime from {bot_stats_file_path}. Exception: {e}')   
+                bot_started_datetime = datetime.now()
             
             try:
                 total_capital = bot_stats['total_capital']
