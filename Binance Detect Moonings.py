@@ -873,7 +873,7 @@ def update_bot_stats():
 
     bot_stats = {
         'total_capital' : str(TRADE_SLOTS * TRADE_TOTAL),
-        'botstart_datetime' : str(bot_started_datetime),
+
         'historicProfitIncFees_Percent': historic_profit_incfees_perc,
         'historicProfitIncFees_Total': historic_profit_incfees_total,
         'tradeWins': trade_wins,
@@ -1097,7 +1097,11 @@ if __name__ == '__main__':
         with open(bot_stats_file_path) as file:
             bot_stats = json.load(file)
             # load bot stats:
-
+            try:
+                bot_started_datetime = datetime.strptime(bot_stats['botstart_datetime'], '%Y-%m-%d %H:%M:%S.%f')
+            except Exception as e:
+                print (f'Exception on reading botstart_datetime from {bot_stats_file_path}. Exception: {e}')   
+                bot_started_datetime = datetime.now()
             
             try:
                 total_capital = bot_stats['total_capital']
