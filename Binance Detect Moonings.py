@@ -770,7 +770,7 @@ def extract_order_data(order_details):
 
     # the volume size is sometimes outside of precision, correct it
     try:
-        info = client.get_symbol_info(coin)
+        info = client.get_symbol_info(order_details['symbol'])
         step_size = info['filters'][2]['stepSize']
         lot_size = step_size.index('1') - 1
 
@@ -779,7 +779,7 @@ def extract_order_data(order_details):
         else:
             FILLS_QTY = truncate(FILLS_QTY, lot_size)
     except Exception as e:
-        print(f"extract_order_data(): Exception getting coin {coin} step size! Exception: {e}")
+        print(f"extract_order_data(): Exception getting coin {order_details['symbol']} step size! Exception: {e}")
 
     # create object with received data from Binance
     transactionInfo = {
