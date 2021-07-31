@@ -2,7 +2,7 @@
 script_options:
   # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
-  TEST_MODE: True
+  TEST_MODE: False
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
   DEBUG: True
@@ -20,7 +20,7 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 300
+  TRADE_TOTAL: 500
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -34,7 +34,7 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 10
+  TRADE_SLOTS: 2
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -47,10 +47,10 @@ trading_options:
   CHANGE_IN_PRICE: 0.25
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 5
+  STOP_LOSS: 100
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: 0.75
+  TAKE_PROFIT: 1
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -69,7 +69,7 @@ trading_options:
   # when hit SESSION_TAKE_PROFIT %, sell all coins and stop bot
   # when hit SESSION_STOP_LOSS %, sell all coins and stop bot.
   # Note, SESSION_STOP_LOSS needs to be a NEGATIVE number i.e. -2
-  SESSION_TPSL_OVERRIDE: True
+  SESSION_TPSL_OVERRIDE: False
   SESSION_TAKE_PROFIT: 0.2
   SESSION_STOP_LOSS: -1
 

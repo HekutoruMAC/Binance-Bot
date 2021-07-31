@@ -7,7 +7,7 @@ SIGNAL_NAME = 'os_pausebot_MAv2'
 SIGNAL_FILE = 'signals/pausebot.pause'
 
 INTERVAL = Interval.INTERVAL_5_MINUTES #Timeframe for analysis
-TIME_TO_WAIT = 1
+TIME_TO_WAIT = 5
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
@@ -81,7 +81,7 @@ def do_work():
                     os.remove(SIGNAL_FILE)
 
             # print(f'pausebotmod: Waiting {TIME_TO_WAIT} minutes for next market checkup')
-            time.sleep((TIME_TO_WAIT*10))
+            time.sleep((TIME_TO_WAIT*60))
         except Exception as e:
             print(f'{SIGNAL_NAME}: Exception do_work() 1: {e}')
             continue
