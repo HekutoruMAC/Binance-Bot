@@ -438,9 +438,7 @@ def msg_discord_balance(msg1, msg2):
         last_msg_discord_balance_date = datetime.now()
 
 def msg_discord(msg):
-
     message = msg + '\n\n'
-
     if MSG_DISCORD:
         #Webhook of my channel. Click on edit channel --> Webhooks --> Creates webhook
         mUrl = "https://discordapp.com/api/webhooks/"+DISCORD_WEBHOOK
@@ -1006,9 +1004,31 @@ def sell_all(msgreason, session_tspl_ovr = False):
     last_price = get_price()
     discordmsg = balance_report(last_price)
     msg_discord(discordmsg)
+	
+def load_signal_threads():
+ # load signalling modules
+    signalthreads = []
+    try:
+        if len(SIGNALLING_MODULES) > 0:
+            for module in SIGNALLING_MODULES:
+                if FULL_MODE: print(f'Starting {module}')
+                mymodule[module] = importlib.import_module(module)
+                # t = threading.Thread(target=mymodule[module].do_work, args=())
+                t = multiprocessing.Process(target=mymodule[module].do_work, args=())
+                t.name = module
+                t.daemon = True
+                t.start()
+
+                # add process to a list. This is so the thread can be terminated at a later time
+                signalthreads.append(t)
+
+                time.sleep(2)
+        else:
+            if FULL_MODE: print(f'No modules to load {SIGNALLING_MODULES}')
+    except Exception as e:
+        if FULL_MODE: print(f'Loading external signals exception: {e}')
 
 def stop_signal_threads():
-
     try:
         for signalthread in signalthreads:
             if FULL_MODE: print(f'Terminating thread {str(signalthread.name)}')
@@ -1104,6 +1124,47 @@ def load_settings():
         DEBUG = True
     access_key, secret_key = load_correct_creds(parsed_creds)
 
+def menu():
+    global FULL_MODE
+    END = False
+    LOOP = True
+    stop_signal_threads()
+    while LOOP:
+        print(f'{txcolors.WARNING}Pausing all processes ...')
+        time.sleep(5)
+        print(f'')
+        print(f'')
+        print(f'[1]Reload Configuration')
+        print(f'[2]Exit BOT')
+        x = input('Please enter your choice: ')
+        x = int(x)
+        print(f'')
+        print(f'')
+        if x == 1:
+            load_settings()
+            LOOP = False
+            load_signal_threads()
+            print(f'{txcolors.WARNING}Reaload Completed')
+        elif x == 2:
+            # stop external signal threads
+            stop_signal_threads()
+
+            # ask user if they want to sell all coins
+            print(f'\n\n\n')
+            sellall = input(f'{txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins (y/N)?{txcolors.DEFAULT}')
+            if sellall.upper() == "Y":
+                # sell all coins
+                sell_all('Program execution ended by user!')
+                END = True
+                LOOP = False
+            else:
+                END = True
+                LOOP = False
+        else:
+            print(f'wrong choice')
+            LOOP = True
+    return END
+	
 if __name__ == '__main__':
     req_version = (3,9)
     if sys.version_info[:2] < req_version: 
@@ -1217,27 +1278,7 @@ if __name__ == '__main__':
     remove_external_signals('sell')
     remove_external_signals('pause')
 
-    # load signalling modules
-    signalthreads = []
-    try:
-        if len(SIGNALLING_MODULES) > 0:
-            for module in SIGNALLING_MODULES:
-                if FULL_MODE: print(f'Starting {module}')
-                mymodule[module] = importlib.import_module(module)
-                # t = threading.Thread(target=mymodule[module].do_work, args=())
-                t = multiprocessing.Process(target=mymodule[module].do_work, args=())
-                t.name = module
-                t.daemon = True
-                t.start()
-
-                # add process to a list. This is so the thread can be terminated at a later time
-                signalthreads.append(t)
-
-                time.sleep(2)
-        else:
-            if FULL_MODE: print(f'No modules to load {SIGNALLING_MODULES}')
-    except Exception as e:
-        if FULL_MODE: print(f'Loading external signals exception: {e}')
+    load_signal_threads()
 
     # seed initial prices
     get_price()
@@ -1261,24 +1302,13 @@ if __name__ == '__main__':
             READ_CONNECTERR_COUNT += 1
             print(f'We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
         except KeyboardInterrupt as ki:
-            # stop external signal threads
-            stop_signal_threads()
-
-            # ask user if they want to sell all coins
-            print(f'\n\n\n')
-            sellall = input(f'{txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins (y/N)?{txcolors.DEFAULT}')
-            if sellall.upper() == "Y":
-                # sell all coins
-                sell_all('Program execution ended by user!')
-            
-            sys.exit(0)
+            if menu() == True: sys.exit(0)
 
     if not is_bot_running:
         if SESSION_TPSL_OVERRIDE:
             print(f'')
             print(f'')
-            print(f'{txcolors.WARNING}{session_tpsl_override_msg}{txcolors.DEFAULT}')
-            
+            print(f'{txcolors.WARNING}{session_tpsl_override_msg}{txcolors.DEFAULT}')            
             sell_all(session_tpsl_override_msg, True)
             sys.exit(0)
 
