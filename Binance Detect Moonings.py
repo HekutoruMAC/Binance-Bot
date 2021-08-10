@@ -209,7 +209,10 @@ def wait_for_price():
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())    
 
-    # retrieve latest prices
+    #thanks sparky
+    load_settings()
+	
+	# retrieve latest prices
     last_price = get_price()
 
     # Moved to the end of this method
