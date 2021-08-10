@@ -354,7 +354,7 @@ def balance_report(last_price):
     if (trade_wins > 0) and (trade_losses == 0):
         WIN_LOSS_PERCENT = 100
     strplus = "+"
-    if FULL_MODE: clear()
+    if FULL_MODE == False: clear()
     print(f'')
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {bot_started_datetime} | Running for: {datetime.now() - bot_started_datetime} {txcolors.BORDER}+')
