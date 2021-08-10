@@ -1031,23 +1031,9 @@ def truncate(number, decimals=0):
     factor = 10.0 ** decimals
     return math.trunc(number * factor) / factor
 
-if __name__ == '__main__':
-
-    req_version = (3,9)
-    if sys.version_info[:2] < req_version: 
-        if FULL_MODE: print(f'This bot requires Python version 3.9 or higher/newer. You are running version {sys.version_info[:2]} - please upgrade your Python version!!')
-        sys.exit()
-
-    # Load arguments then parse settings
-    args = parse_args()
-    mymodule = {}
-
-    discord_msg_balance_data = ""
-    last_msg_discord_balance_date = datetime.now()
-    last_history_log_date = datetime.now()
-
+def load_settings():
     # set to false at Start
-    global bot_paused
+    global bot_paused, parsed_config, creds_file, access_key, secret_key
     bot_paused = False
 
     DEFAULT_CONFIG_FILE = 'config.yml'
@@ -1057,6 +1043,9 @@ if __name__ == '__main__':
     creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
     parsed_creds = load_config(creds_file)
+
+    # Default no debugging
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, FULL_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY
 
     # Default no debugging
     DEBUG = False
@@ -1113,9 +1102,23 @@ if __name__ == '__main__':
 
     if DEBUG_SETTING or args.debug:
         DEBUG = True
-
-    # Load creds for correct environment
     access_key, secret_key = load_correct_creds(parsed_creds)
+
+if __name__ == '__main__':
+    req_version = (3,9)
+    if sys.version_info[:2] < req_version: 
+        if FULL_MODE: print(f'This bot requires Python version 3.9 or higher/newer. You are running version {sys.version_info[:2]} - please upgrade your Python version!!')
+        sys.exit()
+		# Load arguments then parse settings
+    args = parse_args()
+    mymodule = {}
+
+    discord_msg_balance_data = ""
+    last_msg_discord_balance_date = datetime.now()
+    last_history_log_date = datetime.now()
+	
+    load_settings()
+    # Load creds for correct environment
 
     if DEBUG:
         if FULL_MODE: print(f'Loaded config below\n{json.dumps(parsed_config, indent=4)}')
