@@ -188,7 +188,7 @@ def get_price(add_to_historical=True):
 
     return initial_price
 
-
+#use function of the OlorinSledge
 def wait_for_price():
     '''calls the initial price and ensures the correct amount of time has passed
     before reading the current price again'''
@@ -204,15 +204,16 @@ def wait_for_price():
 
     pause_bot()
 
-    if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+    # get first element from the dictionary
+    firstcoin = next(iter(historical_prices[hsp_head]))  
 
+    #BBif historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+    if historical_prices[hsp_head][firstcoin]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
         # sleep for exactly the amount of time required
-        time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())    
+        #BBtime.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())    
+        time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head][firstcoin]['time'])).total_seconds())    
 
-    #thanks sparky
-    load_settings()
-	
-	# retrieve latest prices
+    # retrieve latest prices
     last_price = get_price()
 
     # Moved to the end of this method
@@ -242,15 +243,15 @@ def wait_for_price():
 
                 if len(coins_bought) + len(volatile_coins) < TRADE_SLOTS or TRADE_SLOTS == 0:
                     volatile_coins[coin] = round(threshold_check, 3)
-                    if FULL_MODE: print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, purchasing ${TRADE_TOTAL} {PAIR_WITH} of {coin}!')
+                    print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, purchasing ${TRADE_TOTAL} {PAIR_WITH} of {coin}!')
 
                 else:
-                    if FULL_MODE: print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
+                    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
             #else:
                 #if len(coins_bought) == TRADE_SLOTS:
-                #    if FULL_MODE: print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
+                #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
                 #else:
-                #    if FULL_MODE: print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but failed cool off period of {COOLOFF_PERIOD} minutes! Curr COP is {volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD)}{txcolors.DEFAULT}')
+                #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but failed cool off period of {COOLOFF_PERIOD} minutes! Curr COP is {volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD)}{txcolors.DEFAULT}')
         elif threshold_check < CHANGE_IN_PRICE:
             coins_down +=1
 
@@ -258,7 +259,7 @@ def wait_for_price():
             coins_unchanged +=1
 
     # Disabled until fix
-    #if FULL_MODE: print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
+    #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
     # Here goes new code for external signalling
     externals = buy_external_signals()
@@ -266,7 +267,9 @@ def wait_for_price():
 
     for excoin in externals:
         if excoin not in volatile_coins and excoin not in coins_bought and \
-                (len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
+                (len(coins_bought) + len(volatile_coins)) < TRADE_SLOTS:
+
+            #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
             volatile_coins[excoin] = 1
             exnumber +=1
             print(f"External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!")
@@ -656,8 +659,26 @@ def sell_coins(tpsl_override = False):
         
         if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override:
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
-            coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-            coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
+
+            #add metod from OlorinSledge
+            if PriceChange_Perc >= 0.8:
+                # price has changed by 0.8% or greater, a big change. Make the STOP LOSS trail closely to the TAKE PROFIT
+                # so you don't lose this increase in price if it falls back
+                coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT    
+                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+            else:
+                # price has changed by less than 0.8%, a small change. Make the STOP LOSS trail loosely to the TAKE PROFIT
+                # so you don't get stopped out of the trade prematurely
+                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
+
+            # we've got a negative stop loss - not good, we don't want this.
+            if coins_bought[coin]['stop_loss'] <= 0:
+                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] * .25
+
+            # supress old metod
+            #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+            #coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
             # if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
             if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.{decimals()}f} and SL {coins_bought[coin]['stop_loss']:.{decimals()}f} accordingly to lock-in profit")
             continue
@@ -937,7 +958,7 @@ def update_bot_stats():
 
     bot_stats = {
         'total_capital' : str(TRADE_SLOTS * TRADE_TOTAL),
-
+        'botstart_datetime' : str(bot_started_datetime),
         'historicProfitIncFees_Percent': historic_profit_incfees_perc,
         'historicProfitIncFees_Total': historic_profit_incfees_total,
         'tradeWins': trade_wins,
@@ -1284,6 +1305,7 @@ if __name__ == '__main__':
     get_price()
     TIMEOUT_COUNT=0
     READ_CONNECTERR_COUNT=0
+    BINANCE_API_EXCEPTION=0						   
     while is_bot_running:
         try:
             orders, last_price, volume = buy()
@@ -1301,6 +1323,9 @@ if __name__ == '__main__':
         except ConnectionError as ce:
             READ_CONNECTERR_COUNT += 1
             print(f'We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
+        except BinanceAPIException as bapie:
+            BINANCE_API_EXCEPTION += 1
+            print(f'We got an API error from Binance. Re-loop. API Errors so far: {BINANCE_API_EXCEPTION}.\nException:\n{bapie}')											
         except KeyboardInterrupt as ki:
             if menu() == True: sys.exit(0)
 
