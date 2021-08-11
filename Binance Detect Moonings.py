@@ -1,6 +1,6 @@
 """
-Olorin Sledge Fork
-Version: 1.09
+Horacio Oscar Fanelli - Pantersxx3
+Version: 1.0
 
 Disclaimer
 
