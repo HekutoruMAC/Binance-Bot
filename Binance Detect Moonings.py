@@ -97,7 +97,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -1084,7 +1084,7 @@ def truncate(number, decimals=0):
 
 def load_settings():
     # set to false at Start
-    global bot_paused, parsed_config, creds_file, access_key, secret_key
+    global bot_paused, parsed_config, creds_file, access_key, secret_key, parsed_creds
     bot_paused = False
 
     DEFAULT_CONFIG_FILE = 'config.yml'
