@@ -85,6 +85,15 @@ class txcolors:
     DIM = '\033[2m\033[35m'
     BORDER = '\033[33m'
     DEFAULT = '\033[39m'
+    BOT_LOSSES = '\033[91m'
+    BOT_WINS = '\033[92m'
+    #Blue = '\033[94m'
+    #Cyan = '\033[96m'
+    #White = '\033[97m'
+    #Yellow = '\033[93m'
+    #Magenta = '\033[95m'
+    #Grey = '\033[90m'
+    #Black = '\033[90m'
 
 
 # tracks profit/loss each session
@@ -366,6 +375,7 @@ def balance_report(last_price):
     print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {bot_started_datetime} | Running for: {datetime.now() - bot_started_datetime} {txcolors.BORDER}+')
     print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {str(len(coins_bought)).zfill(3)}/{str(TRADE_SLOTS).zfill(3)} {"{0:>3}".format(int(CURRENT_EXPOSURE))}/{"{0:<3}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}){txcolors.BORDER}{"+".rjust(37)}')
     print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}') 
+    print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)}{txcolors.BORDER}{"+".rjust(47)}')
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     print(f'')
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
