@@ -34,7 +34,7 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 4
+  TRADE_SLOTS: 1
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -44,13 +44,13 @@ trading_options:
   RECHECK_INTERVAL: 6
 
   # the difference in % between the first and second checks for the price. default 0.25
-  CHANGE_IN_PRICE: 0.5
+  CHANGE_IN_PRICE: 0.25
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 3
+  STOP_LOSS: 100
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: 0.85
+  TAKE_PROFIT: 1
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -87,7 +87,7 @@ trading_options:
   MSG_DISCORD: False
   
   #minimal mode set to False
-  FULL_MODE: False
+  FULL_MODE: True
   
   SIGNALLING_MODULES:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
