@@ -1,4 +1,4 @@
-@echo off
+#!/bin/bash
 
 fechahora=`date +%Y-%m-%d_%H-%M-%S`
 

@@ -1,4 +1,4 @@
-@echo off
+#!/bin/bash
 
 echo Eliminado live_bot_stats.json...
 rm live_bot_stats.json 2>/dev/null
