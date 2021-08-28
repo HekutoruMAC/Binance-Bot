@@ -333,7 +333,12 @@ def sell_external_signals():
 def get_volume_list():
     VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
     most_volume_coins = {}
-	
+
+    if ABOVE_COINS_VOLUME == True:
+        VOLATILE_VOLUME = "above_" + VOLATILE_VOLUME
+    else:
+        VOLATILE_VOLUME = "under_" + VOLATILE_VOLUME
+
     if os.path.exists(VOLATILE_VOLUME) == False:
         if os.path.exists("tickers_all.txt") == True:
             tickers_all=[line.strip() for line in open("tickers_all.txt")]
@@ -345,11 +350,11 @@ def get_volume_list():
                 infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
                 volumecoin = float(infocoin['quoteVolume']) / 1000000
                 if ABOVE_COINS_VOLUME == True:
-                    if volumecoin >= COINS_MOST_VOLUME:
+                    if volumecoin >= COINS_VOLUME:
                         most_volume_coins.update({coin : volumecoin})    
                         #print(coin + ":" + str(volumcoin))
                 else:
-                    if volumecoin <= COINS_MOST_VOLUME:
+                    if volumecoin <= COINS_VOLUME:
                         most_volume_coins.update({coin : volumecoin})    
                         #print(coin + ":" + str(volumcoin))
 					

@@ -90,7 +90,7 @@ CREATE_TICKER_LIST = False
 NUMBER_COINS_IN_LIST = 20
 
 # CV_INDEX - Coefficient of Variation. Only those coins with a COV greater than the specified value will be displayed.
-CoV_INDEX = 0.0
+CoV_INDEX = 10
 
 # CREATE_LIST_BY_COV_AND_PRICE_CHANGE is a filter for creating dynamic lists of the most volatile coins.
 # If COV_FILTER = True, lists of volatile coins will take into account the CoV parameter.
