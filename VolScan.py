@@ -65,6 +65,10 @@ parsed_config = load_config(config_file)
 PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
 
+USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+COINS_VOLUME = parsed_config['trading_options']['COINS_VOLUME']
+ABOVE_COINS_VOLUME = parsed_config['trading_options']['ABOVE_COINS_VOLUME']
+
 # Load creds for correct environment
 access_key, secret_key = load_correct_creds(parsed_creds)
 client = Client(access_key, secret_key)
@@ -73,7 +77,7 @@ client = Client(access_key, secret_key)
 # SCANNING_PERIOD - by default, we check the price difference for each coin on Binance for the last 3 minutes,
 # you can change this value for different results.
 # This also determines how often each iteration of the code is executed.
-SCANNING_PERIOD = 3  # minutes
+SCANNING_PERIOD = 5  # minutes
 
 # TIME_SLEEP - how many seconds do you want between each price scan.
 # By default, every 12 seconds the price change will be recorded during SCANNING_PERIOD (3min)
@@ -90,7 +94,7 @@ CREATE_TICKER_LIST = False
 NUMBER_COINS_IN_LIST = 20
 
 # CV_INDEX - Coefficient of Variation. Only those coins with a COV greater than the specified value will be displayed.
-CoV_INDEX = 10
+CoV_INDEX = 1
 
 # CREATE_LIST_BY_COV_AND_PRICE_CHANGE is a filter for creating dynamic lists of the most volatile coins.
 # If COV_FILTER = True, lists of volatile coins will take into account the CoV parameter.
@@ -113,8 +117,13 @@ ticker_type = 'all'
 if CREATE_TICKER_LIST:
     TICKERS_LIST = 'tickers_all_USDT.txt'
 else:
-    TICKERS_LIST = "volatile_volume_" + str(date.today()) + ".txt"
-
+    if USE_MOST_VOLUME_COINS == True:
+        if ABOVE_COINS_VOLUME == True:
+            TICKERS_LIST = "above_volatile_volume_" + str(date.today()) + ".txt"
+        else:
+            TICKERS_LIST = "under_volatile_volume_" + str(date.today()) + ".txt"
+    else:
+        TICKERS_LIST = "tickers.txt"
 # BTC_FILTER - This feature is still in development.
 # Objective: Check the change in the price of bitcoin over the scanning period and,
 # based upon the results, either halt the bot from buying, or allow it to continue.
