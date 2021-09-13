@@ -396,7 +396,8 @@ def balance_report(last_price):
         exposure_calcuated = exposure_calcuated + round(float(coins_bought[coin]['bought_at']) * float(coins_bought[coin]['volume']),0)
 
         #PriceChangeIncFees_Perc = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
-        PriceChangeIncFees_Total = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
+        #PriceChangeIncFees_Total = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
+        PriceChangeIncFees_Total = float(((LastPrice-sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
 
         # unrealised_session_profit_incfees_perc = float(unrealised_session_profit_incfees_perc + PriceChangeIncFees_Perc)
         unrealised_session_profit_incfees_total = float(unrealised_session_profit_incfees_total + PriceChangeIncFees_Total)
@@ -433,7 +434,7 @@ def balance_report(last_price):
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     print(f'')
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>4}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(44)}')
+    print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(44)}')
     print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     print(f'')
 
@@ -575,24 +576,28 @@ def convert_volume():
             if lot_size[coin] < 0:
                 lot_size[coin] = 0
 
-        except:
+        except Exception as e:
+            if FULL_MODE: print(f'convert_volume() exception: {e}')
             pass
+        try:
+            print("COIN: " + str(coin) + " TRADE_TOTAL: " + str(TRADE_TOTAL) + " last_price[coin]['price']: " + str(last_price[coin]['price']))
+            # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
+            volume[coin] = float(TRADE_TOTAL / float(last_price[coin]['price']))
 
-        # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
-        volume[coin] = float(TRADE_TOTAL / float(last_price[coin]['price']))
-
-        # define the volume with the correct step size
-        if coin not in lot_size:
-            # original code: volume[coin] = float('{:.1f}'.format(volume[coin]))
-            volume[coin] = int(volume[coin])
-        else:
-            # if lot size has 0 decimal points, make the volume an integer
-            if lot_size[coin] == 0:
+            # define the volume with the correct step size
+            if coin not in lot_size:
+                # original code: volume[coin] = float('{:.1f}'.format(volume[coin]))
                 volume[coin] = int(volume[coin])
             else:
-                #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
-                volume[coin] = truncate(volume[coin], lot_size[coin])
-
+                # if lot size has 0 decimal points, make the volume an integer
+                if lot_size[coin] == 0:
+                    volume[coin] = int(volume[coin])
+                else:
+                    #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
+                    volume[coin] = truncate(volume[coin], lot_size[coin])
+        except Exception as e:
+            if FULL_MODE: print(f'convert_volume()2 exception: {e}')
+            pass    
     return volume, last_price
 
 
@@ -604,6 +609,8 @@ def buy():
     for coin in volume:
 
         if coin not in coins_bought:
+            #litle modification of Sparky
+            volume[coin] = math.floor(volume[coin]*100000)/100000
             if FULL_MODE: print(f"{txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
 
             msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' USDT invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
@@ -704,8 +711,10 @@ def sell_coins(tpsl_override = False):
         buyFeeTotal = (coins_bought[coin]['volume'] * BuyPrice) * (TRADING_FEE/100)
         
         PriceChange_Perc = float((LastPrice - BuyPrice) / BuyPrice * 100)
-        PriceChangeIncFees_Perc = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
-        PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+        #PriceChangeIncFees_Perc = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
+        #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+        PriceChangeIncFees_Perc = float(((LastPrice-sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
+        PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
 
         # define stop loss and take profit
         TP = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['take_profit']) / 100))
@@ -810,7 +819,8 @@ def sell_coins(tpsl_override = False):
                     priceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
                     # update this from the actual Binance sale information
-                    PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+                    #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+                    PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
                 else:
                     coins_sold[coin] = coins_bought[coin]
 
@@ -844,7 +854,8 @@ def sell_coins(tpsl_override = False):
                 
                 #TRADE_TOTAL*PriceChangeIncFees_Perc)/100
                 
-                if (LastPrice+sellFee) >= (BuyPrice+buyFee):
+                #if (LastPrice+sellFee) >= (BuyPrice+buyFee):
+                if (LastPrice-sellFee) >= (BuyPrice+buyFee):
                     trade_wins += 1
                 else:
                     trade_losses += 1
@@ -947,7 +958,8 @@ def check_total_session_profit(coins_bought, last_price):
         BuyPrice = float(coins_bought[coin]['bought_at'])
         buyFee = (BuyPrice * (TRADING_FEE/100))
         
-        PriceChangeIncFees_Total = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
+        #PriceChangeIncFees_Total = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
+        PriceChangeIncFees_Total = float(((LastPrice-sellFee) - (BuyPrice+buyFee)) * coins_bought[coin]['volume'])
 
         unrealised_session_profit_incfees_total = float(unrealised_session_profit_incfees_total + PriceChangeIncFees_Total)
 
