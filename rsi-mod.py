@@ -75,7 +75,7 @@ STOCH_MAX = 99 # Max Stoch %K Level for Buy Signal - Over 80 ok as long as %D li
 RSI_BUY = 0.3 # Difference in RSI levels over last 2 timescales for a Buy Signal (-0.3)
 STOCH_BUY = 10 # Difference between the Stoch K&D levels for a Buy Signal (10)
 
-SELL_COINS = True # Set to true if you want the module to sell coins immediately upon bearish signals (False)
+SELL_COINS = False # Set to true if you want the module to sell coins immediately upon bearish signals (False)
 RSI_SELL = -5 # Difference in RSI levels over last 2 timescales for a Sell Signal (-5)
 STOCH_SELL = -10 # Difference between the Stoch D&K levels for a Sell Signal (-10)
 SIGNALS_SELL = 7 # Max number of buy signals on both INTERVALs to add coin to sell list (7)
