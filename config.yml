@@ -94,6 +94,7 @@ trading_options:
   
   #minimal mode set to 0, complete mode set to 1, termux mode set to 2
   SCREEN_MODE: 2
+  DISABLE_TIMESTAMPS: True
   
   SHOW_INITIAL_CONFIG: False
   

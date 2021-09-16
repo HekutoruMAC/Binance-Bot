@@ -97,7 +97,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist #, TICKERS_LIST
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -135,27 +135,6 @@ except NameError:
     trade_losses = 0      # or some other default value.
 
 bot_started_datetime = ""
-
-# print with timestamps
-old_out = sys.stdout
-class St_ampe_dOut:
-    """Stamped stdout."""
-    nl = True
-    def write(self, x):
-        """Write function overloaded."""
-        if x == '\n':
-            old_out.write(x)
-            self.nl = True
-        elif self.nl:
-            old_out.write(f'{txcolors.DIM}[{str(datetime.now().replace(microsecond=0))}]{txcolors.DEFAULT} {x}')
-            self.nl = False
-        else:
-            old_out.write(x)
-
-    def flush(self):
-        pass
-
-sys.stdout = St_ampe_dOut()
 
 def is_fiat():
     # check if we are using a fiat as a base currency
@@ -1161,7 +1140,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_VOLUME, ABOVE_COINS_VOLUME
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_VOLUME, ABOVE_COINS_VOLUME, DISABLE_TIMESTAMPS
 
     # Default no debugging
     DEBUG = False
@@ -1212,6 +1191,7 @@ def load_settings():
     
 	#minimal mode
     SCREEN_MODE = parsed_config['trading_options']['SCREEN_MODE']
+    DISABLE_TIMESTAMPS = parsed_config['trading_options']['DISABLE_TIMESTAMPS']
 	
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
@@ -1292,6 +1272,28 @@ if __name__ == '__main__':
     last_history_log_date = datetime.now()
 	
     load_settings()
+	
+    if DISABLE_TIMESTAMPS == False:
+        # print with timestamps
+        old_out = sys.stdout
+        class St_ampe_dOut:
+            """Stamped stdout."""
+            nl = True
+            def write(self, x):
+                """Write function overloaded."""
+                if x == '\n':
+                    old_out.write(x)
+                    self.nl = True
+                elif self.nl:
+                    old_out.write(f'{txcolors.DIM}[{str(datetime.now().replace(microsecond=0))}]{txcolors.DEFAULT} {x}')
+                    self.nl = False
+                else:
+                    old_out.write(x)
+
+            def flush(self):
+                pass
+
+        sys.stdout = St_ampe_dOut()
 
     # Load creds for correct environment
 
