@@ -92,8 +92,8 @@ trading_options:
   # Used to push alerts, messages etc to a discord channel
   MSG_DISCORD: False
   
-  #minimal mode set to False
-  FULL_MODE: True
+  #minimal mode set to 0, complete mode set to 1, termux mode set to 2
+  SCREEN_MODE: 2
   
   SHOW_INITIAL_CONFIG: False
   
