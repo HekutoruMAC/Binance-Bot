@@ -395,7 +395,7 @@ def balance_report(last_price):
     if (trade_wins > 0) and (trade_losses == 0):
         WIN_LOSS_PERCENT = 100
     strplus = "+"
-    if SCREEN_MODE == 0: clear()
+    if STATIC_MAIN_INFO == True: clear()
     if SCREEN_MODE < 2: print(f'')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}')
@@ -1140,7 +1140,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_VOLUME, ABOVE_COINS_VOLUME, DISABLE_TIMESTAMPS
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_VOLUME, ABOVE_COINS_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO
 
     # Default no debugging
     DEBUG = False
@@ -1191,6 +1191,7 @@ def load_settings():
     
 	#minimal mode
     SCREEN_MODE = parsed_config['trading_options']['SCREEN_MODE']
+    STATIC_MAIN_INFO = parsed_config['trading_options']['STATIC_MAIN_INFO']
     DISABLE_TIMESTAMPS = parsed_config['trading_options']['DISABLE_TIMESTAMPS']
 	
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
@@ -1266,7 +1267,7 @@ if __name__ == '__main__':
 		# Load arguments then parse settings
     args = parse_args()
     mymodule = {}
-
+    print("BINANCE DETECT MOONINGS: Initializing, wait a moment...")
     discord_msg_balance_data = ""
     last_msg_discord_balance_date = datetime.now()
     last_history_log_date = datetime.now()
