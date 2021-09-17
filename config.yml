@@ -20,7 +20,7 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 14.27773526
+  TRADE_TOTAL: 12
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -39,7 +39,7 @@ trading_options:
   EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN','EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN','XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN','YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP','UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP', 'RENBTC', 'B']
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 4
+  TRADE_SLOTS: 10
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -52,7 +52,7 @@ trading_options:
   CHANGE_IN_PRICE: 0.25
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 10
+  STOP_LOSS: 100
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: 0.35
@@ -95,7 +95,7 @@ trading_options:
   
   #minimal mode set to 0, complete mode set to 1, termux mode set to 2
   SCREEN_MODE: 2
-  STATIC_MAIN_INFO: True
+  STATIC_MAIN_INFO: False
   DISABLE_TIMESTAMPS: True
   
   SHOW_INITIAL_CONFIG: False
