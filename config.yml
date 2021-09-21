@@ -20,7 +20,7 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 12
+  TRADE_TOTAL: 10
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -102,8 +102,9 @@ trading_options:
   
  #Enables the use of currencies with greater or lesser volume
   USE_MOST_VOLUME_COINS: True
-  COINS_VOLUME: 100
-  ABOVE_COINS_VOLUME: False
+  #idea from my psychologist, thanks Sebastian V.
+  COINS_MAX_VOLUME: 100
+  COINS_MIN_VOLUME: 50
   
   SIGNALLING_MODULES:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
@@ -120,6 +121,7 @@ trading_options:
     #- VolScan
     #- os_signalbuy_3SMA
     #- os_signalbuy_3SMAv2
+    #- os_signalbuy_RECOMM
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod

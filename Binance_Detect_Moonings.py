@@ -313,38 +313,28 @@ def get_volume_list():
     VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
     most_volume_coins = {}
 
-    if ABOVE_COINS_VOLUME == True:
-        VOLATILE_VOLUME = "above_" + VOLATILE_VOLUME
+    if os.path.exists(VOLATILE_VOLUME) == True: 
+        os.remove(VOLATILE_VOLUME)
+    
+    if os.path.exists("tickers_all.txt") == True:
+        tickers_all=[line.strip() for line in open("tickers_all.txt")]
     else:
-        VOLATILE_VOLUME = "under_" + VOLATILE_VOLUME
+        VOLATILE_VOLUME = ""
 
-    if os.path.exists(VOLATILE_VOLUME) == False:
-        if os.path.exists("tickers_all.txt") == True:
-            tickers_all=[line.strip() for line in open("tickers_all.txt")]
-        else:
-            VOLATILE_VOLUME = ""
-
-        if VOLATILE_VOLUME != "":
-            for coin in tickers_all:
-                infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
-                volumecoin = float(infocoin['quoteVolume']) / 1000000
-                if ABOVE_COINS_VOLUME == True:
-                    if volumecoin >= COINS_VOLUME:
-                        most_volume_coins.update({coin : volumecoin})    
-                        #print(coin + ":" + str(volumcoin))
-                else:
-                    if volumecoin <= COINS_VOLUME:
-                        most_volume_coins.update({coin : volumecoin})    
-                        #print(coin + ":" + str(volumcoin))
-					
-            sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
+    if VOLATILE_VOLUME != "":
+        for coin in tickers_all:
+            infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
+            volumecoin = float(infocoin['quoteVolume']) / 1000000
+            if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME:
+                most_volume_coins.update({coin : volumecoin})  					
+            
+        sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
 		
-            print(f'Saving to {VOLATILE_VOLUME} ...')
+        print(f'Saving to {VOLATILE_VOLUME} ...')
 		
-            for coin in sortedVolumeList:
-                #print(coin[0] + ":" + str(coin[1]))
-                with open(VOLATILE_VOLUME,'a+') as f:
-                    f.write(coin[0] + '\n')
+        for coin in sortedVolumeList:
+            with open(VOLATILE_VOLUME,'a+') as f:
+                f.write(coin[0] + '\n')
 			
     return VOLATILE_VOLUME
 	
@@ -1140,7 +1130,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_VOLUME, ABOVE_COINS_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO
 
     # Default no debugging
     DEBUG = False
@@ -1200,8 +1190,8 @@ def load_settings():
     SHOW_INITIAL_CONFIG = parsed_config['trading_options']['SHOW_INITIAL_CONFIG']
 
     USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
-    COINS_VOLUME = parsed_config['trading_options']['COINS_VOLUME']
-    ABOVE_COINS_VOLUME = parsed_config['trading_options']['ABOVE_COINS_VOLUME']
+    COINS_MAX_VOLUME = parsed_config['trading_options']['COINS_MAX_VOLUME']
+    COINS_MIN_VOLUME = parsed_config['trading_options']['COINS_MIN_VOLUME']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
@@ -1222,12 +1212,12 @@ def menu():
     LOOP = True
     stop_signal_threads()
     while LOOP:
-        print(f'{txcolors.WARNING}Pausing all processes ...')
+        print(f'{txcolors.WARNING}Pausing all processes ...{txcolors.DEFAULT}')
         time.sleep(5)
         print(f'')
         print(f'')
-        print(f'[1]Reload Configuration')
-        print(f'[2]Exit BOT')
+        print(f'[1]Reload Configuration{txcolors.DEFAULT}')
+        print(f'[2]Exit BOT{txcolors.DEFAULT}')
         x = input('Please enter your choice: ')
         x = int(x)
         print(f'')
@@ -1238,7 +1228,7 @@ def menu():
             renew_list()
             LOOP = False
             load_signal_threads()
-            print(f'{txcolors.WARNING}Reaload Completed')
+            print(f'{txcolors.WARNING}Reaload Completed{txcolors.DEFAULT}')
         elif x == 2:
             # stop external signal threads
             stop_signal_threads()
