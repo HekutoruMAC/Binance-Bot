@@ -10,6 +10,16 @@ import glob
 
 import time
 
+from helpers.parameters import parse_args, load_config
+
+args = parse_args()
+DEFAULT_CONFIG_FILE = 'config.yml'
+
+config_file = args.config if args.config else DEFAULT_CONFIG_FILE
+parsed_config = load_config(config_file)
+
+USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+
 MY_EXCHANGE = 'BINANCE'
 MY_SCREENER = 'CRYPTO'
 MY_FIRST_INTERVAL = Interval.INTERVAL_1_MINUTE
@@ -23,7 +33,12 @@ FULL_LOG = True # List anylysis result to console
 SIGNAL_NAME = 'os_signalbuy_RECOMM'
 SIGNAL_FILE = 'signals/' + SIGNAL_NAME + '.buy'
 
-TICKERS = 'tickers.txt'
+if USE_MOST_VOLUME_COINS == True:
+        #if ABOVE_COINS_VOLUME == True:
+        TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
+    else:
+        TICKERS = 'tickers.txt' #'signalsample.txt'
+
 TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
 if os.path.exists(TICKERS_OVERRIDE):

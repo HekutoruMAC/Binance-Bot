@@ -13,6 +13,16 @@ import glob
 import time
 import threading
 
+from helpers.parameters import parse_args, load_config
+
+args = parse_args()
+DEFAULT_CONFIG_FILE = 'config.yml'
+
+config_file = args.config if args.config else DEFAULT_CONFIG_FILE
+parsed_config = load_config(config_file)
+
+USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+
 # for colourful logging to the console
 class txcolors:
     BUY = '\033[92m'
@@ -28,7 +38,12 @@ INTERVAL5MIN = Interval.INTERVAL_5_MINUTES # Main Timeframe for analysis on Osci
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
 PAIR_WITH = 'USDT'
-TICKERS = 'tickers.txt' #'signalsample.txt'
+if USE_MOST_VOLUME_COINS == True:
+        #if ABOVE_COINS_VOLUME == True:
+        TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
+    else:
+        TICKERS = 'tickers.txt' #'signalsample.txt'
+
 TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
 if os.path.exists(TICKERS_OVERRIDE):
