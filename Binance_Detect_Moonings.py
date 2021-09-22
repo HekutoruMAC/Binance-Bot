@@ -87,6 +87,7 @@ class txcolors:
     DEFAULT = '\033[39m'
     BOT_LOSSES = '\033[91m'
     BOT_WINS = '\033[92m'
+    #Red = '\033[31m'
     #Blue = '\033[94m'
     #Cyan = '\033[96m'
     #White = '\033[97m'
@@ -1201,8 +1202,7 @@ def load_settings():
     access_key, secret_key = load_correct_creds(parsed_creds)
 
 def renew_list():
-    global tickers #, TICKERS_LIST 
-    #print("List in Use: " + TICKERS_LIST)
+    global tickers
     if CUSTOM_LIST: 
         tickers=[line.strip() for line in open(TICKERS_LIST)]
 
@@ -1257,7 +1257,8 @@ if __name__ == '__main__':
 		# Load arguments then parse settings
     args = parse_args()
     mymodule = {}
-    print("BINANCE DETECT MOONINGS: Initializing, wait a moment...")
+    print(f'')
+    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Initializing, wait a moment...')
     discord_msg_balance_data = ""
     last_msg_discord_balance_date = datetime.now()
     last_history_log_date = datetime.now()
