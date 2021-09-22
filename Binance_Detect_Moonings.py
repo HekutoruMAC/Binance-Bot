@@ -388,6 +388,7 @@ def balance_report(last_price):
     strplus = "+"
     if STATIC_MAIN_INFO == True: clear()
     if SCREEN_MODE < 2: print(f'')
+    if SCREEN_MODE == 2: print(f'')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}')
