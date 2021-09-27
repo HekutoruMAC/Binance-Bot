@@ -122,6 +122,7 @@ trading_options:
     #- os_signalbuy_3SMA
     #- os_signalbuy_3SMAv2
     #- os_signalbuy_RECOMM
+    #- os_signalsell_RECOMM
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
