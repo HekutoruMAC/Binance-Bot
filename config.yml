@@ -4,7 +4,13 @@ script_options:
   # Setting this to False will use REAL funds, use at your own risk
   TEST_MODE: True
   LOG_TRADES: True
-  LOG_FILE: 'trades.txt'
+  #the MAIN_FILES_PATH will be the folder where the LOG_FILE, HISTORY_LOG_FILE, COIN_BOUGHT and BOT_STATS files will be stored. 
+  #By default, if it is empty, these files will be housed in the main folder of the Bot. Not yet implemented
+  MAIN_FILES_PATH: ""
+  LOG_FILE: 'trades.html'
+  HISTORY_LOG_FILE: 'history.html'
+  COIN_BOUGHT: 'coins_bought.json'
+  BOT_STATS: 'bot_stats.json'
   DEBUG: True
 
   # Set this to true if you are accessing binance from within the United States of America
@@ -55,7 +61,7 @@ trading_options:
   STOP_LOSS: 100
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: 0.35
+  TAKE_PROFIT: 0.46
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -96,15 +102,14 @@ trading_options:
   #minimal mode set to 0, complete mode set to 1, termux mode set to 2
   SCREEN_MODE: 2
   STATIC_MAIN_INFO: False
-  DISABLE_TIMESTAMPS: True
-  
+  DISABLE_TIMESTAMPS: True  
   SHOW_INITIAL_CONFIG: False
   
  #Enables the use of currencies with greater or lesser volume
   USE_MOST_VOLUME_COINS: True
   #idea from my psychologist, thanks Sebastian V.
   COINS_MAX_VOLUME: 100
-  COINS_MIN_VOLUME: 50
+  COINS_MIN_VOLUME: 10
   
   SIGNALLING_MODULES:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
@@ -127,5 +132,6 @@ trading_options:
     #- os_signalsell_3SMAv2
     #- pausebotmod
     - rsi-mod
+    - webserver
     #- signalsample
     #- signalsamplemod
