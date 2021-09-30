@@ -6,6 +6,6 @@ del /s signalsell_tickers.txt
 
 del /s test_bot_stats.json
 del /s test_coins_bought.json
-del /s test_history.txt
-del /s test_trades.txt
+del /s test_history.html
+del /s test_trades.html
 
