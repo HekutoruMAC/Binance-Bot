@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 1.0
+Version: 5.0
 
 Disclaimer
 
@@ -63,6 +63,10 @@ from itertools import count
 
 # used to store trades and sell assets
 import json
+
+#print output tables
+from prettytable import PrettyTable, from_html_one
+#from pretty_html_table import build_table
 
 # Load helper modules
 from helpers.parameters import (
@@ -321,17 +325,17 @@ def get_volume_list():
         tickers_all=[line.strip() for line in open("tickers_all.txt")]
     else:
         VOLATILE_VOLUME = ""
-
+    c = 0
     if VOLATILE_VOLUME != "":
         for coin in tickers_all:
             infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
             volumecoin = float(infocoin['quoteVolume']) / 1000000
             if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME:
                 most_volume_coins.update({coin : volumecoin})  					
-            
+                c = c + 1
         sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
 		
-        print(f'Saving to {VOLATILE_VOLUME} ...')
+        print(f'Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
 		
         for coin in sortedVolumeList:
             with open(VOLATILE_VOLUME,'a+') as f:
@@ -396,8 +400,8 @@ def balance_report(last_price):
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {str(bot_paused)}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)}{txcolors.BORDER}{"+".rjust(47)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins).zfill(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5)}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.BOT_WINS}Win%: {str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins).zfill(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5)} {txcolors.BOT_WINS}Win%: {float(WIN_LOSS_PERCENT):g}%{txcolors.BORDER}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     if SCREEN_MODE < 2: print(f'')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
@@ -430,7 +434,8 @@ def balance_report(last_price):
         session_USDT_EARNED_TODAY = session_USDT_EARNED_TODAY + session_USDT_EARNED
         msg2 = msg2 + "USDT EARNED TODAY: " + str(session_USDT_EARNED_TODAY)
         session_USDT_EARNED_TODAY = 0
-    #msg1 = str(datetime.now())
+
+	#msg1 = str(datetime.now())
     #msg2 = " | " + str(len(coins_bought)) + "/" + str(TRADE_SLOTS) + " | PBOT: " + str(bot_paused)
     #msg2 = msg2 + ' SPR%: ' + str(round(session_profit_incfees_perc,2)) + ' SPR$: ' + str(round(session_profit_incfees_total,4))
     #msg2 = msg2 + ' SPU%: ' + str(round(unrealised_session_profit_incfees_perc,2)) + ' SPU$: ' + str(round(unrealised_session_profit_incfees_total,4))
@@ -452,13 +457,77 @@ def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_pro
         last_history_log_date = datetime.now()
         timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
 
-        if not os.path.exists(HISTORY_LOG_FILE):
-            with open(HISTORY_LOG_FILE,'a+') as f:
-                f.write('Datetime\tCoins Holding\tTrade Slots\tPausebot Active\tSession Profit %\tSession Profit $\tSession Profit Unrealised %\tSession Profit Unrealised $\tSession Profit Total %\tSession Profit Total $\tAll Time Profit %\tAll Time Profit $\tTotal Trades\tWon Trades\tLost Trades\tWin Loss Ratio\n')    
-
-        with open(HISTORY_LOG_FILE,'a+') as f:
-            f.write(f'{timestamp}\t{len(coins_bought)}\t{TRADE_SLOTS}\t{str(bot_paused)}\t{str(round(sess_profit_perc,2))}\t{str(round(sess_profit,4))}\t{str(round(sess_profit_perc_unreal,2))}\t{str(round(sess_profit_unreal,4))}\t{str(round(sess_profit_perc_total,2))}\t{str(round(sess_profit_total,4))}\t{str(round(alltime_profit_perc,2))}\t{str(round(alltime_profit,4))}\t{str(total_trades)}\t{str(won_trades)}\t{str(lost_trades)}\t{str(winloss_ratio)}\n')
-
+        if os.path.exists(HISTORY_LOG_FILE):
+            HISTORY_LOG_TABLE = PrettyTable([])
+            with open(HISTORY_LOG_FILE, "r") as fp: 
+                html = fp.read()
+            HISTORY_LOG_TABLE = from_html_one(html)
+            HISTORY_LOG_TABLE.format = True
+            HISTORY_LOG_TABLE.border = True
+            HISTORY_LOG_TABLE.align = "c"
+            HISTORY_LOG_TABLE.valign = "m"
+            HISTORY_LOG_TABLE.hrules = 1
+            HISTORY_LOG_TABLE.vrules = 1
+            HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
+            table_txt = HISTORY_LOG_TABLE.get_html_string()
+            #table_txt = HISTORY_LOG_TABLE.get_string()
+        else:
+            HISTORY_LOG_TABLE = PrettyTable([])
+            HISTORY_LOG_TABLE = PrettyTable(["Datetime", "Coins Holding", "Trade Slots", "Pausebot Active", "Session Profit %", "Session Profit $", "Session Profit Unrealised %", "Session Profit Unrealised $", "Session Profit Total %", "Session Profit Total $", "All Time Profit %", "All Time Profit $", "Total Trades", "Won Trades", "Lost Trades", "Win Loss Ratio"])
+            HISTORY_LOG_TABLE.format = True
+            HISTORY_LOG_TABLE.border = True
+            HISTORY_LOG_TABLE.align = "c"
+            HISTORY_LOG_TABLE.valign = "m"
+            HISTORY_LOG_TABLE.hrules = 1
+            HISTORY_LOG_TABLE.vrules = 1
+        #    with open(HISTORY_LOG_FILE,'a+') as f:
+        #        f.write('Datetime\tCoins Holding\tTrade Slots\tPausebot Active\tSession Profit %\tSession Profit $\tSession Profit Unrealised %\tSession Profit Unrealised $\tSession Profit Total %\tSession Profit Total $\tAll Time Profit %\tAll Time Profit $\tTotal Trades\tWon Trades\tLost Trades\tWin Loss Ratio\n')    
+            HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
+            table_txt = HISTORY_LOG_TABLE.get_html_string()
+            #table_txt = HISTORY_LOG_TABLE.get_string()
+        if not table_txt == "":
+            with open(HISTORY_LOG_FILE,'w') as f:
+            #f.write(f'{timestamp}\t{len(coins_bought)}\t{TRADE_SLOTS}\t{str(bot_paused)}\t{str(round(sess_profit_perc,2))}\t{str(round(sess_profit,4))}\t{str(round(sess_profit_perc_unreal,2))}\t{str(round(sess_profit_unreal,4))}\t{str(round(sess_profit_perc_total,2))}\t{str(round(sess_profit_total,4))}\t{str(round(alltime_profit_perc,2))}\t{str(round(alltime_profit,4))}\t{str(total_trades)}\t{str(won_trades)}\t{str(lost_trades)}\t{str(winloss_ratio)}\n')
+                f.write(table_txt)
+				
+def write_log(logline):
+    #timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+    if os.path.exists(LOG_FILE):
+        LOGTABLE = PrettyTable([])
+        with open(LOG_FILE, "r") as fp: 
+            html = fp.read()
+        LOGTABLE = from_html_one(html)
+        LOGTABLE.format = True
+        LOGTABLE.border = True
+        LOGTABLE.align = "c"
+        LOGTABLE.valign = "m"
+        LOGTABLE.hrules = 1
+        LOGTABLE.vrules = 1
+        LOGTABLE.add_row(logline)
+        #table_txt = LOGTABLE.get_string()
+        LOGTABLE.sortby = "Coin"
+        table_txt = LOGTABLE.get_html_string()
+    else:
+        LOGTABLE = PrettyTable([])
+        LOGTABLE = PrettyTable(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Currency", "Sell Price", "Profit $", "Profit %", "Sell Reason", "Earned", "USDTdiff"])
+        LOGTABLE.format = True
+        LOGTABLE.border = True
+        LOGTABLE.align = "c"
+        LOGTABLE.valign = "m"
+        LOGTABLE.hrules = 1
+        LOGTABLE.vrules = 1
+        LOGTABLE.add_row(logline)
+        LOGTABLE.sortby = "Coin"
+        table_txt = LOGTABLE.get_html_string()
+        #table_txt = LOGTABLE.get_string()
+        #with open(LOG_FILE,'w') as f:
+		#improving the presentation of the log file
+            #f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
+    if not table_txt == "":
+        with open(LOG_FILE,'w') as f:
+        #f.write(timestamp + ' ' + logline + '\n')
+            f.write(table_txt)
+			
 def msg_discord_balance(msg1, msg2):
     global last_msg_discord_balance_date, discord_msg_balance_data, last_msg_discord_balance_date
     time_between_insertion = datetime.now() - last_msg_discord_balance_date
@@ -608,7 +677,7 @@ def buy():
                 last_price_buy = str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
                 BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
                 coin = '{0:<9}'.format(coin)
-                write_log(f"\tBuy \t\t{coin}\t\t{volumeBuy}\t\t{last_price_buy}\t\t{BuyUSDT}{PAIR_WITH}")                
+                write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])                
                 write_signallsell(coin.removesuffix(PAIR_WITH))
 
                 continue
@@ -649,7 +718,7 @@ def buy():
                         BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
-                        write_log(f"\tBuy\t\t{coin}\t\t{volumeBuy}\t\t{last_price_buy}\t\t{BuyUSDT}{PAIR_WITH}")
+                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     else:
 						#adding the price in USDT
                         BuyUSDT = volume[coin] * last_price[coin]['price']
@@ -658,7 +727,7 @@ def buy():
                         BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
-                        write_log(f"\tBuy \t\t{coin}\t\t{volumeBuy}\t\t{last_price_buy}\t\t{BuyUSDT}{PAIR_WITH}")
+                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     
                     write_signallsell(coin)
 
@@ -821,7 +890,7 @@ def sell_coins(tpsl_override = False):
                 BuyPriceCoin = format(BuyPrice, '.8f')
                 SellUSDT = str(format(SellUSDT, '.14f')).zfill(4)
                 coin = '{0:<9}'.format(coin)
-                write_log(f"\tSell\t\t{coin}\t\t{VolumeSell}\t\t{BuyPriceCoin}\t\t{SellUSDT}{PAIR_WITH}\t\t{str(format(LastPrice, '.6f')).zfill(4)}\t{profit_incfees_total:.{decimals()}f}\t{PriceChange_Perc:.2f}\t\t{sell_reason}\t{USDTdiff}")
+                write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin, VolumeSell, BuyPriceCoin, SellUSDT, PAIR_WITH, str(format(LastPrice, '.6f')).zfill(4), profit_incfees_total, str(format(PriceChange_Perc,'.2f')), sell_reason, USDTdiff])
                 
                 #this is good
                 session_profit_incfees_total = session_profit_incfees_total + profit_incfees_total
@@ -1028,18 +1097,6 @@ def remove_from_portfolio(coins_sold):
         for coin in coins_bought:
             write_signallsell(coin.removesuffix(PAIR_WITH))
     
-
-def write_log(logline):
-    timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
-
-    if not os.path.exists(LOG_FILE):
-        with open(LOG_FILE,'a+') as f:
-		#improving the presentation of the log file
-            f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
-
-    with open(LOG_FILE,'a+') as f:
-        f.write(timestamp + ' ' + logline + '\n')
-
 def write_signallsell(symbol):
     with open('signalsell_tickers.txt','a+') as f:
         f.write(f'{symbol}\n')
@@ -1078,7 +1135,7 @@ def load_signal_threads():
     try:
         if len(SIGNALLING_MODULES) > 0:
             for module in SIGNALLING_MODULES:
-                if not SCREEN_MODE == 2: print(f'Starting {module}')
+                print(f'Starting {module}')
                 mymodule[module] = importlib.import_module(module)
                 # t = threading.Thread(target=mymodule[module].do_work, args=())
                 t = multiprocessing.Process(target=mymodule[module].do_work, args=())
@@ -1091,9 +1148,9 @@ def load_signal_threads():
 
                 time.sleep(2)
         else:
-            if not SCREEN_MODE == 2: print(f'No modules to load {SIGNALLING_MODULES}')
+            print(f'No modules to load {SIGNALLING_MODULES}')
     except Exception as e:
-        if not SCREEN_MODE == 2: print(f'Loading external signals exception: {e}')
+        print(f'Loading external signals exception: {e}')
 
 def stop_signal_threads():
     try:
@@ -1132,7 +1189,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH
 
     # Default no debugging
     DEBUG = False
@@ -1140,8 +1197,12 @@ def load_settings():
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
     #     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
+    MAIN_FILES_PATH = parsed_config['script_options'].get('MAIN_FILES_PATH')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
-    HISTORY_LOG_FILE = "history.txt"
+    HISTORY_LOG_FILE = parsed_config['script_options'].get('HISTORY_LOG_FILE')
+    #HISTORY_LOG_FILE = "history.html"
+    COIN_BOUGHT = parsed_config['script_options'].get('COIN_BOUGHT')
+    BOT_STATS = parsed_config['script_options'].get('BOT_STATS')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
 
@@ -1326,11 +1387,11 @@ if __name__ == '__main__':
         file_prefix = 'live_'
 
     # path to the saved coins_bought file
-    coins_bought_file_path = file_prefix + 'coins_bought.json'
+    coins_bought_file_path = file_prefix + COIN_BOUGHT
 
     # The below mod was stolen and altered from GoGo's fork, a nice addition for keeping a historical history of profit across multiple bot sessions.
     # path to the saved bot_stats file
-    bot_stats_file_path = file_prefix + 'bot_stats.json'
+    bot_stats_file_path = file_prefix + BOT_STATS
 
     # use separate files for testing and live trading
     LOG_FILE = file_prefix + LOG_FILE
