@@ -318,15 +318,15 @@ def get_volume_list():
     VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
     most_volume_coins = {}
 
-    if os.path.exists(VOLATILE_VOLUME) == True: 
-        os.remove(VOLATILE_VOLUME)
+     
+    #    os.remove(VOLATILE_VOLUME)
     
     if os.path.exists("tickers_all.txt") == True:
         tickers_all=[line.strip() for line in open("tickers_all.txt")]
     else:
         VOLATILE_VOLUME = ""
     c = 0
-    if VOLATILE_VOLUME != "":
+    if os.path.exists(VOLATILE_VOLUME) == False:
         for coin in tickers_all:
             infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
             volumecoin = float(infocoin['quoteVolume']) / 1000000
@@ -340,7 +340,10 @@ def get_volume_list():
         for coin in sortedVolumeList:
             with open(VOLATILE_VOLUME,'a+') as f:
                 f.write(coin[0] + '\n')
-			
+    else:
+        print(f'There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
+        print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
+
     return VOLATILE_VOLUME
 	
 def clear():
@@ -1189,7 +1192,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE
 
     # Default no debugging
     DEBUG = False
@@ -1246,7 +1249,8 @@ def load_settings():
     SCREEN_MODE = parsed_config['trading_options']['SCREEN_MODE']
     STATIC_MAIN_INFO = parsed_config['trading_options']['STATIC_MAIN_INFO']
     DISABLE_TIMESTAMPS = parsed_config['trading_options']['DISABLE_TIMESTAMPS']
-	
+    #PRINT_TO_FILE = parsed_config['trading_options']['PRINT_TO_FILE']
+    #ENABLE_PRINT_TO_FILE = parsed_config['trading_options']['ENABLE_PRINT_TO_FILE']
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
 	
@@ -1268,6 +1272,29 @@ def renew_list():
     if CUSTOM_LIST: 
         tickers=[line.strip() for line in open(TICKERS_LIST)]
 
+def new_or_continue():
+    if os.path.exists(COIN_BOUGHT) or os.path.exists(BOT_STATS):
+        LOOP = True
+        END = False
+        while LOOP:
+            print(f'Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
+            x = input('y/n: ')
+            if x == "y" or x == "n":
+                if x == "y":
+                    print(f'Continuing with the session started ...')
+                else:
+                    print(f'Deleting previous sessions ...')
+                    os.remove(COIN_BOUGHT)
+                    os.remove(BOT_STATS)
+                    print(f'Session deleted, continuing ...')
+                    LOOP = False
+                    END = True
+            else:
+                print(f'Press the y key or the or key ...')
+                LOOP = True
+        return END
+		
+		
 def menu():
     global SCREEN_MODE
     END = False
@@ -1348,9 +1375,8 @@ if __name__ == '__main__':
                 pass
 
         sys.stdout = St_ampe_dOut()
-
+			
     # Load creds for correct environment
-
     if DEBUG:
         if SHOW_INITIAL_CONFIG == True: print(f'Loaded config below\n{json.dumps(parsed_config, indent=4)}')
         if SHOW_INITIAL_CONFIG == True: print(f'Your credentials have been loaded from {creds_file}')
@@ -1377,6 +1403,8 @@ if __name__ == '__main__':
     
     if USE_MOST_VOLUME_COINS == True: TICKERS_LIST = get_volume_list()
     renew_list()
+
+    new_or_continue()
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
