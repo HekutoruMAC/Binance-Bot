@@ -327,6 +327,7 @@ def get_volume_list():
         VOLATILE_VOLUME = ""
     c = 0
     if os.path.exists(VOLATILE_VOLUME) == False:
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}creating volatile list, wait a moment...')
         for coin in tickers_all:
             infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
             volumecoin = float(infocoin['quoteVolume']) / 1000000
