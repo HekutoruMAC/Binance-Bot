@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 5.0
+Version: 5.3
 
 Disclaimer
 
@@ -1328,7 +1328,6 @@ def menu():
     LOOP = True
     stop_signal_threads()
     while LOOP:
-        print(f'{txcolors.WARNING}Pausing all processes ...{txcolors.DEFAULT}')
         time.sleep(5)
         print(f'')
         print(f'')
