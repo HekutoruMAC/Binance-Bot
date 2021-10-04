@@ -327,7 +327,6 @@ def sell_external_signals():
 def get_volume_list():
     VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
     most_volume_coins = {}
-
      
     #    os.remove(VOLATILE_VOLUME)
     
@@ -951,9 +950,9 @@ def sell_coins(tpsl_override = False):
     except Exception as e:
         print(f'{"sell_coins"}: Exception in function: {e}')
         set_exparis(coin, args.config if args.config else 'config.yml')
+        coins_bought.pop(coin.strip())
         pass
-    #except KeyboardInterrupt as ki:
-        #pass
+
     return coins_sold
 
 def extract_order_data(order_details):
