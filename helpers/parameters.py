@@ -19,7 +19,7 @@ def set_exparis(pairs, file_name):
         data = file.readlines()
     EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
     e = False
-    pairs = pairs.strip()
+    pairs = pairs.strip().replace('USDT','')
     for coin in EX_PAIRS:
         if coin == pairs: 
             e = True
