@@ -70,7 +70,7 @@ from prettytable import PrettyTable, from_html_one
 
 # Load helper modules
 from helpers.parameters import (
-    parse_args, load_config
+    parse_args, load_config, set_exparis
 )
 
 # Load creds modules
@@ -102,7 +102,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -166,26 +166,32 @@ def get_price(add_to_historical=True):
     global historical_prices, hsp_head
 
     initial_price = {}
-    prices = client.get_all_tickers()
-    renew_list()
+    try:
+        prices = client.get_all_tickers()
 
-    for coin in prices:
+        renew_list()
 
-        if CUSTOM_LIST:
-            if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
-        else:
-            if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+        for coin in prices:
 
-    if add_to_historical:
-        hsp_head += 1
+            if CUSTOM_LIST:
+                if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS) and all(item + PAIR_WITH not in coin['symbol'] for item in EX_PAIRS):
+                    initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+            else:
+                if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
+                    initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
-        if hsp_head == RECHECK_INTERVAL:
-            hsp_head = 0
+        if add_to_historical:
+            hsp_head += 1
 
-        historical_prices[hsp_head] = initial_price
+            if hsp_head == RECHECK_INTERVAL:
+                hsp_head = 0
 
+            historical_prices[hsp_head] = initial_price
+    except Exception as e:
+        print(f'{"get_price"}: Exception in function: {e}')
+        pass
+    #except KeyboardInterrupt as ki:
+        #pass
     return initial_price
 
 #use function of the OlorinSledge
@@ -194,88 +200,92 @@ def wait_for_price():
     before reading the current price again'''
 
     global historical_prices, hsp_head, volatility_cooloff
-
+ 
     volatile_coins = {}
     externals = {}
 
     coins_up = 0
     coins_down = 0
     coins_unchanged = 0
+    try:
+        pause_bot()
 
-    pause_bot()
+        # get first element from the dictionary
+        firstcoin = next(iter(historical_prices[hsp_head]))  
 
-    # get first element from the dictionary
-    firstcoin = next(iter(historical_prices[hsp_head]))  
+        #BBif historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+        if historical_prices[hsp_head][firstcoin]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+            # sleep for exactly the amount of time required
+            #BBtime.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())    
+            time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head][firstcoin]['time'])).total_seconds())    
 
-    #BBif historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
-    if historical_prices[hsp_head][firstcoin]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
-        # sleep for exactly the amount of time required
-        #BBtime.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())    
-        time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head][firstcoin]['time'])).total_seconds())    
+        # retrieve latest prices
+        last_price = get_price()
 
-    # retrieve latest prices
-    last_price = get_price()
+        # Moved to the end of this method
+        # balance_report(last_price)
 
-    # Moved to the end of this method
-    # balance_report(last_price)
+        # calculate the difference in prices
+        for coin in historical_prices[hsp_head]:
 
-    # calculate the difference in prices
-    for coin in historical_prices[hsp_head]:
+            # minimum and maximum prices over time period
+            min_price = min(historical_prices, key = lambda x: float("inf") if x is None else float(x[coin]['price']))
+            max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
 
-        # minimum and maximum prices over time period
-        min_price = min(historical_prices, key = lambda x: float("inf") if x is None else float(x[coin]['price']))
-        max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
+            threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
 
-        threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
+            # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than TRADE_SLOTS is not reached.
+            if threshold_check > CHANGE_IN_PRICE:
+                coins_up +=1
 
-        # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than TRADE_SLOTS is not reached.
-        if threshold_check > CHANGE_IN_PRICE:
-            coins_up +=1
+                if coin not in volatility_cooloff:
+                    volatility_cooloff[coin] = datetime.now() - timedelta(minutes=TIME_DIFFERENCE)
+                    # volatility_cooloff[coin] = datetime.now() - timedelta(minutes=COOLOFF_PERIOD)
+                
+                # only include coin as volatile if it hasn't been picked up in the last TIME_DIFFERENCE minutes already
+                if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=TIME_DIFFERENCE):
+                #if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD):
+                    volatility_cooloff[coin] = datetime.now()
 
-            if coin not in volatility_cooloff:
-                volatility_cooloff[coin] = datetime.now() - timedelta(minutes=TIME_DIFFERENCE)
-                # volatility_cooloff[coin] = datetime.now() - timedelta(minutes=COOLOFF_PERIOD)
-            
-            # only include coin as volatile if it hasn't been picked up in the last TIME_DIFFERENCE minutes already
-            if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=TIME_DIFFERENCE):
-            #if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD):
-                volatility_cooloff[coin] = datetime.now()
+                    if len(coins_bought) + len(volatile_coins) < TRADE_SLOTS or TRADE_SLOTS == 0:
+                        volatile_coins[coin] = round(threshold_check, 3)
+                        print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, purchasing ${TRADE_TOTAL} {PAIR_WITH} of {coin}!')
 
-                if len(coins_bought) + len(volatile_coins) < TRADE_SLOTS or TRADE_SLOTS == 0:
-                    volatile_coins[coin] = round(threshold_check, 3)
-                    print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, purchasing ${TRADE_TOTAL} {PAIR_WITH} of {coin}!')
-
-                else:
-                    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
-            #else:
-                #if len(coins_bought) == TRADE_SLOTS:
-                #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
+                    else:
+                        print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
                 #else:
-                #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but failed cool off period of {COOLOFF_PERIOD} minutes! Curr COP is {volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD)}{txcolors.DEFAULT}')
-        elif threshold_check < CHANGE_IN_PRICE:
-            coins_down +=1
+                    #if len(coins_bought) == TRADE_SLOTS:
+                    #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are using all available trade slots!{txcolors.DEFAULT}')
+                    #else:
+                    #    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but failed cool off period of {COOLOFF_PERIOD} minutes! Curr COP is {volatility_cooloff[coin] + timedelta(minutes=COOLOFF_PERIOD)}{txcolors.DEFAULT}')
+            elif threshold_check < CHANGE_IN_PRICE:
+                coins_down +=1
 
-        else:
-            coins_unchanged +=1
+            else:
+                coins_unchanged +=1
 
-    # Disabled until fix
-    #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
+        # Disabled until fix
+        #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
-    # Here goes new code for external signalling
-    externals = buy_external_signals()
-    exnumber = 0
+        # Here goes new code for external signalling
+        externals = buy_external_signals()
+        exnumber = 0
 
-    for excoin in externals:
-        if excoin not in volatile_coins and excoin not in coins_bought and \
-                (len(coins_bought) + len(volatile_coins)) < TRADE_SLOTS:
+        for excoin in externals:
+            if excoin not in volatile_coins and excoin not in coins_bought and \
+                    (len(coins_bought) + len(volatile_coins)) < TRADE_SLOTS:
 
-            #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
-            volatile_coins[excoin] = 1
-            exnumber +=1
-            print(f"External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!")
+                #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
+                volatile_coins[excoin] = 1
+                exnumber +=1
+                print(f"External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!")
 
-    balance_report(last_price)
-
+        balance_report(last_price)
+    except Exception as e:
+        print(f'{"wait_for_price"}: Exception in function: {e}')
+        pass
+    #except KeyboardInterrupt as ki:
+        #pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
@@ -336,13 +346,13 @@ def get_volume_list():
                 c = c + 1
         sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
 		
-        print(f'Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
 		
         for coin in sortedVolumeList:
             with open(VOLATILE_VOLUME,'a+') as f:
                 f.write(coin[0] + '\n')
     else:
-        print(f'There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
         print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
 
     return VOLATILE_VOLUME
@@ -603,52 +613,59 @@ def pause_bot():
             msg_discord(msg)
 
             bot_paused = False
-
     return
 
 
 def convert_volume():
     '''Converts the volume given in TRADE_TOTAL from USDT to the each coin's volume'''
-
     volatile_coins, number_of_coins, last_price = wait_for_price()
+ 
     lot_size = {}
     volume = {}
+    try:
+        for coin in volatile_coins:
 
-    for coin in volatile_coins:
-
-        # Find the correct step size for each coin
-        # max accuracy for BTC for example is 6 decimal points
-        # while XRP is only 1
-        try:
+            # Find the correct step size for each coin
+            # max accuracy for BTC for example is 6 decimal points
+            # while XRP is only 1
+            #try:
             info = client.get_symbol_info(coin)
             step_size = info['filters'][2]['stepSize']
             lot_size[coin] = step_size.index('1') - 1
             
-            if lot_size[coin] < 0:
-                lot_size[coin] = 0
+            if lot_size[coin] < 0: lot_size[coin] = 0
 
-        except Exception as e:
-            if not SCREEN_MODE == 2: print(f'convert_volume() exception: {e}')
-            pass
-        try:
-            #print("COIN: " + str(coin) + " TRADE_TOTAL: " + str(TRADE_TOTAL) + " last_price[coin]['price']: " + str(last_price[coin]['price']))
-            # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
+            #except Exception as e:
+                #if not SCREEN_MODE == 2: print(f'convert_volume() exception: {e}')
+                #pass
+            #except KeyboardInterrupt as ki:
+                #pass
+            #try: 
+                #print("COIN: " + str(coin) + " TRADE_TOTAL: " + str(TRADE_TOTAL) + " last_price[coin]['price']: " + str(last_price[coin]['price']))
+                # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
             volume[coin] = float(TRADE_TOTAL / float(last_price[coin]['price']))
 
-            # define the volume with the correct step size
+                # define the volume with the correct step size
             if coin not in lot_size:
-                # original code: volume[coin] = float('{:.1f}'.format(volume[coin]))
+                    # original code: volume[coin] = float('{:.1f}'.format(volume[coin]))
                 volume[coin] = int(volume[coin])
             else:
-                # if lot size has 0 decimal points, make the volume an integer
+                    # if lot size has 0 decimal points, make the volume an integer
                 if lot_size[coin] == 0:
                     volume[coin] = int(volume[coin])
                 else:
-                    #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
+                        #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
                     volume[coin] = truncate(volume[coin], lot_size[coin])
-        except Exception as e:
-            if not SCREEN_MODE == 2: print(f'convert_volume()2 exception: {e}')
-            pass    
+            #except Exception as e:
+                #if not SCREEN_MODE == 2: print(f'convert_volume()2 exception: {e}')
+                #pass
+            #except KeyboardInterrupt as ki:
+                #pass
+    except Exception as e:
+        print(f'convert_volume() exception: {e}')
+        pass
+    #except KeyboardInterrupt as ki:
+        #pass
     return volume, last_price
 
 
@@ -743,195 +760,201 @@ def buy():
 def sell_coins(tpsl_override = False):
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
     global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL
-    
-    externals = sell_external_signals()
-    
-    last_price = get_price(False) # don't populate rolling window
-    #last_price = get_price(add_to_historical=True) # don't populate rolling window
-    coins_sold = {}
-
-    BUDGET = TRADE_TOTAL * TRADE_SLOTS
-    
-    for coin in list(coins_bought):
-        LastPrice = float(last_price[coin]['price'])
-        sellFee = (LastPrice * (TRADING_FEE/100))
-        sellFeeTotal = (coins_bought[coin]['volume'] * LastPrice) * (TRADING_FEE/100)
+    try:  
+        externals = sell_external_signals()
         
-        BuyPrice = float(coins_bought[coin]['bought_at'])
-        buyFee = (BuyPrice * (TRADING_FEE/100))
-        buyFeeTotal = (coins_bought[coin]['volume'] * BuyPrice) * (TRADING_FEE/100)
+        last_price = get_price(False) # don't populate rolling window
+        #last_price = get_price(add_to_historical=True) # don't populate rolling window
+        coins_sold = {}
+
+        BUDGET = TRADE_TOTAL * TRADE_SLOTS
         
-        PriceChange_Perc = float((LastPrice - BuyPrice) / BuyPrice * 100)
-        #PriceChangeIncFees_Perc = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
-        #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
-        PriceChangeIncFees_Perc = float(((LastPrice-sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
-        PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
+        for coin in list(coins_bought):
+            LastPrice = float(last_price[coin]['price'])
+            sellFee = (LastPrice * (TRADING_FEE/100))
+            sellFeeTotal = (coins_bought[coin]['volume'] * LastPrice) * (TRADING_FEE/100)
+            
+            BuyPrice = float(coins_bought[coin]['bought_at'])
+            buyFee = (BuyPrice * (TRADING_FEE/100))
+            buyFeeTotal = (coins_bought[coin]['volume'] * BuyPrice) * (TRADING_FEE/100)
+            
+            PriceChange_Perc = float((LastPrice - BuyPrice) / BuyPrice * 100)
+            #PriceChangeIncFees_Perc = float(((LastPrice+sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
+            #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+            PriceChangeIncFees_Perc = float(((LastPrice-sellFee) - (BuyPrice+buyFee)) / (BuyPrice+buyFee) * 100)
+            PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
 
-        # define stop loss and take profit
-        TP = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['take_profit']) / 100))
-        SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
+            # define stop loss and take profit
+            TP = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['take_profit']) / 100))
+            SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
 
-        # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
-        
-        if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override:
-            # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
+            # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
+            
+            if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override:
+                # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
 
-            #add metod from OlorinSledge
-            if PriceChange_Perc >= 0.8:
-                # price has changed by 0.8% or greater, a big change. Make the STOP LOSS trail closely to the TAKE PROFIT
-                # so you don't lose this increase in price if it falls back
-                coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT    
-                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                #add metod from OlorinSledge
+                if PriceChange_Perc >= 0.8:
+                    # price has changed by 0.8% or greater, a big change. Make the STOP LOSS trail closely to the TAKE PROFIT
+                    # so you don't lose this increase in price if it falls back
+                    coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT    
+                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                else:
+                    # price has changed by less than 0.8%, a small change. Make the STOP LOSS trail loosely to the TAKE PROFIT
+                    # so you don't get stopped out of the trade prematurely
+                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                    coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
+
+                # we've got a negative stop loss - not good, we don't want this.
+                if coins_bought[coin]['stop_loss'] <= 0:
+                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] * .25
+
+                # supress old metod
+                #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                #coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
+                # if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
+                if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.{decimals()}f} and SL {coins_bought[coin]['stop_loss']:.{decimals()}f} accordingly to lock-in profit")
+                continue
+
+            # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
+            sellCoin = False
+            sell_reason = ""
+            if SELL_ON_SIGNAL_ONLY:
+                # only sell if told to by external signal
+                if coin in externals:
+                    sellCoin = True
+                    sell_reason = 'External Sell Signal'
             else:
-                # price has changed by less than 0.8%, a small change. Make the STOP LOSS trail loosely to the TAKE PROFIT
-                # so you don't get stopped out of the trade prematurely
-                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-                coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
-
-            # we've got a negative stop loss - not good, we don't want this.
-            if coins_bought[coin]['stop_loss'] <= 0:
-                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] * .25
-
-            # supress old metod
-            #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-            #coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
-            # if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
-            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.{decimals()}f} and SL {coins_bought[coin]['stop_loss']:.{decimals()}f} accordingly to lock-in profit")
-            continue
-
-        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
-        sellCoin = False
-        sell_reason = ""
-        if SELL_ON_SIGNAL_ONLY:
-            # only sell if told to by external signal
-            if coin in externals:
-                sellCoin = True
-                sell_reason = 'External Sell Signal'
-        else:
-            if LastPrice < SL: 
-                sellCoin = True
-                if USE_TRAILING_STOP_LOSS:
-                    if PriceChange_Perc >= 0:
-                        sell_reason = "TTP "
+                if LastPrice < SL: 
+                    sellCoin = True
+                    if USE_TRAILING_STOP_LOSS:
+                        if PriceChange_Perc >= 0:
+                            sell_reason = "TTP "
+                        else:
+                            sell_reason = "TSL "
                     else:
-                        sell_reason = "TSL "
-                else:
-                    sell_reason = "SL "    
-                sell_reason = sell_reason + str(format(TP, ".18f")) + " reached"
-            if LastPrice > TP:
-                sellCoin = True
-                sell_reason = "TP " + str(format(SL, ".18f")) + " reached"
-            if coin in externals:
-                sellCoin = True
-                sell_reason = 'External Sell Signal'
-        
-        if sell_all_coins:
-            sellCoin = True
-            sell_reason = 'Sell All Coins'
-        if tpsl_override:
-            sellCoin = True
-            sell_reason = 'Session TPSL Override reached'
-
-        if sellCoin:
-            if not SCREEN_MODE == 2: print(f"{txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees){txcolors.DEFAULT} USDT earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}")
+                        sell_reason = "SL "    
+                    sell_reason = sell_reason + str(format(TP, ".18f")) + " reached"
+                if LastPrice > TP:
+                    sellCoin = True
+                    sell_reason = "TP " + str(format(SL, ".18f")) + " reached"
+                if coin in externals:
+                    sellCoin = True
+                    sell_reason = 'External Sell Signal'
             
-            msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' USDT earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
-            msg_discord(msg1)
+            if sell_all_coins:
+                sellCoin = True
+                sell_reason = 'Sell All Coins'
+            if tpsl_override:
+                sellCoin = True
+                sell_reason = 'Session TPSL Override reached'
 
-            # try to create a real order          
-            try:
-                if not TEST_MODE:
-                    #lot_size = coins_bought[coin]['step_size']
-                    #if lot_size == 0:
-                    #    lot_size = 1
-                    #lot_size = lot_size.index('1') - 1
-                    #if lot_size < 0:
-                    #    lot_size = 0
+            if sellCoin:
+                if not SCREEN_MODE == 2: print(f"{txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees){txcolors.DEFAULT} USDT earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}")
+                
+                msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' USDT earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
+                msg_discord(msg1)
+
+                # try to create a real order          
+                try:
+                    if not TEST_MODE:
+                        #lot_size = coins_bought[coin]['step_size']
+                        #if lot_size == 0:
+                        #    lot_size = 1
+                        #lot_size = lot_size.index('1') - 1
+                        #if lot_size < 0:
+                        #    lot_size = 0
+                        
+                        order_details = client.create_order(
+                            symbol = coin,
+                            side = 'SELL',
+                            type = 'MARKET',
+                            quantity = coins_bought[coin]['volume']
+                        )
+
+                # error handling here in case position cannot be placed
+                except Exception as e:
+                    #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
+                    if not SCREEN_MODE == 2: print(f"sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
+
+                # run the else block if coin has been sold and create a dict for each coin sold
+                else:
+                    if not TEST_MODE:
+                        coins_sold[coin] = extract_order_data(order_details)
+                        LastPrice = coins_sold[coin]['avgPrice']
+                        sellFee = coins_sold[coin]['tradeFeeUnit']
+                        coins_sold[coin]['orderid'] = coins_bought[coin]['orderid']
+                        priceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
+
+                        # update this from the actual Binance sale information
+                        #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+                        PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
+                    else:
+                        coins_sold[coin] = coins_bought[coin]
+
+                    # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
+                    volatility_cooloff[coin] = datetime.now()
+
+                    if DEBUG:
+                        if not SCREEN_MODE == 2: print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
+
+                    # Log trade
+                    #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
+                    profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
+                    #write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
+                    SellUSDT = coins_sold[coin]['volume'] * LastPrice
+                    USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
+                    session_USDT_EARNED = session_USDT_EARNED + USDTdiff
+                    #improving the presentation of the log file
+                    # it was padded with trailing zeros to give order to the table in the log file
+                    VolumeSell = format(float(coins_sold[coin]['volume']), '.6f')
+                    BuyPriceCoin = format(BuyPrice, '.8f')
+                    SellUSDT = str(format(SellUSDT, '.14f')).zfill(4)
+                    coin = '{0:<9}'.format(coin)
+                    write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin, VolumeSell, BuyPriceCoin, SellUSDT, PAIR_WITH, str(format(LastPrice, '.6f')).zfill(4), profit_incfees_total, str(format(PriceChange_Perc,'.2f')), sell_reason, USDTdiff])
                     
-                    order_details = client.create_order(
-                        symbol = coin,
-                        side = 'SELL',
-                        type = 'MARKET',
-                        quantity = coins_bought[coin]['volume']
-                    )
+                    #this is good
+                    session_profit_incfees_total = session_profit_incfees_total + profit_incfees_total
+                    session_profit_incfees_perc = session_profit_incfees_perc + ((profit_incfees_total/BUDGET) * 100)
+                    
+                    historic_profit_incfees_total = historic_profit_incfees_total + profit_incfees_total
+                    historic_profit_incfees_perc = historic_profit_incfees_perc + ((profit_incfees_total/BUDGET) * 100)
+                    
+                    #TRADE_TOTAL*PriceChangeIncFees_Perc)/100
+                    
+                    #if (LastPrice+sellFee) >= (BuyPrice+buyFee):
+                    if (LastPrice-sellFee) >= (BuyPrice+buyFee):
+                        trade_wins += 1
+                    else:
+                        trade_losses += 1
 
-            # error handling here in case position cannot be placed
-            except Exception as e:
-                #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
-                if not SCREEN_MODE == 2: print(f"sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
+                    update_bot_stats()
+                    if not sell_all_coins:
+                        # within sell_all_coins, it will print display to screen
+                        balance_report(last_price)
 
-            # run the else block if coin has been sold and create a dict for each coin sold
-            else:
-                if not TEST_MODE:
-                    coins_sold[coin] = extract_order_data(order_details)
-                    LastPrice = coins_sold[coin]['avgPrice']
-                    sellFee = coins_sold[coin]['tradeFeeUnit']
-                    coins_sold[coin]['orderid'] = coins_bought[coin]['orderid']
-                    priceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
-
-                    # update this from the actual Binance sale information
-                    #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
-                    PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
-                else:
-                    coins_sold[coin] = coins_bought[coin]
-
-                # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
-                volatility_cooloff[coin] = datetime.now()
-
-                if DEBUG:
-                    if not SCREEN_MODE == 2: print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
-
-                # Log trade
-                #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
-                profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
-                #write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
-                SellUSDT = coins_sold[coin]['volume'] * LastPrice
-                USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
-                session_USDT_EARNED = session_USDT_EARNED + USDTdiff
-                #improving the presentation of the log file
-                # it was padded with trailing zeros to give order to the table in the log file
-                VolumeSell = format(float(coins_sold[coin]['volume']), '.6f')
-                BuyPriceCoin = format(BuyPrice, '.8f')
-                SellUSDT = str(format(SellUSDT, '.14f')).zfill(4)
-                coin = '{0:<9}'.format(coin)
-                write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin, VolumeSell, BuyPriceCoin, SellUSDT, PAIR_WITH, str(format(LastPrice, '.6f')).zfill(4), profit_incfees_total, str(format(PriceChange_Perc,'.2f')), sell_reason, USDTdiff])
+                # sometimes get "rate limited" errors from Binance if we try to sell too many coins at once
+                # so wait 1 second in between sells
+                time.sleep(1)
                 
-                #this is good
-                session_profit_incfees_total = session_profit_incfees_total + profit_incfees_total
-                session_profit_incfees_perc = session_profit_incfees_perc + ((profit_incfees_total/BUDGET) * 100)
-                
-                historic_profit_incfees_total = historic_profit_incfees_total + profit_incfees_total
-                historic_profit_incfees_perc = historic_profit_incfees_perc + ((profit_incfees_total/BUDGET) * 100)
-                
-                #TRADE_TOTAL*PriceChangeIncFees_Perc)/100
-                
-                #if (LastPrice+sellFee) >= (BuyPrice+buyFee):
-                if (LastPrice-sellFee) >= (BuyPrice+buyFee):
-                    trade_wins += 1
-                else:
-                    trade_losses += 1
+                continue
 
-                update_bot_stats()
-                if not sell_all_coins:
-                    # within sell_all_coins, it will print display to screen
-                    balance_report(last_price)
+            # no action; print once every TIME_DIFFERENCE
+            if hsp_head == 1:
+                if len(coins_bought) > 0:
+                    #if not SCREEN_MODE == 2: print(f"Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({(TRADE_TOTAL*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
+                    if not SCREEN_MODE == 2: print(f"Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
+                        
+        #if hsp_head == 1 and len(coins_bought) == 0: if not SCREEN_MODE == 2: print(f"No trade slots are currently in use")
 
-            # sometimes get "rate limited" errors from Binance if we try to sell too many coins at once
-            # so wait 1 second in between sells
-            time.sleep(1)
-            
-            continue
-
-        # no action; print once every TIME_DIFFERENCE
-        if hsp_head == 1:
-            if len(coins_bought) > 0:
-                #if not SCREEN_MODE == 2: print(f"Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({(TRADE_TOTAL*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
-                if not SCREEN_MODE == 2: print(f"Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
-					
-    #if hsp_head == 1 and len(coins_bought) == 0: if not SCREEN_MODE == 2: print(f"No trade slots are currently in use")
-
-    # if tpsl_override: is_bot_running = False
-
+        # if tpsl_override: is_bot_running = False
+    except Exception as e:
+        print(f'{"sell_coins"}: Exception in function: {e}')
+        print(f'Saving Exception to Exception List in configuration File...')
+        set_exparis(coin, args.config if args.config else 'config.yml')
+        pass
+    #except KeyboardInterrupt as ki:
+        #pass
     return coins_sold
 
 def extract_order_data(order_details):
@@ -1135,6 +1158,7 @@ def sell_all(msgreason, session_tspl_ovr = False):
 	
 def load_signal_threads():
  # load signalling modules
+    global signalthreads
     signalthreads = []
     try:
         if len(SIGNALLING_MODULES) > 0:
@@ -1157,11 +1181,13 @@ def load_signal_threads():
         print(f'Loading external signals exception: {e}')
 
 def stop_signal_threads():
+    global signalthreads
     try:
         for signalthread in signalthreads:
-            print(f'Terminating thread {str(signalthread.name)}')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Terminating thread {str(signalthread.name)}')
             signalthread.terminate()
-    except:
+    except Exception as e:
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{"stop_signalthreads"}: Exception in function: {e}')
         pass
 
 def truncate(number, decimals=0):
@@ -1193,7 +1219,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS
 
     # Default no debugging
     DEBUG = False
@@ -1215,6 +1241,7 @@ def load_settings():
     TRADE_TOTAL = parsed_config['trading_options']['TRADE_TOTAL']
     TRADE_SLOTS = parsed_config['trading_options']['TRADE_SLOTS']
     FIATS = parsed_config['trading_options']['FIATS']
+    EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
     
     TIME_DIFFERENCE = parsed_config['trading_options']['TIME_DIFFERENCE']
     RECHECK_INTERVAL = parsed_config['trading_options']['RECHECK_INTERVAL']
@@ -1278,16 +1305,16 @@ def new_or_continue():
         LOOP = True
         END = False
         while LOOP:
-            print(f'Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
             x = input('y/n: ')
             if x == "y" or x == "n":
                 if x == "y":
-                    print(f'Continuing with the session started ...')
+                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Continuing with the session started ...')
                 else:
-                    print(f'Deleting previous sessions ...')
+                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
                     os.remove(COIN_BOUGHT)
                     os.remove(BOT_STATS)
-                    print(f'Session deleted, continuing ...')
+                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
             else:
@@ -1379,8 +1406,8 @@ if __name__ == '__main__':
 			
     # Load creds for correct environment
     if DEBUG:
-        if SHOW_INITIAL_CONFIG == True: print(f'Loaded config below\n{json.dumps(parsed_config, indent=4)}')
-        if SHOW_INITIAL_CONFIG == True: print(f'Your credentials have been loaded from {creds_file}')
+        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Your credentials have been loaded from {creds_file}')
 		
     if MSG_DISCORD:
         DISCORD_WEBHOOK = load_discord_creds(parsed_creds)
@@ -1498,13 +1525,13 @@ if __name__ == '__main__':
             update_bot_stats()
         except ReadTimeout as rt:
             TIMEOUT_COUNT += 1
-            print(f'We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')
         except ConnectionError as ce:
             READ_CONNECTERR_COUNT += 1
-            print(f'We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
         except BinanceAPIException as bapie:
             BINANCE_API_EXCEPTION += 1
-            print(f'We got an API error from Binance. Re-loop. API Errors so far: {BINANCE_API_EXCEPTION}.\nException:\n{bapie}')											
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got an API error from Binance. Re-loop. API Errors so far: {BINANCE_API_EXCEPTION}.\nException:\n{bapie}')											
         except KeyboardInterrupt as ki:
             if menu() == True: sys.exit(0)
 
@@ -1519,4 +1546,4 @@ if __name__ == '__main__':
         else:
             print(f'')
             print(f'')
-            print(f'Bot terminated for some reason.')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Bot terminated for some reason.')
