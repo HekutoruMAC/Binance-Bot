@@ -950,7 +950,6 @@ def sell_coins(tpsl_override = False):
         # if tpsl_override: is_bot_running = False
     except Exception as e:
         print(f'{"sell_coins"}: Exception in function: {e}')
-        print(f'Saving Exception to Exception List in configuration File...')
         set_exparis(coin, args.config if args.config else 'config.yml')
         pass
     #except KeyboardInterrupt as ki:
