@@ -194,8 +194,14 @@ def do_work():
         pairs=[line.strip() + PAIR_WITH for line in open(TICKERS)] 
     
     while True:
-        if not threading.main_thread().is_alive(): exit()
-        print(f'Signals RSI: Analyzing {len(pairs)} coins')
-        signal_coins = analyze(pairs)
-        print(f'Signals RSI: {len(signal_coins)} coins with Buy Signals. Waiting {TIME_TO_WAIT} minutes for next analysis.')
-        time.sleep((TIME_TO_WAIT*60))
+        try:
+            if not threading.main_thread().is_alive(): exit()
+            print(f'Signals RSI: Analyzing {len(pairs)} coins')
+            signal_coins = analyze(pairs)
+            print(f'Signals RSI: {len(signal_coins)} coins with Buy Signals. Waiting {TIME_TO_WAIT} minutes for next analysis.')
+            time.sleep((TIME_TO_WAIT*60))
+        except Exception as e:
+            print(f'{"RSI_MOD"}: Exception do_work() 1: {e}')
+            pass
+        except KeyboardInterrupt as ki:
+            pass
