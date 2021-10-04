@@ -40,6 +40,6 @@ def do_work():
         my_server.serve_forever()
     except Exception as e:
         print(f'{"WebServer"}: Exception do_work() 1: {e}')
-        #continue
-    #except KeyboardInterrupt as ki:
-        #continue
+        pass
+    except KeyboardInterrupt as ki:
+        pass
