@@ -950,7 +950,7 @@ def sell_coins(tpsl_override = False):
         # if tpsl_override: is_bot_running = False
     except Exception as e:
         print(f'{"sell_coins"}: Exception in function: {e}')
-        set_exparis(coin, args.config if args.config else 'config.yml')
+        set_expairs(coin, args.config if args.config else 'config.yml')
         coins_bought.pop(coin.strip())
         pass
 
