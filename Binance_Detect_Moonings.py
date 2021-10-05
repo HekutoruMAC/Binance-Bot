@@ -1218,7 +1218,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_EXTSIGNALS, EXTSIGNAL_MODULES
 
     # Default no debugging
     DEBUG = False
@@ -1271,6 +1271,9 @@ def load_settings():
     # Discord integration
     # Used to push alerts, messages etc to a discord channel
     MSG_DISCORD = parsed_config['trading_options']['MSG_DISCORD']
+    
+    # Functionality to "reset / restart" external signal modules(code os OlorinSledge)
+    RESTART_MODULES = parsed_config['trading_options']['RESTART_MODULES']
     
 	#minimal mode
     SCREEN_MODE = parsed_config['trading_options']['SCREEN_MODE']
@@ -1515,7 +1518,11 @@ if __name__ == '__main__':
     get_price()
     TIMEOUT_COUNT=0
     READ_CONNECTERR_COUNT=0
-    BINANCE_API_EXCEPTION=0						   
+    BINANCE_API_EXCEPTION=0	
+    
+    #extract of code of OlorinSledge, Thanks
+    thehour = datetime.now().hour  
+    
     while is_bot_running:
         try:
             orders, last_price, volume = buy()
@@ -1523,10 +1530,17 @@ if __name__ == '__main__':
             
             if SESSION_TPSL_OVERRIDE:
                 check_total_session_profit(coins_bought, last_price)
-
+                
             coins_sold = sell_coins()
             remove_from_portfolio(coins_sold)
             update_bot_stats()
+            
+            #extract of code of OlorinSledge, Thanks
+            if RESTART_MODULES and thehour != datetime.now().hour :
+                stop_signal_threads()
+                load_signal_threads()
+                thehour = datetime.now().hour
+                print(f'{txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
         except ReadTimeout as rt:
             TIMEOUT_COUNT += 1
             print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')

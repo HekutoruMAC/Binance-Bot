@@ -42,7 +42,7 @@ trading_options:
     
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding. USE BY VOLSCAN
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN','EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN','XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN','YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP','UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP', 'RENBTC', 'B']
+  EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN', 'EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN', 'XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN', 'YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP', 'UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP', 'RENBTC', 'B', 'ROSE', 'RVN', 'TLM', 'IOTA', 'TROY', 'HBAR', 'AAVE', 'TKO', 'LINA', 'WAVES', 'KMD', 'FUN', 'NANO', 'OG', 'REN', 'ONE', 'CVC', 'RUNE', 'NEAR', 'LTC', 'AR', 'HOT', 'CELR', 'LRC', 'SKL', 'DODO', 'CAKE', 'XMR', 'MTL', 'DENT', 'OGN', 'MASK', 'XLM', 'IOST', 'COTI', 'THETA', 'AUDIO', 'CELO', '1INCH']
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   TRADE_SLOTS: 10
@@ -61,14 +61,14 @@ trading_options:
   STOP_LOSS: 100
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: 0.46
+  TAKE_PROFIT: 0.45
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
   CUSTOM_LIST: True
   TICKERS_LIST: 'tickers.txt'
    
-   # whether to use trailing stop loss or not; default is True
+  # whether to use trailing stop loss or not; default is True
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
   # NOTE -SELL_ON_SIGNAL_ONLY will override USE_TRAILING_STOP_LOSS
@@ -98,6 +98,9 @@ trading_options:
   # Discord integration
   # Used to push alerts, messages etc to a discord channel
   MSG_DISCORD: False
+  
+  #restart all modules every hour
+  RESTART_MODULES: True
   
   #minimal mode set to 0, complete mode set to 1, termux mode set to 2
   SCREEN_MODE: 2
