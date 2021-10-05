@@ -284,8 +284,6 @@ def wait_for_price():
     except Exception as e:
         print(f'{"wait_for_price"}: Exception in function: {e}')
         pass
-    #except KeyboardInterrupt as ki:
-        #pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
@@ -573,45 +571,48 @@ def pause_bot():
 
     # start counting for how long the bot has been paused
     start_time = time.perf_counter()
+    try:
+        while os.path.exists("signals/pausebot.pause"):
 
-    while os.path.exists("signals/pausebot.pause"):
+            # do NOT accept any external signals to buy while in pausebot mode
+            remove_external_signals('buy')
 
-        # do NOT accept any external signals to buy while in pausebot mode
-        remove_external_signals('buy')
+            if bot_paused == False:
+                if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                
+                msg = str(datetime.now()) + ' | PAUSEBOT. Buying paused due to negative market conditions, stop loss and take profit will continue to work.'
+                msg_discord(msg)
 
-        if bot_paused == False:
-            if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                bot_paused = True
+
+            # Sell function needs to work even while paused
+            coins_sold = sell_coins()
+            remove_from_portfolio(coins_sold)
+            last_price = get_price(True)
+
+            # pausing here
+            if hsp_head == 1: 
+                # if not SCREEN_MODE == 2: print(f'Paused...Session profit: {session_profit_incfees_perc:.2f}% Est: ${session_profit_incfees_total:.{decimals()}f} {PAIR_WITH}')
+                balance_report(last_price)
             
-            msg = str(datetime.now()) + ' | PAUSEBOT. Buying paused due to negative market conditions, stop loss and take profit will continue to work.'
-            msg_discord(msg)
+            time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
 
-            bot_paused = True
+        else:
+            # stop counting the pause time
+            stop_time = time.perf_counter()
+            time_elapsed = timedelta(seconds=int(stop_time-start_time))
 
-        # Sell function needs to work even while paused
-        coins_sold = sell_coins()
-        remove_from_portfolio(coins_sold)
-        last_price = get_price(True)
+            # resume the bot and ser pause_bot to False
+            if  bot_paused == True:
+                if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}Resuming buying due to positive market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
+                
+                msg = str(datetime.now()) + ' | PAUSEBOT. Resuming buying due to positive market conditions, total sleep time: ' + str(time_elapsed)
+                msg_discord(msg)
 
-        # pausing here
-        if hsp_head == 1: 
-            # if not SCREEN_MODE == 2: print(f'Paused...Session profit: {session_profit_incfees_perc:.2f}% Est: ${session_profit_incfees_total:.{decimals()}f} {PAIR_WITH}')
-            balance_report(last_price)
-        
-        time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
-
-    else:
-        # stop counting the pause time
-        stop_time = time.perf_counter()
-        time_elapsed = timedelta(seconds=int(stop_time-start_time))
-
-        # resume the bot and ser pause_bot to False
-        if  bot_paused == True:
-            if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}Resuming buying due to positive market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
-            
-            msg = str(datetime.now()) + ' | PAUSEBOT. Resuming buying due to positive market conditions, total sleep time: ' + str(time_elapsed)
-            msg_discord(msg)
-
-            bot_paused = False
+                bot_paused = False
+    except Exception as e:
+        print(f'{"pause_bot"}: Exception in function: {e}')
+        pass
     return
 
 
@@ -1331,7 +1332,8 @@ def menu():
         print(f'')
         print(f'')
         print(f'[1]Reload Configuration{txcolors.DEFAULT}')
-        print(f'[2]Exit BOT{txcolors.DEFAULT}')
+        print(f'[2]Reload modules{txcolors.DEFAULT}')
+        print(f'[3]Exit BOT{txcolors.DEFAULT}')
         x = input('Please enter your choice: ')
         x = int(x)
         print(f'')
@@ -1344,6 +1346,11 @@ def menu():
             load_signal_threads()
             print(f'{txcolors.WARNING}Reaload Completed{txcolors.DEFAULT}')
         elif x == 2:
+            stop_signal_threads()
+            load_signal_threads()
+            print(f'{txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
+            LOOP = False
+        elif x == 3:
             # stop external signal threads
             stop_signal_threads()
 
