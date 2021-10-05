@@ -70,7 +70,7 @@ from prettytable import PrettyTable, from_html_one
 
 # Load helper modules
 from helpers.parameters import (
-    parse_args, load_config, set_exparis
+    parse_args, load_config, set_expairs
 )
 
 # Load creds modules
