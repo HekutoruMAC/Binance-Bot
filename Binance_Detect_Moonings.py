@@ -1362,8 +1362,9 @@ def new_or_continue():
         file_prefix = 'test_'
     else:
         file_prefix = 'live_'
-        
-    if os.path.exists(file_prefix + COINS_BOUGHT) or os.path.exists(file_prefix + BOT_STATS):
+      
+    
+    if os.path.exists(file_prefix + str(COINS_BOUGHT)) or os.path.exists(file_prefix + str(BOT_STATS)):
         LOOP = True
         END = False
         while LOOP:
