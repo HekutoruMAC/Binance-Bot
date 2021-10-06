@@ -1358,7 +1358,12 @@ def renew_list():
         tickers=[line.strip() for line in open(TICKERS_LIST)]
 
 def new_or_continue():
-    if os.path.exists(COINS_BOUGHT) or os.path.exists(BOT_STATS):
+    if TEST_MODE:
+        file_prefix = 'test_'
+    else:
+        file_prefix = 'live_'
+        
+    if os.path.exists(file_prefix + COINS_BOUGHT) or os.path.exists(file_prefix + BOT_STATS):
         LOOP = True
         END = False
         while LOOP:
