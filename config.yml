@@ -28,21 +28,9 @@ trading_options:
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
   TRADE_TOTAL: 10
 
-  # List of trading pairs to exclude
-  # by default we're excluding the most popular fiat pairs
-  FIATS:
-    - PAXUSDT
-    - EURUSDT
-    - GBPUSDT
-    - JPYUSDT
-    - USDUSDT
-    - AUDUSDT
-    - DOWN
-    - UP
-    
-  # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding. USE BY VOLSCAN
+  # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN', 'EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN', 'XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN', 'YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP', 'UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP', 'RENBTC', 'B', 'ROSE', 'RVN', 'TLM', 'IOTA', 'TROY', 'HBAR', 'AAVE', 'TKO', 'LINA', 'WAVES', 'KMD', 'FUN', 'NANO', 'OG', 'REN', 'ONE', 'CVC', 'RUNE', 'NEAR', 'LTC', 'AR', 'HOT', 'CELR', 'LRC', 'SKL', 'DODO', 'CAKE', 'XMR', 'MTL', 'DENT', 'OGN', 'MASK', 'XLM', 'IOST', 'COTI', 'THETA', 'AUDIO', 'CELO', '1INCH']
+  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP'] 
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   TRADE_SLOTS: 10

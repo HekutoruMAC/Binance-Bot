@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 5.3
+Version: 5.4
 
 Disclaimer
 
@@ -70,7 +70,7 @@ from prettytable import PrettyTable, from_html_one
 
 # Load helper modules
 from helpers.parameters import (
-    parse_args, load_config, set_expairs
+    parse_args, load_config
 )
 
 # Load creds modules
@@ -166,18 +166,32 @@ def get_price(add_to_historical=True):
     global historical_prices, hsp_head
 
     initial_price = {}
+    
+    prices = client.get_all_tickers()
+    
+    renew_list()
     try:
-        prices = client.get_all_tickers()
-
-        renew_list()
-
         for coin in prices:
 
             if CUSTOM_LIST:
-                if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS) and all(item + PAIR_WITH not in coin['symbol'] for item in EX_PAIRS):
-                    initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+                intickers = False
+                inex_pairs = False
+                for item1 in tickers:
+                    if item1 + PAIR_WITH == coin['symbol']:
+                        intickers = True
+                        break
+                for item2 in EX_PAIRS:
+                    if item2 == coin['symbol']:
+                        inex_pairs = True
+                        break
+                if intickers == True and inex_pairs == False:
+                    initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}                
+                    
+                # if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in EX_PAIRS): #and all(item not in coin['symbol'] for item in FIATS)
+                    # initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+                    #print("CUSTOM_LIST", coin['symbol'])
             else:
-                if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
+                if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in EX_PAIRS):
                     initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
         if add_to_historical:
@@ -207,9 +221,10 @@ def wait_for_price():
     coins_up = 0
     coins_down = 0
     coins_unchanged = 0
+    
+        
     try:
         pause_bot()
-
         # get first element from the dictionary
         firstcoin = next(iter(historical_prices[hsp_head]))  
 
@@ -220,6 +235,7 @@ def wait_for_price():
             time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head][firstcoin]['time'])).total_seconds())    
 
         # retrieve latest prices
+        renew_list()
         last_price = get_price()
 
         # Moved to the end of this method
@@ -283,6 +299,7 @@ def wait_for_price():
         balance_report(last_price)
     except Exception as e:
         print(f'{"wait_for_price"}: Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -759,16 +776,14 @@ def buy():
 
 def sell_coins(tpsl_override = False):
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
-    global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL
-    try:  
-        externals = sell_external_signals()
+    global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL  
+    externals = sell_external_signals()
         
-        last_price = get_price(False) # don't populate rolling window
-        #last_price = get_price(add_to_historical=True) # don't populate rolling window
-        coins_sold = {}
-
-        BUDGET = TRADE_TOTAL * TRADE_SLOTS
-        
+    last_price = get_price(False) # don't populate rolling window
+    #last_price = get_price(add_to_historical=True) # don't populate rolling window
+    coins_sold = {}
+    BUDGET = TRADE_TOTAL * TRADE_SLOTS
+    try:
         for coin in list(coins_bought):
             LastPrice = float(last_price[coin]['price'])
             sellFee = (LastPrice * (TRADING_FEE/100))
@@ -950,8 +965,7 @@ def sell_coins(tpsl_override = False):
         # if tpsl_override: is_bot_running = False
     except Exception as e:
         print(f'{"sell_coins"}: Exception in function: {e}')
-        set_expairs(coin, args.config if args.config else 'config.yml')
-        coins_bought.pop(coin.strip())
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
 
     return coins_sold
@@ -1095,7 +1109,7 @@ def update_portfolio(orders, last_price, volume):
             json.dump(coins_bought, file, indent=4)
 
 def update_bot_stats():
-    global trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total
+    global trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, session_USDT_EARNED
 
     bot_stats = {
         'total_capital' : str(TRADE_SLOTS * TRADE_TOTAL),
@@ -1104,6 +1118,7 @@ def update_bot_stats():
         'historicProfitIncFees_Total': historic_profit_incfees_total,
         'tradeWins': trade_wins,
         'tradeLosses': trade_losses,
+        'session_USDT_EARNED': session_USDT_EARNED,
     }
 
     #save session info for through session portability
@@ -1239,7 +1254,7 @@ def load_settings():
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
     TRADE_TOTAL = parsed_config['trading_options']['TRADE_TOTAL']
     TRADE_SLOTS = parsed_config['trading_options']['TRADE_SLOTS']
-    FIATS = parsed_config['trading_options']['FIATS']
+    #FIATS = parsed_config['trading_options']['FIATS']
     EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
     
     TIME_DIFFERENCE = parsed_config['trading_options']['TIME_DIFFERENCE']
@@ -1299,7 +1314,9 @@ def load_settings():
 
 def renew_list():
     global tickers
-    if CUSTOM_LIST: 
+    if USE_MOST_VOLUME_COINS == True: 
+        tickers=[line.strip() for line in open("volatile_volume_" + str(date.today()) + ".txt")]
+    else:
         tickers=[line.strip() for line in open(TICKERS_LIST)]
 
 def new_or_continue():
@@ -1436,7 +1453,7 @@ if __name__ == '__main__':
     if api_ready is not True:
         exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
     
-    if USE_MOST_VOLUME_COINS == True: TICKERS_LIST = get_volume_list()
+    if USE_MOST_VOLUME_COINS == True: LIST = get_volume_list()
     renew_list()
 
     new_or_continue()
@@ -1483,6 +1500,7 @@ if __name__ == '__main__':
             historic_profit_incfees_total = bot_stats['historicProfitIncFees_Total']
             trade_wins = bot_stats['tradeWins']
             trade_losses = bot_stats['tradeLosses']
+            session_USDT_EARNED = bot_stats['session_USDT_EARNED']
 
             if total_capital != total_capital_config:
                 historic_profit_incfees_perc = (historic_profit_incfees_total / total_capital_config) * 100
