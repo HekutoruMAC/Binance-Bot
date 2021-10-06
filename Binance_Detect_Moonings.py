@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 5.4
+Version: 5.5
 
 Disclaimer
 
@@ -102,7 +102,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -118,6 +118,7 @@ TNEUTRAL = 0
 PNEUTRAL = 0
 is_bot_running = True
 renewlist = 0
+FLAG_PAUSE = True
 
 global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses
 global sell_all_coins, bot_started_datetime
@@ -172,7 +173,6 @@ def get_price(add_to_historical=True):
     renew_list()
     try:
         for coin in prices:
-
             if CUSTOM_LIST:
                 intickers = False
                 inex_pairs = False
@@ -1233,7 +1233,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COIN_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES
 
     # Default no debugging
     DEBUG = False
@@ -1245,7 +1245,7 @@ def load_settings():
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     HISTORY_LOG_FILE = parsed_config['script_options'].get('HISTORY_LOG_FILE')
     #HISTORY_LOG_FILE = "history.html"
-    COIN_BOUGHT = parsed_config['script_options'].get('COIN_BOUGHT')
+    COINS_BOUGHT = parsed_config['script_options'].get('COINS_BOUGHT')
     BOT_STATS = parsed_config['script_options'].get('BOT_STATS')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
@@ -1313,14 +1313,52 @@ def load_settings():
     access_key, secret_key = load_correct_creds(parsed_creds)
 
 def renew_list():
-    global tickers
-    if USE_MOST_VOLUME_COINS == True: 
-        tickers=[line.strip() for line in open("volatile_volume_" + str(date.today()) + ".txt")]
+    global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE
+    if USE_MOST_VOLUME_COINS == True:
+        if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt":
+            tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]
+        else:
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
+            stop_signal_threads()
+            FLAG_PAUSE = True
+            if TEST_MODE == True:
+                jsonfile = "test_" + COINS_BOUGHT
+            else: 
+                jsonfile = "live_" + COINS_BOUGHT
+                
+            with open(jsonfile,'r') as f:
+                coins_bought_list = json.load(f)
+                
+            coinstosave = []
+            
+            for coin in coins_bought_list:
+                coinstosave.append(coin.replace("USDT","") + "\n")                
+            
+            VOLATILE_VOLUME_LIST = get_volume_list()
+            with open(VOLATILE_VOLUME_LIST,'r') as f:
+                lines = f.readlines()
+                
+            for c in coinstosave:
+                for l in lines:
+                    if c == l:
+                        break
+                    else:
+                        lines.append(c)
+                        break
+                        
+            with open(VOLATILE_VOLUME_LIST,'w') as f:
+                f.writelines(lines)
+                
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
+            FLAG_PAUSE = False
+            renew_list()
+            load_signal_threads()     
+                
     else:
         tickers=[line.strip() for line in open(TICKERS_LIST)]
 
 def new_or_continue():
-    if os.path.exists(COIN_BOUGHT) or os.path.exists(BOT_STATS):
+    if os.path.exists(COINS_BOUGHT) or os.path.exists(BOT_STATS):
         LOOP = True
         END = False
         while LOOP:
@@ -1331,7 +1369,7 @@ def new_or_continue():
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Continuing with the session started ...')
                 else:
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
-                    os.remove(COIN_BOUGHT)
+                    os.remove(COINS_BOUGHT)
                     os.remove(BOT_STATS)
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
@@ -1452,8 +1490,9 @@ if __name__ == '__main__':
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
         exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
-    
-    if USE_MOST_VOLUME_COINS == True: LIST = get_volume_list()
+        
+    global VOLATILE_VOLUME_LIST
+    if USE_MOST_VOLUME_COINS == True: VOLATILE_VOLUME_LIST = get_volume_list()
     renew_list()
 
     new_or_continue()
@@ -1467,7 +1506,7 @@ if __name__ == '__main__':
         file_prefix = 'live_'
 
     # path to the saved coins_bought file
-    coins_bought_file_path = file_prefix + COIN_BOUGHT
+    coins_bought_file_path = file_prefix + COINS_BOUGHT
 
     # The below mod was stolen and altered from GoGo's fork, a nice addition for keeping a historical history of profit across multiple bot sessions.
     # path to the saved bot_stats file
@@ -1553,12 +1592,13 @@ if __name__ == '__main__':
             remove_from_portfolio(coins_sold)
             update_bot_stats()
             
-            #extract of code of OlorinSledge, Thanks
-            if RESTART_MODULES and thehour != datetime.now().hour :
-                stop_signal_threads()
-                load_signal_threads()
-                thehour = datetime.now().hour
-                print(f'{txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
+            if FLAG_PAUSE == False:
+                #extract of code of OlorinSledge, Thanks
+                if RESTART_MODULES and thehour != datetime.now().hour :
+                    stop_signal_threads()
+                    load_signal_threads()
+                    thehour = datetime.now().hour
+                    print(f'{txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
         except ReadTimeout as rt:
             TIMEOUT_COUNT += 1
             print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')
