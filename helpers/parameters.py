@@ -12,27 +12,6 @@ def load_config(file):
     
     except Exception as e:
         exit(f'Encountered exception...\n {e}')
-        
-def set_exparis(pairs, file_name):
-    parsed_config = load_config(file_name)
-    with open(file_name, 'r') as file:
-        data = file.readlines()
-    EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
-    e = False
-    pairs = pairs.strip().replace('USDT','')
-    for coin in EX_PAIRS:
-        if coin == pairs: 
-            e = True
-            break
-        else:
-            e = False
-    if e == False:
-        print(f'The exception has been saved in EX_PAIR in the configuration file...')
-        EX_PAIRS.append(pairs)
-        data[44] = "  EX_PAIRS: " + str(EX_PAIRS) + "\n"
-        with open(file_name, 'w') as f:
-            f.writelines(data)
-
 
 def parse_args():
     x = argparse.ArgumentParser()
