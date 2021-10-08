@@ -446,6 +446,11 @@ def balance_report(last_price):
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(44)}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BOT PROFIT  : {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est:${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(38)}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BOT PROFIT: {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est:${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
     print(f'')
 
     #improving reporting messages
@@ -1361,8 +1366,7 @@ def new_or_continue():
     if TEST_MODE:
         file_prefix = 'test_'
     else:
-        file_prefix = 'live_'
-      
+        file_prefix = 'live_'      
     
     if os.path.exists(file_prefix + str(COINS_BOUGHT)) or os.path.exists(file_prefix + str(BOT_STATS)):
         LOOP = True
@@ -1373,10 +1377,12 @@ def new_or_continue():
             if x == "y" or x == "n":
                 if x == "y":
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Continuing with the session started ...')
+                    LOOP = False
+                    END = True
                 else:
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
-                    os.remove(COINS_BOUGHT)
-                    os.remove(BOT_STATS)
+                    os.remove(file_prefix + COINS_BOUGHT)
+                    os.remove(file_prefix + BOT_STATS)
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
