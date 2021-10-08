@@ -53,9 +53,10 @@ PAIR_WITH = 'USDT'
 
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
-        TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
-    else:
-        TICKERS = 'tickers.txt' #'signalsample.txt'
+    TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
+else:
+    TICKERS = 'tickers.txt' #'signalsample.txt'
+    
 TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
 if os.path.exists(TICKERS_OVERRIDE):
