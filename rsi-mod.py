@@ -96,8 +96,8 @@ def analyze(pairs):
     analysis2 = {}
     handler2 = {}
     
-    if os.path.exists('signals/custsignalmod.exs'):
-        os.remove('signals/custsignalmod.exs')
+    if os.path.exists('signals/custsignalmod.buy'):
+        os.remove('signals/custsignalmod.buy')
         
     if os.path.exists('signals/custsignalmod.sell'):
         os.remove('signals/custsignalmod.sell')
@@ -169,7 +169,7 @@ def analyze(pairs):
             if (oscCheck >= OSC_THRESHOLD and maCheck >= MA_THRESHOLD):
                 signal_coins[pair] = pair
                 print(f'\033[92mSignals RSI: {pair} - Buy Signal Detected | {BUY_SIGS}_{BUY_SIGS2}/26')
-                with open('signals/custsignalmod.exs','a+') as f:
+                with open('signals/custsignalmod.buy','a+') as f:
                     f.write(pair + '\n')
           else:
             print(f'Signals RSI: {pair} - Stoch/RSI ok, not enough buy signals | {BUY_SIGS}_{BUY_SIGS2}/26 | {STOCH_DIFF}/{RSI_DIFF} | {STOCH_K}')
