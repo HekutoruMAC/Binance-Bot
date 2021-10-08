@@ -122,7 +122,7 @@ def analyze(pairs):
             analysis = handler[pair].get_analysis()
             analysis2 = handler2[pair].get_analysis()
         except Exception as e:
-            print("Signalsample:")
+            print("rsi-mod:")
             print("Exception:")
             print(e)
             print (f'Coin: {pair}')
@@ -201,7 +201,7 @@ def do_work():
             print(f'Signals RSI: {len(signal_coins)} coins with Buy Signals. Waiting {TIME_TO_WAIT} minutes for next analysis.')
             time.sleep((TIME_TO_WAIT*60))
         except Exception as e:
-            print(f'{"RSI_MOD"}: Exception do_work() 1: {e}')
+            print(f'{"RSI_MOD"}: Exception do_work(): {e}')
             pass
         except KeyboardInterrupt as ki:
             pass
