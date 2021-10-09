@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 5.5
+Version: 5.6
 
 Disclaimer
 
@@ -102,7 +102,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -110,12 +110,9 @@ session_tpsl_override_msg = ""
 session_USDT_EARNED = 0
 session_USDT_EARNED_TODAY = 0
 last_msg_discord_balance_date = 0
-TUP = 0
-PUP = 0
-TDOWN = 0
-PDOWN = 0
-TNEUTRAL = 0
-PNEUTRAL = 0
+coins_up = 0
+coins_down = 0
+coins_unchanged = 0
 is_bot_running = True
 renewlist = 0
 FLAG_PAUSE = True
@@ -213,7 +210,7 @@ def wait_for_price():
     '''calls the initial price and ensures the correct amount of time has passed
     before reading the current price again'''
 
-    global historical_prices, hsp_head, volatility_cooloff
+    global historical_prices, hsp_head, volatility_cooloff, coins_up,coins_down,coins_unchanged
  
     volatile_coins = {}
     externals = {}
@@ -294,7 +291,7 @@ def wait_for_price():
                 #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
                 volatile_coins[excoin] = 1
                 exnumber +=1
-                print(f"External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!")
+                print(f'External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!')
 
         balance_report(last_price)
     except Exception as e:
@@ -309,7 +306,8 @@ def buy_external_signals():
     signals = {}
 
     # check directory and load pairs from files into external_list
-    signals = glob.glob("signals/*.buy")
+    mask = r'signals/*.[buy][exs]*'
+    signals = glob.glob(mask)  #"signals/*.buy")
     for filename in signals:
         for line in open(filename):
             symbol = line.strip()
@@ -421,38 +419,42 @@ def balance_report(last_price):
     if STATIC_MAIN_INFO == True: clear()
     if SCREEN_MODE < 2: print(f'')
     if SCREEN_MODE == 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}/{"{0:<5}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {str(bot_paused)}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.BOT_WINS}Win%: {str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins).zfill(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5)} {txcolors.BOT_WINS}Win%: {float(WIN_LOSS_PERCENT):g}%{txcolors.BORDER}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {str(bot_started_datetime).split(".")[0]} | Running for: {str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}/{"{0:<5}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {str(bot_paused)}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.BOT_WINS}Win%: {str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins).zfill(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5)} {txcolors.BOT_WINS}Win%: {float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}PENDING : {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,3)).center(8)}% Est:${str(round(unrealised_session_profit_incfees_total,3)).center(8)} {PAIR_WITH.center(6)}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(36)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}PENDING: {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,3))}% Est:${str(round(unrealised_session_profit_incfees_total,3))} {PAIR_WITH}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}PENDING : {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,3)).center(8)}% Est:${str(round(unrealised_session_profit_incfees_total,3)).center(8)} {PAIR_WITH.center(6)}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}PENDING: {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,3))}% Est:${str(round(unrealised_session_profit_incfees_total,3))} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}TOTAL   : {txcolors.SELL_PROFIT if (session_profit_incfees_perc + unrealised_session_profit_incfees_perc) > 0. else txcolors.SELL_LOSS}{str(round(session_profit_incfees_perc + unrealised_session_profit_incfees_perc,3)).center(8)}% Est:${str(round(session_profit_incfees_total+unrealised_session_profit_incfees_total,3)).center(8)} {PAIR_WITH.center(6)}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(36)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if (session_profit_incfees_perc + unrealised_session_profit_incfees_perc) > 0. else txcolors.SELL_LOSS}{str(round(session_profit_incfees_perc + unrealised_session_profit_incfees_perc,3))}% Est:${str(round(session_profit_incfees_total+unrealised_session_profit_incfees_total,3))} {PAIR_WITH}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}COIN STATUS : {txcolors.SELL_PROFIT}Up {coins_up}, {txcolors.SELL_LOSS}Down: {coins_down}{txcolors.DEFAULT}, Unchanged: {coins_unchanged}{txcolors.BORDER}{"+".rjust(35)}')
+    #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}COIN STATUS: {txcolors.SELL_PROFIT}Up {coins_up}, {txcolors.SELL_LOSS}Down: {coins_down}{txcolors.DEFAULT}, Unchanged: {coins_unchanged}')
+    #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    #if SCREEN_MODE < 2: print(f'')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}TOTAL   : {txcolors.SELL_PROFIT if (session_profit_incfees_perc + unrealised_session_profit_incfees_perc) > 0. else txcolors.SELL_LOSS}{str(round(session_profit_incfees_perc + unrealised_session_profit_incfees_perc,3)).center(8)}% Est:${str(round(session_profit_incfees_total+unrealised_session_profit_incfees_total,3)).center(8)} {PAIR_WITH.center(6)}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if (session_profit_incfees_perc + unrealised_session_profit_incfees_perc) > 0. else txcolors.SELL_LOSS}{str(round(session_profit_incfees_perc + unrealised_session_profit_incfees_perc,3))}% Est:${str(round(session_profit_incfees_total+unrealised_session_profit_incfees_total,3))} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(44)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH.center(6)} | { round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH} | Profit%: { round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BOT PROFIT  : {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est:${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(38)}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BOT PROFIT: {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est:${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BOT PROFIT  : {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est: ${historic_profit_incfees_total:.4f} {PAIR_WITH.center(6)}{txcolors.BORDER}{"+".rjust(35)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BOT PROFIT: {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est: ${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     print(f'')
-
     #improving reporting messages
     msg1 = str(datetime.now()) + "\n"
     msg2 = " STARTED         : " + str(bot_started_datetime) + "\n"
@@ -733,7 +735,6 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
-
 
         # error handling here in case position cannot be placed
             except Exception as e:
