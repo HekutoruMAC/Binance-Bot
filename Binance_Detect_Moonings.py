@@ -144,7 +144,7 @@ def is_fiat():
     global hsp_head
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
     #list below is in the order that Binance displays them, apologies for not using ASC order
-    fiats = ['USDT', 'BUSD', 'AUD', 'BRL', 'EUR', 'GBP', 'RUB', 'TRY', 'TUSD', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND']
+    fiats = ['USDT', 'BUSD', 'AUD', 'BRL', 'EUR', 'GBP', 'RUB', 'TRY', 'TUSD', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND', 'USDP']
 
     if PAIR_WITH in fiats:
         return True
@@ -349,6 +349,7 @@ def get_volume_list():
         VOLATILE_VOLUME = ""
     c = 0
     if os.path.exists(VOLATILE_VOLUME) == False:
+        load_settings()
         print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}creating volatile list, wait a moment...')
         for coin in tickers_all:
             infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
@@ -402,7 +403,6 @@ def clear():
         _ = system('clear')
 
 def balance_report(last_price):
-
     global trade_wins, trade_losses, session_profit_incfees_perc, session_profit_incfees_total, last_price_global, session_USDT_EARNED_TODAY, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL
     unrealised_session_profit_incfees_perc = 0
     unrealised_session_profit_incfees_total = 0
@@ -489,10 +489,10 @@ def balance_report(last_price):
     msg2 = msg2 + " WIN             : " + str(trade_wins) + "\n"
     msg2 = msg2 + " LOST            : " + str(trade_losses) + "\n"
     msg2 = msg2 + " BUYING PAUSED   : " + str(bot_paused) + "\n"
-    msg2 = msg2 + " USDT EARNED     : " + str(session_USDT_EARNED) + "\n"
+    msg2 = msg2 + PAIR_WITH + " EARNED     : " + str(session_USDT_EARNED) + "\n"
     if (datetime.now() - bot_started_datetime) > timedelta(1):
         session_USDT_EARNED_TODAY = session_USDT_EARNED_TODAY + session_USDT_EARNED
-        msg2 = msg2 + "USDT EARNED TODAY: " + str(session_USDT_EARNED_TODAY)
+        msg2 = msg2 + PAIR_WITH + " EARNED TODAY: " + str(session_USDT_EARNED_TODAY)
         session_USDT_EARNED_TODAY = 0
 
 	#msg1 = str(datetime.now())
@@ -666,7 +666,7 @@ def pause_bot():
 
 
 def convert_volume():
-    '''Converts the volume given in TRADE_TOTAL from USDT to the each coin's volume'''
+    '''Converts the volume given in TRADE_TOTAL from "USDT"(or coin selected) to the each coin's volume'''
     volatile_coins, number_of_coins, last_price = wait_for_price()
  
     lot_size = {}
@@ -730,7 +730,7 @@ def buy():
             volume[coin] = math.floor(volume[coin]*100000)/100000
             if not SCREEN_MODE == 2: print(f"{txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
 
-            msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' USDT invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
+            msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
             msg_discord(msg1)
 
             if TEST_MODE:
@@ -896,9 +896,9 @@ def sell_coins(tpsl_override = False):
                 sell_reason = 'Session TPSL Override reached'
 
             if sellCoin:
-                if not SCREEN_MODE == 2: print(f"{txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees){txcolors.DEFAULT} USDT earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}")
+                if not SCREEN_MODE == 2: print(f"{txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees){txcolors.DEFAULT} {PAIR_WITH} earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}")
                 
-                msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' USDT earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
+                msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' ' + PAIR_WITH + ' earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
                 msg_discord(msg1)
 
                 # try to create a real order          
@@ -1364,7 +1364,7 @@ def renew_list():
             coinstosave = []
             
             for coin in coins_bought_list:
-                coinstosave.append(coin.replace("USDT","") + "\n")                
+                coinstosave.append(coin.replace(PAIR_WITH,"") + "\n")                
             
             VOLATILE_VOLUME_LIST = get_volume_list()
             with open(VOLATILE_VOLUME_LIST,'r') as f:
@@ -1383,7 +1383,7 @@ def renew_list():
                 
             print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
             FLAG_PAUSE = False
-            renew_list()
+            #renew_list()
             load_signal_threads()     
                 
     else:
