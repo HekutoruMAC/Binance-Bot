@@ -91,7 +91,7 @@ class txcolors:
     DEFAULT = '\033[39m'
     BOT_LOSSES = '\033[91m'
     BOT_WINS = '\033[92m'
-    #Red = '\033[31m'
+    RED = '\033[31m'
     #Blue = '\033[94m'
     #Cyan = '\033[96m'
     #White = '\033[97m'
@@ -390,7 +390,7 @@ def print_table_coins_bought():
                 ProfitAfterFees = round((LastPriceLessFees - BuyPricePlusFees), 2)
                 PriceChangeIncFees_Perc = round(float(((LastPriceLessFees - BuyPricePlusFees) / BuyPricePlusFees) * 100), 3)
                 time_held = timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10]))
-                my_table.add_row([f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{coin}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{coins_bought[coin]['volume']:.4f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{BuyPrice:.6f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{LastPrice:.6f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{coins_bought[coin]['take_profit']:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{coins_bought[coin]['stop_loss']:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{str(time_held).split('.')[0]}{txcolors.DEFAULT}"])
+                my_table.add_row([f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{coin.replace(PAIR_WITH,'')}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{coins_bought[coin]['volume']:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{BuyPrice:.6f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{LastPrice:.6f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{coins_bought[coin]['take_profit']:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{coins_bought[coin]['stop_loss']:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{PriceChangeIncFees_Perc:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.2f}{txcolors.DEFAULT}", f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.RED}{str(time_held).split('.')[0]}{txcolors.DEFAULT}"])
             print(my_table)
             print("\n")
 	
