@@ -7,7 +7,7 @@ import os
 import sys
 # used for directory handling
 import glob
-
+import threading
 import time
 
 MY_EXCHANGE = 'BINANCE'
@@ -28,6 +28,7 @@ TRADINGVIEW_EX_FILE = 'tradingview_ta_unknown'
 ###       This is dynamically created based on the coins the bot is currently holding.
 ###
 TICKERS = 'signalsell_tickers.txt'
+SELL_TICKERS = 'signalsell_tickers.txt'
 
 # if DEBUG: TICKERS = 'test_' + TICKERS
 
