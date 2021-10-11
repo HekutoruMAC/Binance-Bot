@@ -200,6 +200,7 @@ def get_price(add_to_historical=True):
             historical_prices[hsp_head] = initial_price
     except Exception as e:
         print(f'{"get_price"}: Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
         #pass
@@ -340,34 +341,53 @@ def sell_external_signals():
 def get_volume_list():
     VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
     most_volume_coins = {}
-     
+    tickers_all = []
     #    os.remove(VOLATILE_VOLUME)
+    #try:
+    #if os.path.exists("tickers_all.txt") == True:
+        #tickers_all=[line.strip() for line in open("tickers_all.txt")]
+    #else:
+        #VOLATILE_VOLUME = ""
+        
+    prices = client.get_all_tickers()
     
-    if os.path.exists("tickers_all.txt") == True:
-        tickers_all=[line.strip() for line in open("tickers_all.txt")]
-    else:
-        VOLATILE_VOLUME = ""
+    for coin in prices:
+        if coin['symbol'] == coin['symbol'].replace(PAIR_WITH, "") + PAIR_WITH:
+            tickers_all.append(coin['symbol'].replace(PAIR_WITH, ""))
+
     c = 0
     if os.path.exists(VOLATILE_VOLUME) == False:
         load_settings()
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}creating volatile list, wait a moment...')
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
         for coin in tickers_all:
-            infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
-            volumecoin = float(infocoin['quoteVolume']) / 1000000
-            if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME:
-                most_volume_coins.update({coin : volumecoin})  					
-                c = c + 1
+            try:
+                infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
+                volumecoin = float(infocoin['quoteVolume']) #/ 1000000
+                if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME:
+                    most_volume_coins.update({coin : volumecoin})  					
+                    c = c + 1
+            except Exception as e:
+                continue
+                
+        if c <= 0: 
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Cannot continue because there are no coins in the selected range, change the settings and start the bot again...')
+            sys.exit()
+            
         sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
-		
+        
         print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
-		
+        
         for coin in sortedVolumeList:
             with open(VOLATILE_VOLUME,'a+') as f:
                 f.write(coin[0] + '\n')
     else:
         print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
         print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
-
+    # except Exception as e:
+        # print(f'{"get_volume_list"}: Exception in function: {e}')
+        # print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        # print("COIN_ERROR: ", coin + PAIR_WITH)
+        # pass
     return VOLATILE_VOLUME
 
 def print_table_coins_bought():
@@ -712,6 +732,7 @@ def convert_volume():
                 #pass
     except Exception as e:
         print(f'convert_volume() exception: {e}')
+        
         pass
     #except KeyboardInterrupt as ki:
         #pass
@@ -1232,7 +1253,7 @@ def stop_signal_threads():
             print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Terminating thread {str(signalthread.name)}')
             signalthread.terminate()
     except Exception as e:
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{"stop_signalthreads"}: Exception in function: {e}')
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{"stop_signal_threads"}: Exception in function: {e}')
         pass
 
 def truncate(number, decimals=0):
@@ -1346,48 +1367,54 @@ def load_settings():
 
 def renew_list():
     global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE
-    if USE_MOST_VOLUME_COINS == True:
-        if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt":
-            tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]
+    try:
+        if USE_MOST_VOLUME_COINS == True:
+            if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt" and os.path.exists(VOLATILE_VOLUME_LIST) == True:
+                tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]                
+            else:
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
+                stop_signal_threads()
+                FLAG_PAUSE = True
+                if TEST_MODE == True:
+                    jsonfile = "test_" + COINS_BOUGHT
+                else: 
+                    jsonfile = "live_" + COINS_BOUGHT
+                    
+                with open(jsonfile,'r') as f:
+                    coins_bought_list = json.load(f)
+                    
+                coinstosave = []
+                
+                for coin in coins_bought_list:
+                    coinstosave.append(coin.replace(PAIR_WITH,"") + "\n")                
+                
+                VOLATILE_VOLUME_LIST = get_volume_list()
+                with open(VOLATILE_VOLUME_LIST,'r') as f:
+                    lines = f.readlines()
+                    
+                for c in coinstosave:
+                    for l in lines:
+                        if c == l:
+                            break
+                        else:
+                            lines.append(c)
+                            break
+                            
+                with open(VOLATILE_VOLUME_LIST,'w') as f:
+                    f.writelines(lines)
+                    
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
+                FLAG_PAUSE = False
+                #renew_list()
+                load_signal_threads()     
+                    
         else:
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
-            stop_signal_threads()
-            FLAG_PAUSE = True
-            if TEST_MODE == True:
-                jsonfile = "test_" + COINS_BOUGHT
-            else: 
-                jsonfile = "live_" + COINS_BOUGHT
-                
-            with open(jsonfile,'r') as f:
-                coins_bought_list = json.load(f)
-                
-            coinstosave = []
-            
-            for coin in coins_bought_list:
-                coinstosave.append(coin.replace(PAIR_WITH,"") + "\n")                
-            
-            VOLATILE_VOLUME_LIST = get_volume_list()
-            with open(VOLATILE_VOLUME_LIST,'r') as f:
-                lines = f.readlines()
-                
-            for c in coinstosave:
-                for l in lines:
-                    if c == l:
-                        break
-                    else:
-                        lines.append(c)
-                        break
-                        
-            with open(VOLATILE_VOLUME_LIST,'w') as f:
-                f.writelines(lines)
-                
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
-            FLAG_PAUSE = False
-            #renew_list()
-            load_signal_threads()     
-                
-    else:
-        tickers=[line.strip() for line in open(TICKERS_LIST)]
+            tickers=[line.strip() for line in open(TICKERS_LIST)]
+    except Exception as e:
+        print(f'{"renew_list"}: Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
+    
 
 def new_or_continue():
     if TEST_MODE:
