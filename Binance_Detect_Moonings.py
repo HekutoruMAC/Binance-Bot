@@ -286,13 +286,13 @@ def wait_for_price():
         exnumber = 0
 
         for excoin in externals:
-            if excoin not in volatile_coins and excoin not in coins_bought and \
-                    (len(coins_bought) + len(volatile_coins)) < TRADE_SLOTS:
-
+            if excoin not in volatile_coins and excoin not in coins_bought and (len(coins_bought) + len(volatile_coins)) < TRADE_SLOTS:
                 #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
                 volatile_coins[excoin] = 1
                 exnumber +=1
                 print(f'External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!')
+                with open("excoin.txt",'a+') as f:
+                    f.write(excoin + '\n')
 
         balance_report(last_price)
     except Exception as e:
@@ -1475,7 +1475,8 @@ def menu():
         print(f'')
         print(f'[1]Reload Configuration{txcolors.DEFAULT}')
         print(f'[2]Reload modules{txcolors.DEFAULT}')
-        print(f'[3]Exit BOT{txcolors.DEFAULT}')
+        print(f'[3]Reload Volatily Volume List{txcolors.DEFAULT}')
+        print(f'[4]Exit BOT{txcolors.DEFAULT}')
         x = input('Please enter your choice: ')
         x = int(x)
         print(f'')
@@ -1493,9 +1494,21 @@ def menu():
             print(f'{txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
             LOOP = False
         elif x == 3:
+            stop_signal_threads()
+            #load_signal_threads()
+            global VOLATILE_VOLUME_LIST
+            if USE_MOST_VOLUME_COINS == True:
+                os.remove(VOLATILE_VOLUME_LIST)
+                VOLATILE_VOLUME_LIST = get_volume_list()
+                renew_list()
+            else:
+                print(f'{txcolors.WARNING}USE_MOST_VOLUME_COINS must be true in config.yml{txcolors.DEFAULT}')
+                LOOP = False
+            print(f'{txcolors.WARNING}VOLATILE_VOLUME_LIST Realoaded Completed{txcolors.DEFAULT}')
+            LOOP = False
+        elif x == 5:
             # stop external signal threads
             stop_signal_threads()
-
             # ask user if they want to sell all coins
             print(f'\n\n\n')
             sellall = input(f'{txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins (y/N)?{txcolors.DEFAULT}')
