@@ -304,12 +304,16 @@ def wait_for_price():
 
 def buy_external_signals():
     external_list = {}
-    signals = {}
+    #signals = {}
 
     # check directory and load pairs from files into external_list
-    mask = r'signals/*.[buy][exs]*'
-    signals = glob.glob(mask)  #"signals/*.buy")
-    for filename in signals:
+    files = []
+    folder = "signals"
+    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.buy", "/*.exs"]] for item in sublist]
+
+    #signals = glob.glob(mask)  #"signals/*.buy")
+    #print("signals: ", signals)
+    for filename in files: #signals:
         for line in open(filename):
             symbol = line.strip()
             external_list[symbol] = symbol
@@ -381,8 +385,9 @@ def get_volume_list():
             with open(VOLATILE_VOLUME,'a+') as f:
                 f.write(coin[0] + '\n')
     else:
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
-        print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
+        if ALWAYS_OVERWRITE == False:
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
+            print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
     # except Exception as e:
         # print(f'{"get_volume_list"}: Exception in function: {e}')
         # print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -532,7 +537,10 @@ def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_pro
     global last_history_log_date
     
     time_between_insertion = datetime.now() - last_history_log_date
-
+    if TEST_MODE:
+        file_prefix = 'test_'
+    else:
+        file_prefix = 'live_'
     # only log balance to log file once every 60 seconds
     if time_between_insertion.seconds > 60:
         last_history_log_date = datetime.now()
@@ -1291,7 +1299,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE
 
     # Default no debugging
     DEBUG = False
@@ -1363,6 +1371,7 @@ def load_settings():
     USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
     COINS_MAX_VOLUME = parsed_config['trading_options']['COINS_MAX_VOLUME']
     COINS_MIN_VOLUME = parsed_config['trading_options']['COINS_MIN_VOLUME']
+    ALWAYS_OVERWRITE = parsed_config['trading_options']['ALWAYS_OVERWRITE']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
@@ -1432,8 +1441,11 @@ def new_or_continue():
         LOOP = True
         END = False
         while LOOP:
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
-            x = input('y/n: ')
+            if ALWAYS_OVERWRITE == False:
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
+                x = input('y/n: ')
+            else:
+                x = "n"
             if x == "y" or x == "n":
                 if x == "y":
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Continuing with the session started ...')
@@ -1585,8 +1597,8 @@ if __name__ == '__main__':
     bot_stats_file_path = file_prefix + BOT_STATS
 
     # use separate files for testing and live trading
-    LOG_FILE = file_prefix + LOG_FILE
-    HISTORY_LOG_FILE = file_prefix + HISTORY_LOG_FILE
+    #LOG_FILE = file_prefix + LOG_FILE
+    #HISTORY_LOG_FILE = file_prefix + HISTORY_LOG_FILE
 
     bot_started_datetime = datetime.now()
     total_capital_config = TRADE_SLOTS * TRADE_TOTAL
