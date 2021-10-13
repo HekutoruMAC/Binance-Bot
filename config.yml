@@ -95,7 +95,13 @@ trading_options:
   STATIC_MAIN_INFO: False
   DISABLE_TIMESTAMPS: True  
   SHOW_INITIAL_CONFIG: False
-  SHOW_TABLE_COINS_BOUGHT: True
+  
+  SHOW_TABLE_COINS_BOUGHT: True  
+  #Thanks to the idea of Norker Play, the table of purchased coins can now be ordered according to the name of the column that we want ... 
+  #thank you Norker Play for your contribution ...
+  #["Datetime", "Type", "Coin", "Volume", "Buy Price", "Currency", "Sell Price", "Profit $", "Profit %", "Sell Reason", "Earned", "USDTdiff"]
+  SORT_TABLE_BY: "Profit $"
+  REVERSE_SORT: True
   
   #I will no longer ask if you want to continue a new session, I would simply start from 0
   ALWAYS_OVERWRITE: False
@@ -127,7 +133,7 @@ trading_options:
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
-    #- rsi-mod
+    - rsi-mod
     #- webserver
     #- signalsample
     #- signalsamplemod
