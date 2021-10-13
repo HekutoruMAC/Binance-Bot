@@ -8,6 +8,9 @@ import sys
 # used for directory handling
 import glob
 
+import threading
+
+from datetime import date, datetime, timedelta
 import time
 
 from helpers.parameters import parse_args, load_config
@@ -35,9 +38,9 @@ SIGNAL_FILE = 'signals/' + SIGNAL_NAME + '.buy'
 
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
-        TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
-    else:
-        TICKERS = 'tickers.txt' #'signalsample.txt'
+    TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
+else:
+    TICKERS = 'tickers.txt' #'signalsample.txt'
 
 TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 

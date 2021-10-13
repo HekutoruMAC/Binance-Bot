@@ -38,11 +38,10 @@ INTERVAL5MIN = Interval.INTERVAL_5_MINUTES # Main Timeframe for analysis on Osci
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
 PAIR_WITH = 'USDT'
-if USE_MOST_VOLUME_COINS == True:
-        #if ABOVE_COINS_VOLUME == True:
-        TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
-    else:
-        TICKERS = 'tickers.txt' #'signalsample.txt'
+if USE_MOST_VOLUME_COINS == True: 
+    TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
+else:
+    TICKERS = 'tickers.txt' #'signalsample.txt'
 
 TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
