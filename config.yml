@@ -98,7 +98,7 @@ trading_options:
   SHOW_TABLE_COINS_BOUGHT: True
   
   #I will no longer ask if you want to continue a new session, I would simply start from 0
-  ALWAYS_OVERWRITE: True
+  ALWAYS_OVERWRITE: False
 
   
  #Enables the use of currencies with greater or lesser volume
