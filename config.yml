@@ -49,7 +49,7 @@ trading_options:
   STOP_LOSS: 5
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: 0.75
+  TAKE_PROFIT: 0.20
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -60,7 +60,7 @@ trading_options:
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
   # NOTE -SELL_ON_SIGNAL_ONLY will override USE_TRAILING_STOP_LOSS
-  USE_TRAILING_STOP_LOSS: True
+  USE_TRAILING_STOP_LOSS: False
   TRAILING_STOP_LOSS: .1
   TRAILING_TAKE_PROFIT: .2
 
@@ -97,6 +97,10 @@ trading_options:
   SHOW_INITIAL_CONFIG: False
   SHOW_TABLE_COINS_BOUGHT: True
   
+  #I will no longer ask if you want to continue a new session, I would simply start from 0
+  ALWAYS_OVERWRITE: True
+
+  
  #Enables the use of currencies with greater or lesser volume
   USE_MOST_VOLUME_COINS: True
   #idea from my psychologist, thanks Sebastian V.
@@ -123,7 +127,7 @@ trading_options:
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
-    - rsi-mod
+    #- rsi-mod
     #- webserver
     #- signalsample
     #- signalsamplemod
