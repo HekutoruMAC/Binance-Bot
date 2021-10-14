@@ -1511,7 +1511,7 @@ def menu():
                 LOOP = False
             print(f'{txcolors.WARNING}VOLATILE_VOLUME_LIST Realoaded Completed{txcolors.DEFAULT}')
             LOOP = False
-        elif x == 5:
+        elif x == 4:
             # stop external signal threads
             stop_signal_threads()
             # ask user if they want to sell all coins
