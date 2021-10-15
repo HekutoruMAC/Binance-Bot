@@ -24,3 +24,4 @@ websockets==9.1
 yarl==1.6.3
 numpy~=1.21.2
 prettytable==2.2.1
+pandas-ta==0.3.14b0
