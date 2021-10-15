@@ -99,7 +99,7 @@ trading_options:
   SHOW_TABLE_COINS_BOUGHT: True  
   #Thanks to the idea of Norker Play, the table of purchased coins can now be ordered according to the name of the column that we want ... 
   #thank you Norker Play for your contribution ...
-  #["Datetime", "Type", "Coin", "Volume", "Buy Price", "Currency", "Sell Price", "Profit $", "Profit %", "Sell Reason", "Earned", "USDTdiff"]
+  #["Symbol", "Volume", "Bought At", "Now At", "TP %", "SL %", "Change %", "Profit $", "Time Held"]
   SORT_TABLE_BY: "Profit $"
   REVERSE_SORT: True
   
