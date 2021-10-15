@@ -474,8 +474,8 @@ def balance_report(last_price):
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | Running for: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}{txcolors.DEFAULT}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | Running for: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {txcolors.SELL_LOSS}{str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}/{"{0:<5}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}/{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {txcolors.SELL_LOSS}{str(len(coins_bought)).zfill(4)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{"{0:<5}".format(int(INVESTMENT_TOTAL))} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {txcolors.SELL_LOSS}{"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
@@ -498,8 +498,8 @@ def balance_report(last_price):
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH.center(6)}{txcolors.DEFAULT} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH}{txcolors.DEFAULT} | Profit%:  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -760,6 +760,11 @@ def set_exparis(pairs):
     parsed_config = load_config(file_name)
     with open(file_name, 'r') as file:
         data = file.readlines()
+    c = 0
+    for line in data:
+        c = c + 1
+        if "EX_PAIRS: [" in line:
+            break
     #EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
     e = False
     pairs = pairs.strip().replace('USDT','')
@@ -772,7 +777,7 @@ def set_exparis(pairs):
     if e == False:
         print(f'The exception has been saved in EX_PAIR in the configuration file...')
         EX_PAIRS.append(pairs)
-        data[33] = "  EX_PAIRS: " + str(EX_PAIRS) + "\n"
+        data[c-1] = "  EX_PAIRS: " + str(EX_PAIRS) + "\n"
         with open(file_name, 'w') as f:
             f.writelines(data)
 
@@ -999,9 +1004,10 @@ def sell_coins(tpsl_override = False):
                     # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                     volatility_cooloff[coin] = datetime.now()
                     
-                    time_held = (timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10])).total_seconds())*3600
-                    print(f'time_held: {time_held}')
-                    #if time_held >= int(MAX_HOLDING_TIME): set_exparis(coin)
+                    time_held = (timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10])).total_seconds())/3600
+                    
+                    if not int(MAX_HOLDING_TIME) == 0: 
+                        if time_held >= int(MAX_HOLDING_TIME): set_exparis(coin)
                     
                     if DEBUG:
                         if not SCREEN_MODE == 2: print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
