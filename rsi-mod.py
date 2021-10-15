@@ -73,7 +73,7 @@ SIGNALS_SELL = 7 # Max number of buy signals on both INTERVALs to add coin to se
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
-PAIR_WITH = 'USDT'
+#PAIR_WITH = 'USDT'
 
 if USE_MOST_VOLUME_COINS == True:
     TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
@@ -81,7 +81,7 @@ else:
     TICKERS = "tickers.txt"
 
 #TICKERS = 'vo-tickers.txt' #'signalsample.txt'
-TIME_TO_WAIT = 4 # Minutes to wait between analysis
+TIME_TO_WAIT = 3 # Minutes to wait between analysis
 FULL_LOG = True # List analysis result to console
 
 ########################################

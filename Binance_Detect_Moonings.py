@@ -474,12 +474,12 @@ def balance_report(last_price):
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | Running for: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}{txcolors.DEFAULT}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | Running for: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}/{"{0:<5}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {str(len(coins_bought))}/{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {str(bot_paused)}{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.BOT_WINS}Win%: {str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)} {txcolors.BOT_WINS}Win%: {float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {txcolors.SELL_LOSS}{str(len(coins_bought)).zfill(4)}/{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}/{"{0:<5}".format(int(INVESTMENT_TOTAL))} {PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}/{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}/{int(INVESTMENT_TOTAL)} {PAIR_WITH}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {txcolors.SELL_LOSS}{"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -498,8 +498,8 @@ def balance_report(last_price):
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH.center(6)} | { round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH} | Profit%: { round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {PAIR_WITH.center(6)}{txcolors.DEFAULT} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {PAIR_WITH}{txcolors.DEFAULT} | Profit%:  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -755,6 +755,26 @@ def convert_volume():
         #pass
     return volume, last_price
 
+def set_exparis(pairs):
+    file_name = "config.yml"
+    parsed_config = load_config(file_name)
+    with open(file_name, 'r') as file:
+        data = file.readlines()
+    #EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
+    e = False
+    pairs = pairs.strip().replace('USDT','')
+    for coin in EX_PAIRS:
+        if coin == pairs: 
+            e = True
+            break
+        else:
+            e = False
+    if e == False:
+        print(f'The exception has been saved in EX_PAIR in the configuration file...')
+        EX_PAIRS.append(pairs)
+        data[33] = "  EX_PAIRS: " + str(EX_PAIRS) + "\n"
+        with open(file_name, 'w') as f:
+            f.writelines(data)
 
 def buy():
     '''Place Buy market orders for each volatile coin found'''
@@ -978,10 +998,14 @@ def sell_coins(tpsl_override = False):
 
                     # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                     volatility_cooloff[coin] = datetime.now()
-
+                    
+                    time_held = (timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10])).total_seconds())*3600
+                    print(f'time_held: {time_held}')
+                    #if time_held >= int(MAX_HOLDING_TIME): set_exparis(coin)
+                    
                     if DEBUG:
                         if not SCREEN_MODE == 2: print(f"sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
-
+                    
                     # Log trade
                     #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
                     profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
@@ -1302,7 +1326,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME
 
     # Default no debugging
     DEBUG = False
@@ -1378,6 +1402,8 @@ def load_settings():
     
     SORT_TABLE_BY = parsed_config['trading_options']['SORT_TABLE_BY']
     REVERSE_SORT = parsed_config['trading_options']['REVERSE_SORT']
+    
+    MAX_HOLDING_TIME = parsed_config['trading_options']['MAX_HOLDING_TIME']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
@@ -1459,8 +1485,8 @@ def new_or_continue():
                     END = True
                 else:
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
-                    os.remove(file_prefix + COINS_BOUGHT)
-                    os.remove(file_prefix + BOT_STATS)
+                    if os.path.exists(file_prefix + COINS_BOUGHT): os.remove(file_prefix + COINS_BOUGHT)
+                    if os.path.exists(file_prefix + BOT_STATS): os.remove(file_prefix + BOT_STATS)
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
