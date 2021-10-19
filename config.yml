@@ -26,14 +26,14 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 12
+  TRADE_TOTAL: 11.5
+  
+  # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
+  TRADE_SLOTS: 10
 
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC']
-
-  # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 10
+  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB']
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -79,9 +79,11 @@ trading_options:
   # Trading fee in % per trade.
   # If using 0.075% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
-  #BNB_FEE: True
   TRADING_FEE: 0.075
-  #TRADING_OTHER_FEE: 0.100
+  #TRADING_FEE: 0.1
+  
+  #if it is activated, the commission is ignored in WIN = (SELL_PRICE + FEE) >= (BUY_PRICE + FEE)
+  IGNORE_FEE: True
   
   # Discord integration
   # Used to push alerts, messages etc to a discord channel
@@ -109,7 +111,6 @@ trading_options:
   #I will no longer ask if you want to continue a new session, I would simply start from 0
   ALWAYS_OVERWRITE: False
 
-  
  #Enables the use of currencies with greater or lesser volume
   USE_MOST_VOLUME_COINS: True
   #idea from my psychologist, thanks Sebastian V.

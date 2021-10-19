@@ -102,7 +102,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -116,6 +116,7 @@ coins_unchanged = 0
 is_bot_running = True
 renewlist = 0
 FLAG_PAUSE = True
+USED_BNB_IN_SESSION = 0
 
 global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses
 global sell_all_coins, bot_started_datetime
@@ -498,8 +499,12 @@ def balance_report(last_price):
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT} {str(format(float(session_USDT_EARNED), ".14f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+    #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BNB USED  : {txcolors.SELL_PROFIT} {"{0:>5}".format(str(format(float(USED_BNB_IN_SESSION), ".8f")))} {txcolors.DEFAULT}')
+    #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BNB USED: {txcolors.SELL_PROFIT}{str(format(float(USED_BNB_IN_SESSION), ".6f"))} {txcolors.DEFAULT}')
+    #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
+    #if SCREEN_MODE < 2: print(f'')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_EARNED), ".14f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -606,7 +611,7 @@ def write_log(logline):
         table_txt = LOGTABLE.get_html_string()
     else:
         LOGTABLE = PrettyTable([])
-        LOGTABLE = PrettyTable(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Currency", "Sell Price", "Profit $", "Profit %", "Sell Reason", "Earned", "USDTdiff"])
+        LOGTABLE = PrettyTable(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Sell Price", "Currency", "Profit $", "Profit %", "Sell Reason", "Earned", "USDTdiff"])
         LOGTABLE.format = True
         LOGTABLE.border = True
         LOGTABLE.align = "c"
@@ -785,7 +790,7 @@ def buy():
     '''Place Buy market orders for each volatile coin found'''
     volume, last_price = convert_volume()
     orders = {}
-
+    global USED_BNB_IN_SESSION
     for coin in volume:
 
         if coin not in coins_bought:
@@ -795,7 +800,7 @@ def buy():
 
             msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
             msg_discord(msg1)
-
+            
             if TEST_MODE:
                 orders[coin] = [{
                     'symbol': coin,
@@ -850,6 +855,8 @@ def buy():
                         BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
+                        buyFeeTotal1 = (volumeBuy * last_price_buy) * (TRADING_FEE/100)
+                        USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
                         write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     else:
 						#adding the price in USDT
@@ -859,6 +866,9 @@ def buy():
                         BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
+                        buyFeeTotal1 = (volumeBuy * last_price_buy) * (TRADING_FEE/100)
+                        USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
+                        print("buy...")
                         write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     
                     write_signallsell(coin)
@@ -870,7 +880,7 @@ def buy():
 
 def sell_coins(tpsl_override = False):
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
-    global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL  
+    global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL, USED_BNB_IN_SESSION  
     externals = sell_external_signals()
         
     last_price = get_price(False) # don't populate rolling window
@@ -1037,6 +1047,11 @@ def sell_coins(tpsl_override = False):
                     #TRADE_TOTAL*PriceChangeIncFees_Perc)/100
                     
                     #if (LastPrice+sellFee) >= (BuyPrice+buyFee):
+                    USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal
+                    if IGNORE_FEE:
+                        sellFee = 0
+                        buyFee = 0
+                    
                     if (LastPrice-sellFee) >= (BuyPrice+buyFee):
                         trade_wins += 1
                     else:
@@ -1118,7 +1133,7 @@ def extract_order_data(order_details):
             FILLS_QTY = truncate(FILLS_QTY, lot_size)
     except Exception as e:
         if not SCREEN_MODE == 2: print(f"extract_order_data(): Exception getting coin {order_details['symbol']} step size! Exception: {e}")
-
+    
     # create object with received data from Binance
     transactionInfo = {
         'symbol': order_details['symbol'],
@@ -1208,7 +1223,7 @@ def update_portfolio(orders, last_price, volume):
             json.dump(coins_bought, file, indent=4)
 
 def update_bot_stats():
-    global trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, session_USDT_EARNED
+    global trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, session_USDT_EARNED, USED_BNB_IN_SESSION
 
     bot_stats = {
         'total_capital' : str(TRADE_SLOTS * TRADE_TOTAL),
@@ -1218,6 +1233,7 @@ def update_bot_stats():
         'tradeWins': trade_wins,
         'tradeLosses': trade_losses,
         'session_USDT_EARNED': session_USDT_EARNED,
+        'used_bnb_in_session': USED_BNB_IN_SESSION,
     }
 
     #save session info for through session portability
@@ -1332,7 +1348,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE
 
     # Default no debugging
     DEBUG = False
@@ -1410,6 +1426,8 @@ def load_settings():
     REVERSE_SORT = parsed_config['trading_options']['REVERSE_SORT']
     
     MAX_HOLDING_TIME = parsed_config['trading_options']['MAX_HOLDING_TIME']
+    
+    IGNORE_FEE = parsed_config['trading_options']['IGNORE_FEE']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
