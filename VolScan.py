@@ -42,7 +42,7 @@
 import os
 import numpy as np
 from time import sleep
-from datetime import datetime
+from datetime import datetime, date
 
 from binance.client import Client
 
@@ -66,8 +66,8 @@ PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 EX_PAIRS = parsed_config['trading_options']['EX_PAIRS']
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
-COINS_VOLUME = parsed_config['trading_options']['COINS_VOLUME']
-ABOVE_COINS_VOLUME = parsed_config['trading_options']['ABOVE_COINS_VOLUME']
+#COINS_MAX_VOLUME = parsed_config['trading_options']['COINS_MAX_VOLUME']
+#COINS_MIN_VOLUME = parsed_config['trading_options']['COINS_MIN_VOLUME']
 
 # Load creds for correct environment
 access_key, secret_key = load_correct_creds(parsed_creds)
@@ -116,12 +116,10 @@ CREATE_LIST_BY_ONLY_COV = False
 ticker_type = 'all'
 if CREATE_TICKER_LIST:
     TICKERS_LIST = 'tickers_all_USDT.txt'
+    create_ticker_list()
 else:
     if USE_MOST_VOLUME_COINS == True:
-        if ABOVE_COINS_VOLUME == True:
-            TICKERS_LIST = "above_volatile_volume_" + str(date.today()) + ".txt"
-        else:
-            TICKERS_LIST = "under_volatile_volume_" + str(date.today()) + ".txt"
+        TICKERS_LIST = "volatile_volume_" + str(date.today()) + ".txt"
     else:
         TICKERS_LIST = "tickers.txt"
 # BTC_FILTER - This feature is still in development.
@@ -146,7 +144,18 @@ class txcolors:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
     ITALICS = '\033[3m'
+	
+def create_ticker_list():
+    url = f'http://edgesforledges.com/watchlists/download/binance/fiat/usdt/all'
+    response = requests.get(url)
 
+    with open(TICKERS_LIST, 'w') as f:
+        for line in response.text.splitlines():
+            if line.endswith(PAIR_WITH):
+                currency = re.sub(r'BINANCE:(.*)' + PAIR_WITH, r'\1', line)
+                if currency not in EX_PAIRS:
+                    f.writelines(currency + '\n')
+    print(f'{txcolors.SELL_PROFIT}>> Tickers CREATED from {url} tickers!!! {TICKERS_LIST} <<')
 
 # get_price() function, takes 1 parameter (Binance client).
 # And it returns a dictionary of coins,
