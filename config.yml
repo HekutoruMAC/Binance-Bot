@@ -98,8 +98,8 @@ trading_options:
   DISABLE_TIMESTAMPS: True  
   SHOW_INITIAL_CONFIG: False
   
-  #If the sale time exceeds 24 hours it is automatically added to the black list of currencies. If set to 0 this can be disable
-  MAX_HOLDING_TIME: 24
+  #If the sale time exceeds X hours it is automatically added to the black list of currencies. If set to 0 this can be disable
+  MAX_HOLDING_TIME: 6
   
   SHOW_TABLE_COINS_BOUGHT: True  
   #Thanks to the idea of Norker Play, the table of purchased coins can now be ordered according to the name of the column that we want ... 
