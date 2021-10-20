@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 5.7
+Version: 5.8
 
 Disclaimer
 
@@ -179,7 +179,7 @@ def get_price(add_to_historical=True):
                         intickers = True
                         break
                 for item2 in EX_PAIRS:
-                    if item2 == coin['symbol']:
+                    if item2 + PAIR_WITH == coin['symbol']:
                         inex_pairs = True
                         break
                 if intickers == True and inex_pairs == False:
@@ -480,7 +480,7 @@ def balance_report(last_price):
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {txcolors.SELL_LOSS}{"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
     if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)} {txcolors.DEFAULT}Win%: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -503,8 +503,8 @@ def balance_report(last_price):
     #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BNB USED: {txcolors.SELL_PROFIT}{str(format(float(USED_BNB_IN_SESSION), ".6f"))} {txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
-    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_EARNED), ".14f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+    if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL) > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+    if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".2f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL) > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
     if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
     #if SCREEN_MODE < 2: print(f'')
     #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
