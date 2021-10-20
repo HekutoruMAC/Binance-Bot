@@ -69,6 +69,7 @@ import pandas as pd
 import pandas_ta as ta
 import ccxt
 import requests
+from os import system, name
 
 # Load creds modules
 from helpers.handle_creds import (
@@ -213,7 +214,7 @@ async def get(session: aiohttp.ClientSession, url) -> dict:
 
 async def get_historical_data(ticker_list, interval, limit):
 	urls = await create_urls(ticker_list=ticker_list, interval=interval, limit=limit)
-	if WINDOWS:
+	if name == 'nt':
 		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 	async with aiohttp.ClientSession() as session:
 		tasks = []
@@ -225,7 +226,7 @@ async def get_historical_data(ticker_list, interval, limit):
 
 
 def get_prices_high_low(list_coins, interval, limit):
-	if WINDOWS:
+	if name == 'nt':
 		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 	hist_data = asyncio.run(get_historical_data(ticker_list=list_coins, interval=interval, limit=limit))
 	prices_low_high = {}
