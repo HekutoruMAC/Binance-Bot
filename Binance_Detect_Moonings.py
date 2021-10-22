@@ -852,14 +852,14 @@ def buy():
                     if not TEST_MODE:
                         orders[coin] = extract_order_data(order_details)
 						#adding the price in USDT
-                        volumeBuy = format(float(volume[coin]), '.6f')
+                        volumeBuy = float(format(float(volume[coin]), '.6f'))
                         last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
                         BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
                         buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                         USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
-                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
+                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, format(volumeBuy, '.6f'), last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     else:
 						#adding the price in USDT
                         BuyUSDT = volume[coin] * last_price[coin]['price']
@@ -870,7 +870,7 @@ def buy():
                         coin = '{0:<9}'.format(coin)
                         buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                         USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
-                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
+                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, format(volumeBuy, '.6f'), last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     
                     write_signallsell(coin)
 
@@ -1716,8 +1716,8 @@ if __name__ == '__main__':
 
     if not TEST_MODE:
         if not args.notimeout: # if notimeout skip this (fast for dev tests)
-            print('{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Test mode is disabled in the configuration, you are using _LIVE_ funds.')
-            print('{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Waiting 10 seconds before live trading as a security measure!')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Test mode is disabled in the configuration, you are using _LIVE_ funds.')
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Waiting 10 seconds before live trading as a security measure!')
             time.sleep(0)
 
     remove_external_signals('buy')
