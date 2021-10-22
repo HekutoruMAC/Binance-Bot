@@ -290,7 +290,7 @@ def wait_for_price():
                 volatile_coins[excoin] = 1
                 exnumber +=1
                 print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!')
-                with open("excoin.txt",'a+') as f:
+                with open(EXTERNAL_COINS,'a+') as f:
                     f.write(excoin + '\n')
 
         balance_report(last_price)
@@ -361,7 +361,7 @@ def get_volume_list():
     c = 0
     if os.path.exists(VOLATILE_VOLUME) == False:
         load_settings()
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
+        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
         for coin in tickers_all:
             try:
                 infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
@@ -857,7 +857,7 @@ def buy():
                         BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
-                        buyFeeTotal1 = (volumeBuy * last_price_buy) * (TRADING_FEE/100)
+                        buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                         USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
                         write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     else:
@@ -868,7 +868,7 @@ def buy():
                         BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
-                        buyFeeTotal1 = (volumeBuy * last_price_buy) * (TRADING_FEE/100)
+                        buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                         USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
                         write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin, volumeBuy, last_price_buy, BuyUSDT, PAIR_WITH, 0, 0, 0, 0, 0])
                     
@@ -1349,7 +1349,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS
 
     # Default no debugging
     DEBUG = False
@@ -1429,6 +1429,8 @@ def load_settings():
     MAX_HOLDING_TIME = parsed_config['trading_options']['MAX_HOLDING_TIME']
     
     IGNORE_FEE = parsed_config['trading_options']['IGNORE_FEE']
+    
+    EXTERNAL_COINS = parsed_config['trading_options']['EXTERNAL_COINS']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
@@ -1512,6 +1514,7 @@ def new_or_continue():
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
                     if os.path.exists(file_prefix + COINS_BOUGHT): os.remove(file_prefix + COINS_BOUGHT)
                     if os.path.exists(file_prefix + BOT_STATS): os.remove(file_prefix + BOT_STATS)
+                    if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
