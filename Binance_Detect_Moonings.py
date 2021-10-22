@@ -1365,6 +1365,7 @@ def load_settings():
     BOT_STATS = parsed_config['script_options'].get('BOT_STATS')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
+    EXTERNAL_COINS = parsed_config['script_options']['EXTERNAL_COINS']
 
     # Load trading vars
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
@@ -1429,8 +1430,6 @@ def load_settings():
     MAX_HOLDING_TIME = parsed_config['trading_options']['MAX_HOLDING_TIME']
     
     IGNORE_FEE = parsed_config['trading_options']['IGNORE_FEE']
-    
-    EXTERNAL_COINS = parsed_config['trading_options']['EXTERNAL_COINS']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
