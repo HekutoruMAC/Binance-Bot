@@ -853,7 +853,7 @@ def buy():
                         orders[coin] = extract_order_data(order_details)
 						#adding the price in USDT
                         volumeBuy = format(float(volume[coin]), '.6f')
-                        last_price_buy = str(float(format(orders[coin]['avgPrice'], '.3f'))).zfill(9)
+                        last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
                         BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
@@ -864,7 +864,7 @@ def buy():
 						#adding the price in USDT
                         BuyUSDT = volume[coin] * last_price[coin]['price']
                         volumeBuy = format(float(volume[coin]), '.6f')
-                        last_price_buy = str(format(float(last_price[coin]['price']), '.3f')).zfill(9)
+                        last_price_buy = format(float(last_price[coin]['price']), '.3f')
                         BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
                         #improving the presentation of the log file
                         coin = '{0:<9}'.format(coin)
