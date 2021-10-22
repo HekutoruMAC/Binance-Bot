@@ -98,15 +98,15 @@ trading_options:
   DISABLE_TIMESTAMPS: True  
   SHOW_INITIAL_CONFIG: False
   
-  #If the sale time exceeds X hours it is automatically added to the black list of currencies. If set to 0 this can be disable
+  #If the sale time exceeds 6 hours it is automatically added to the black list of currencies. If set to 0 this can be disable
   MAX_HOLDING_TIME: 6
   
   SHOW_TABLE_COINS_BOUGHT: True  
   #Thanks to the idea of Norker Play, the table of purchased coins can now be ordered according to the name of the column that we want ... 
   #thank you Norker Play for your contribution ...
   #["Symbol", "Volume", "Bought At", "Now At", "TP %", "SL %", "Change %", "Profit $", "Time Held"]
-  SORT_TABLE_BY: "Profit $"
-  REVERSE_SORT: True
+  SORT_TABLE_BY: "Change %"
+  REVERSE_SORT: False
   
   #I will no longer ask if you want to continue a new session, I would simply start from 0
   ALWAYS_OVERWRITE: False
@@ -129,8 +129,9 @@ trading_options:
     #- os_pausebot_MA
     #- os_pausebot_MAOSC
     #- os_pausebot_MAv2
-    #- VolScan
+    - VolScan
     #- the_snail_test
+    #- the_snail_v2
     #- os_signalbuy_3SMA
     #- os_signalbuy_3SMAv2
     #- os_signalbuy_RECOMM
@@ -138,7 +139,7 @@ trading_options:
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
-    - rsi-mod
+    #- rsi-mod
     #- webserver
     #- signalsample
     #- signalsamplemod
