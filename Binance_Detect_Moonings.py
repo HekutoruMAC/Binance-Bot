@@ -1349,7 +1349,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS
+    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS
 
     # Default no debugging
     DEBUG = False
@@ -1430,6 +1430,9 @@ def load_settings():
     MAX_HOLDING_TIME = parsed_config['trading_options']['MAX_HOLDING_TIME']
     
     IGNORE_FEE = parsed_config['trading_options']['IGNORE_FEE']
+    
+    PROXY_HTTP = parsed_config['script_options']['PROXY_HTTP']
+    PROXY_HTTPS = parsed_config['script_options']['PROXY_HTTPS']
 	
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
@@ -1637,9 +1640,25 @@ if __name__ == '__main__':
 
     # Authenticate with the client, Ensure API key is good before continuing
     if AMERICAN_USER:
-        client = Client(access_key, secret_key, tld='us')
+        if PROXY_HTTP != '' or PROXY_HTTPS != '': 
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Using proxy ...')
+            proxies = {
+                    'http': PROXY_HTTP,
+                    'https': PROXY_HTTPS
+            }
+            client = Client(access_key, secret_key, {'proxies': proxies}, tld='us')
+        else:
+            client = Client(access_key, secret_key, tld='us')
     else:
-        client = Client(access_key, secret_key)
+        if PROXY_HTTP != '' or PROXY_HTTPS != '': 
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Using proxy ...')
+            proxies = {
+                    'http': PROXY_HTTP,
+                    'https': PROXY_HTTPS
+            }
+            client = Client(access_key, secret_key, {'proxies': proxies})
+        else:
+            client = Client(access_key, secret_key)
 
     # If the users has a bad / incorrect API key.
     # this will stop the script from starting, and display a helpful error.

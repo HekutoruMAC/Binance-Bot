@@ -14,6 +14,10 @@ script_options:
   #This file will show the currencies contributed by the module or the compa modules for the bot
   EXTERNAL_COINS: 'excoin.txt'
   DEBUG: True
+  
+  #all binance requests from our bot will be proxied
+  PROXY_HTTP: '' #'http://localhost:8090'
+  PROXY_HTTPS: ''
 
   # Set this to true if you are accessing binance from within the United States of America
   # Need to change TLD
@@ -35,7 +39,7 @@ trading_options:
 
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB']
+  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB', 'VET', 'AXS', 'NEAR', 'GRT']
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -141,7 +145,7 @@ trading_options:
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
-    #- rsi-mod
+    - rsi-mod
     #- webserver
     #- signalsample
     #- signalsamplemod
