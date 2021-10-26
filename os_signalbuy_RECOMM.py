@@ -22,13 +22,14 @@ config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 parsed_config = load_config(config_file)
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 
 MY_EXCHANGE = 'BINANCE'
 MY_SCREENER = 'CRYPTO'
 MY_FIRST_INTERVAL = Interval.INTERVAL_1_MINUTE
 MY_SECOND_INTERVAL = Interval.INTERVAL_5_MINUTES
 MY_THIRD_INTERVAL = Interval.INTERVAL_15_MINUTES
-PAIR_WITH = 'USDT'
+#PAIR_WITH = 'USDT'
 
 TIME_TO_WAIT = 1 # Minutes to wait between analysis
 FULL_LOG = True # List anylysis result to console
@@ -42,10 +43,10 @@ if USE_MOST_VOLUME_COINS == True:
 else:
     TICKERS = 'tickers.txt' #'signalsample.txt'
 
-TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
+# = 'tickers_signalbuy.txt'
 
-if os.path.exists(TICKERS_OVERRIDE):
-    TICKERS = TICKERS_OVERRIDE
+#if os.path.exists(TICKERS_OVERRIDE):
+#    TICKERS = TICKERS_OVERRIDE
 
 
 TRADINGVIEW_EX_FILE = 'tradingview_ta_unknown'

@@ -30,6 +30,7 @@ config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 parsed_config = load_config(config_file)
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 
 class txcolors:
     BUY = '\033[92m'
@@ -49,7 +50,7 @@ NUM_CANDLES = 20 # number of candles to be cached in buffer... e.g. the maximum 
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
-PAIR_WITH = 'USDT'
+#PAIR_WITH = 'USDT'
 
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
@@ -57,10 +58,10 @@ if USE_MOST_VOLUME_COINS == True:
 else:
     TICKERS = 'tickers.txt' #'signalsample.txt'
     
-TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
+#TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
-if os.path.exists(TICKERS_OVERRIDE):
-    TICKERS = TICKERS_OVERRIDE
+#if os.path.exists(TICKERS_OVERRIDE):
+#    TICKERS = TICKERS_OVERRIDE
 
 TIME_TO_WAIT = 1 # Minutes to wait between analysis
 FULL_LOG = False # List analysis result to console

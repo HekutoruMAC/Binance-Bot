@@ -12,7 +12,7 @@ import os
 import sys
 # used for directory handling
 import glob
-import time
+
 import threading
 
 # used for dates
@@ -31,6 +31,7 @@ config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 parsed_config = load_config(config_file)
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 
 ########################################################
 # These are the TradingView Oscillator signals available
@@ -69,7 +70,7 @@ SIGNALS_SELL = 7 # Max number of buy signals on both INTERVALs to add coin to se
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
-PAIR_WITH = 'USDT'
+#PAIR_WITH = 'USDT'
 
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
@@ -77,10 +78,10 @@ if USE_MOST_VOLUME_COINS == True:
 else:
     TICKERS = 'tickers.txt' #'signalsample.txt'
 
-TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
+#TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
-if os.path.exists(TICKERS_OVERRIDE):
-    TICKERS = TICKERS_OVERRIDE
+#if os.path.exists(TICKERS_OVERRIDE):
+#    TICKERS = TICKERS_OVERRIDE
 
 
 TIME_TO_WAIT = 2 # Minutes to wait between analysis

@@ -22,6 +22,7 @@ config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 parsed_config = load_config(config_file)
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 
 # for colourful logging to the console
 class txcolors:
@@ -37,17 +38,17 @@ INTERVAL15MIN = Interval.INTERVAL_15_MINUTES # Main Timeframe for analysis on Os
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
-PAIR_WITH = 'USDT'
+#PAIR_WITH = 'USDT'
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
     TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
 else:
     TICKERS = 'tickers.txt' #'signalsample.txt'
 
-TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
+#TICKERS_OVERRIDE = 'tickers_signalbuy.txt'
 
-if os.path.exists(TICKERS_OVERRIDE):
-    TICKERS = TICKERS_OVERRIDE
+#if os.path.exists(TICKERS_OVERRIDE):
+#    TICKERS = TICKERS_OVERRIDE
 
 TIME_TO_WAIT = 10 # Minutes to wait between analysis
 DEBUG = False # List analysis result to console
