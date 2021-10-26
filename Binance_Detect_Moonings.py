@@ -795,7 +795,7 @@ def buy():
     global USED_BNB_IN_SESSION
     for coin in volume:
 
-        if coin not in coins_bought:
+        if coin not in coins_bought and coin.replace('USDT','') not in EX_PAIRS:
             #litle modification of Sparky
             volume[coin] = math.floor(volume[coin]*100000)/100000
             if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
