@@ -102,7 +102,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION, PAUSEBOT_MANUAL
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -117,6 +117,7 @@ is_bot_running = True
 renewlist = 0
 FLAG_PAUSE = True
 USED_BNB_IN_SESSION = 0
+PAUSEBOT_MANUAL = False
 
 global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses
 global sell_all_coins, bot_started_datetime
@@ -660,20 +661,23 @@ def msg_discord(msg):
 
 def pause_bot():
     '''Pause the script when external indicators detect a bearish trend in the market'''
-    global bot_paused, session_profit_incfees_perc, hsp_head, session_profit_incfees_total
+    global bot_paused, session_profit_incfees_perc, hsp_head, session_profit_incfees_total, PAUSEBOT_MANUAL
 
     # start counting for how long the bot has been paused
     start_time = time.perf_counter()
     try:
-        while os.path.exists("signals/pausebot.pause"):
+        while os.path.exists("signals/pausebot.pause") or PAUSEBOT_MANUAL:
 
             # do NOT accept any external signals to buy while in pausebot mode
             remove_external_signals('buy')
 
             if bot_paused == False:
-                if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
-                
-                msg = str(datetime.now()) + ' | PAUSEBOT. Buying paused due to negative market conditions, stop loss and take profit will continue to work.'
+                if PAUSEBOT_MANUAL:
+                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Purchase paused manually, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                    msg = str(datetime.now()) + ' | PAUSEBOT.Purchase paused manually, stop loss and take profit will continue to work...'
+                else:
+                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                    msg = str(datetime.now()) + ' | PAUSEBOT. Buying paused due to negative market conditions, stop loss and take profit will continue to work.'
                 msg_discord(msg)
 
                 bot_paused = True
@@ -794,7 +798,6 @@ def buy():
     orders = {}
     global USED_BNB_IN_SESSION
     for coin in volume:
-
         if coin not in coins_bought and coin.replace('USDT','') not in EX_PAIRS:
             #litle modification of Sparky
             volume[coin] = math.floor(volume[coin]*100000)/100000
@@ -1527,7 +1530,7 @@ def new_or_continue():
 		
 		
 def menu():
-    global SCREEN_MODE
+    global SCREEN_MODE, PAUSEBOT_MANUAL
     END = False
     LOOP = True
     stop_signal_threads()
@@ -1538,7 +1541,11 @@ def menu():
         print(f'[1]Reload Configuration{txcolors.DEFAULT}')
         print(f'[2]Reload modules{txcolors.DEFAULT}')
         print(f'[3]Reload Volatily Volume List{txcolors.DEFAULT}')
-        print(f'[4]Exit BOT{txcolors.DEFAULT}')
+        if PAUSEBOT_MANUAL == False: 
+            print(f'[4]Stop Purchases{txcolors.DEFAULT}')
+        else:
+            print(f'[4]Start Purchases{txcolors.DEFAULT}')
+        print(f'[5]Exit BOT{txcolors.DEFAULT}')
         x = input('Please enter your choice: ')
         x = int(x)
         print(f'')
@@ -1569,6 +1576,13 @@ def menu():
             print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}VOLATILE_VOLUME_LIST Realoaded Completed{txcolors.DEFAULT}')
             LOOP = False
         elif x == 4:
+            if PAUSEBOT_MANUAL == False:
+                PAUSEBOT_MANUAL = True
+                LOOP = False
+            else:
+                PAUSEBOT_MANUAL = False
+                LOOP = False
+        elif x == 5:
             # stop external signal threads
             stop_signal_threads()
             # ask user if they want to sell all coins
