@@ -39,7 +39,7 @@ trading_options:
 
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB', 'VET', 'AXS', 'NEAR', 'GRT']
+  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB', 'VET', 'AXS', 'NEAR', 'GRT', SOL]
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -49,7 +49,7 @@ trading_options:
   RECHECK_INTERVAL: 6
 
   # the difference in % between the first and second checks for the price. default 0.25
-  CHANGE_IN_PRICE: 0.25
+  CHANGE_IN_PRICE: 100 #0.25
 
   # define in % when to sell a coin that's not making a profit.
   STOP_LOSS: 100
@@ -127,6 +127,7 @@ trading_options:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
     # the default ones WILL NOT work due to customisations for my specific purposes
     #
+    - Ak_Scalp
     #- custsignalmod
     #- djcommie_signalbuy_rsi_stoch
     #- djcommie_signalsell_rsi_stoch
@@ -135,7 +136,7 @@ trading_options:
     #- os_pausebot_MA
     #- os_pausebot_MAOSC
     #- os_pausebot_MAv2
-    - VolScan
+    #- VolScan
     #- the_snail_test
     #- the_snail_v2
     #- os_signalbuy_3SMA
@@ -145,7 +146,7 @@ trading_options:
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
     #- pausebotmod
-    - rsi-mod
+    #- rsi-mod
     #- webserver
     #- signalsample
     #- signalsamplemod
