@@ -127,7 +127,7 @@ trading_options:
     # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
     # the default ones WILL NOT work due to customisations for my specific purposes
     #
-    - Ak_Scalp
+    #- Ak_Scalp
     #- custsignalmod
     #- djcommie_signalbuy_rsi_stoch
     #- djcommie_signalsell_rsi_stoch
@@ -145,6 +145,7 @@ trading_options:
     #- os_signalsell_RECOMM
     #- os_signalsell_3SMA
     #- os_signalsell_3SMAv2
+    - os_signalbuy_RECOMM_SBUY
     #- pausebotmod
     #- rsi-mod
     #- webserver
