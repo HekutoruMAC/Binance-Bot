@@ -1,3 +1,6 @@
+# No future support offered, use this script at own risk - test before using real funds
+# If you lose money using this MOD (and you will at some point) you've only got yourself to blame!
+
 from tradingview_ta import TA_Handler, Interval, Exchange
 
 # used for dates
@@ -95,24 +98,24 @@ def analyze(pairs):
                     f.write(pair.removesuffix(PAIR_WITH) + '\n')
             continue
         
-        SMA10_1MIN = round(analysis1MIN.indicators['SMA10'],4)
         SMA20_1MIN = round(analysis1MIN.indicators['SMA20'],4)
         SMA100_1MIN = round(analysis1MIN.indicators['SMA100'],4)
+        SMA200_1MIN = round(analysis1MIN.indicators['SMA200'],4)
 
-        SMA10_5MIN = round(analysis5MIN.indicators['SMA10'],4)
         SMA20_5MIN = round(analysis5MIN.indicators['SMA20'],4)
         SMA100_5MIN = round(analysis5MIN.indicators['SMA100'],4)
+        SMA200_5MIN = round(analysis5MIN.indicators['SMA200'],4)
         
         ACTION = 'NOTHING'
         
         # Buy condition on the 1 minute indicator
-        if (SMA10_1MIN >= SMA20_1MIN) and (SMA20_1MIN > SMA100_1MIN):            
+        if (SMA20_1MIN > SMA100_1MIN) and (SMA100_1MIN > SMA200_1MIN):            
 
             ACTION = 'BUY'
 
         if DEBUG:
-            print(f'{SIGNAL_NAME} Signals {pair} {ACTION} - SMA100_1MIN: {SMA100_1MIN} SMA20_1MIN: {SMA20_1MIN} SMA10_1MIN: {SMA10_1MIN}')
-            print(f'{SIGNAL_NAME} Signals {pair} {ACTION} - SMA100_5MIN: {SMA100_5MIN} SMA20_5MIN: {SMA20_5MIN} SMA10_5MIN: {SMA10_5MIN}')
+            print(f'{SIGNAL_NAME} Signals {pair} {ACTION} - SMA200_1MIN: {SMA200_1MIN} SMA100_1MIN: {SMA100_1MIN} SMA20_1MIN: {SMA20_1MIN}')
+            print(f'{SIGNAL_NAME} Signals {pair} {ACTION} - SMA200_5MIN: {SMA200_5MIN} SMA100_5MIN: {SMA100_5MIN} SMA20_5MIN: {SMA20_5MIN}')
 
         if ACTION == 'BUY':
             signal_coins[pair] = pair
@@ -124,8 +127,8 @@ def analyze(pairs):
             timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
             with open(SIGNAL_NAME + '.log','a+') as f:
                 f.write(timestamp + ' ' + pair + '\n')
-                f.write(f'    Signals: {ACTION} - SMA100_1MIN: {SMA100_1MIN} SMA20_1MIN: {SMA20_1MIN} SMA10_1MIN: {SMA10_1MIN}\n')
-                f.write(f'    Signals: {ACTION} - SMA100_5MIN: {SMA100_5MIN} SMA20_5MIN: {SMA20_5MIN} SMA10_5MIN: {SMA10_5MIN}\n')
+                f.write(f'    Signals: {ACTION} - SMA200_1MIN: {SMA200_1MIN} SMA100_1MIN: {SMA100_1MIN} SMA20_1MIN: {SMA20_1MIN}\n')
+                f.write(f'    Signals: {ACTION} - SMA200_5MIN: {SMA200_5MIN} SMA100_5MIN: {SMA100_5MIN} SMA20_5MIN: {SMA20_5MIN}\n')
                 
         if ACTION == 'NOTHING':
             if DEBUG:
