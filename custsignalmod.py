@@ -29,7 +29,7 @@ OSC_INDICATORS = ['MACD', 'Stoch.RSI', 'RSI'] # Indicators to use in Oscillator 
 OSC_THRESHOLD = 3 # Must be less or equal to number of items in OSC_INDICATORS 
 MA_INDICATORS = ['EMA20', 'EMA100', 'EMA200'] # Indicators to use in Moving averages analysis
 MA_THRESHOLD = 3 # Must be less or equal to number of items in MA_INDICATORS 
-INTERVAL = Interval.INTERVAL_1_MINUTES #Timeframe for analysis
+INTERVAL = Interval.INTERVAL_1_MINUTE #Timeframe for analysis
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
