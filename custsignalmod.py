@@ -24,6 +24,7 @@ config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 parsed_config = load_config(config_file)
 
 USE_MOST_VOLUME_COINS = parsed_config['trading_options']['USE_MOST_VOLUME_COINS']
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 
 OSC_INDICATORS = ['MACD', 'Stoch.RSI', 'RSI'] # Indicators to use in Oscillator analysis
 OSC_THRESHOLD = 3 # Must be less or equal to number of items in OSC_INDICATORS 
@@ -33,7 +34,6 @@ INTERVAL = Interval.INTERVAL_1_MINUTE #Timeframe for analysis
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
-PAIR_WITH = 'USDT'
 
 if USE_MOST_VOLUME_COINS == True:
         #if ABOVE_COINS_VOLUME == True:
