@@ -370,7 +370,7 @@ def get_volume_list():
             if COINS_MAX_VOLUME.isnumeric() == False and COINS_MIN_VOLUME.isnumeric() == False:
                 infocoinMax = client.get_ticker(symbol=COINS_MAX_VOLUME + PAIR_WITH)
                 infocoinMin = client.get_ticker(symbol=COINS_MIN_VOLUME + PAIR_WITH)
-                COINS_MAX_VOLUME = round(float(infocoinMax['quoteVolume']),-5)
+                COINS_MAX_VOLUME = math.ceil(float(infocoinMax['quoteVolume']))
                 COINS_MIN_VOLUME = round(float(infocoinMin['quoteVolume']))
                 print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}COINS_MAX_VOLUME {COINS_MAX_VOLUME} and COINS_MIN_VOLUME {COINS_MIN_VOLUME} were set from specific currencies...')
         
