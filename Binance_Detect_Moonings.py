@@ -345,57 +345,66 @@ def sell_external_signals():
     return external_list
 
 def get_volume_list():
-    VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
-    most_volume_coins = {}
-    tickers_all = []
-    #    os.remove(VOLATILE_VOLUME)
-    #try:
-    #if os.path.exists("tickers_all.txt") == True:
-        #tickers_all=[line.strip() for line in open("tickers_all.txt")]
-    #else:
-        #VOLATILE_VOLUME = ""
+    try:
+        global COINS_MAX_VOLUME, COINS_MIN_VOLUME
+        VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
+        most_volume_coins = {}
+        tickers_all = []
+        #    os.remove(VOLATILE_VOLUME)
+        #try:
+        #if os.path.exists("tickers_all.txt") == True:
+            #tickers_all=[line.strip() for line in open("tickers_all.txt")]
+        #else:
+            #VOLATILE_VOLUME = ""
         
-    prices = client.get_all_tickers()
-    
-    for coin in prices:
-        if coin['symbol'] == coin['symbol'].replace(PAIR_WITH, "") + PAIR_WITH:
-            tickers_all.append(coin['symbol'].replace(PAIR_WITH, ""))
+        prices = client.get_all_tickers()
+        
+        for coin in prices:
+            if coin['symbol'] == coin['symbol'].replace(PAIR_WITH, "") + PAIR_WITH:
+                tickers_all.append(coin['symbol'].replace(PAIR_WITH, ""))
 
-    c = 0
-    if os.path.exists(VOLATILE_VOLUME) == False:
-        load_settings()
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
-        for coin in tickers_all:
-            try:
+        c = 0
+        if os.path.exists(VOLATILE_VOLUME) == False:
+            load_settings()
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
+            if COINS_MAX_VOLUME.isnumeric() == False and COINS_MIN_VOLUME.isnumeric() == False:
+                infocoinMax = client.get_ticker(symbol=COINS_MAX_VOLUME + PAIR_WITH)
+                infocoinMin = client.get_ticker(symbol=COINS_MIN_VOLUME + PAIR_WITH)
+                COINS_MAX_VOLUME = round(float(infocoinMax['quoteVolume']),-5)
+                COINS_MIN_VOLUME = round(float(infocoinMin['quoteVolume']))
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}COINS_MAX_VOLUME {COINS_MAX_VOLUME} and COINS_MIN_VOLUME {COINS_MIN_VOLUME} were set from specific currencies...')
+        
+            for coin in tickers_all:
+                #try:
                 infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
-                volumecoin = float(infocoin['quoteVolume']) #/ 1000000
-                if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME and coin not in EX_PAIRS:
+                volumecoin = float(infocoin['quoteVolume']) #/ 1000000                
+                if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME and coin not in EX_PAIRS and coin not in most_volume_coins:
                     most_volume_coins.update({coin : volumecoin})  					
                     c = c + 1
-            except Exception as e:
-                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-                continue
+                # except Exception as e:
+                    # print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+                    # continue
+                    
+            if c <= 0: 
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Cannot continue because there are no coins in the selected range, change the settings and start the bot again...')
+                sys.exit()
                 
-        if c <= 0: 
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Cannot continue because there are no coins in the selected range, change the settings and start the bot again...')
-            sys.exit()
+            sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
             
-        sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
-        
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
-        
-        for coin in sortedVolumeList:
-            with open(VOLATILE_VOLUME,'a+') as f:
-                f.write(coin[0] + '\n')
-    else:
-        if ALWAYS_OVERWRITE == False:
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
-            print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
-    # except Exception as e:
-        # print(f'{"get_volume_list"}: Exception in function: {e}')
-        # print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-        # print("COIN_ERROR: ", coin + PAIR_WITH)
-        # pass
+            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
+            
+            for coin in sortedVolumeList:
+                with open(VOLATILE_VOLUME,'a+') as f:
+                    f.write(coin[0] + '\n')
+        else:
+            if ALWAYS_OVERWRITE == False:
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
+                print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
+    except Exception as e:
+        print(f'{"get_volume_list"}: Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        print("COIN_ERROR: ", coin + PAIR_WITH)
+        exit(1)
     return VOLATILE_VOLUME
 
 def print_table_coins_bought():
@@ -517,8 +526,8 @@ def balance_report(last_price):
         #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BNB USED: {txcolors.SELL_PROFIT}{str(format(float(USED_BNB_IN_SESSION), ".6f"))} {txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
-        if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL) > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL), 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".2f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL) > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/int(INVESTMENT_TOTAL),3)}%{txcolors.DEFAULT}')
+        if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}EARNED  : {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL, 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
+        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}EARNED: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".14f"))} {txcolors.DEFAULT}{PAIR_WITH} | Profit%: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}')
         if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -1262,10 +1271,10 @@ def update_bot_stats():
         'total_capital' : str(TRADE_SLOTS * TRADE_TOTAL),
         'botstart_datetime' : str(bot_started_datetime),
         'historicProfitIncFees_Percent': historic_profit_incfees_perc,
-        'historicProfitIncFees_Total': historic_profit_incfees_total,
+        'historicProfitIncFees_Total': format(historic_profit_incfees_total, ".14f"),
         'tradeWins': trade_wins,
         'tradeLosses': trade_losses,
-        'session_USDT_EARNED': session_USDT_EARNED,
+        'session_'+ PAIR_WITH + '_EARNED': format(session_USDT_EARNED, ".14f"),
         'used_bnb_in_session': USED_BNB_IN_SESSION,
     }
 
@@ -1478,13 +1487,13 @@ def load_settings():
     access_key, secret_key = load_correct_creds(parsed_creds)
 
 def renew_list():
-    global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE
+    global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE, COINS_MAX_VOLUME, COINS_MIN_VOLUME
     try:
         if USE_MOST_VOLUME_COINS == True:
             if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt" and os.path.exists(VOLATILE_VOLUME_LIST) == True:
                 tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]                
             else:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
                 stop_signal_threads()
                 FLAG_PAUSE = True
                 if TEST_MODE == True:
@@ -1498,8 +1507,8 @@ def renew_list():
                 coinstosave = []
                 
                 for coin in coins_bought_list:
-                    coinstosave.append(coin.replace(PAIR_WITH,"") + "\n")                
-                
+                    coinstosave.append(coin.replace(PAIR_WITH,"") + "\n")
+                    
                 VOLATILE_VOLUME_LIST = get_volume_list()
                 with open(VOLATILE_VOLUME_LIST,'r') as f:
                     lines = f.readlines()
@@ -1555,6 +1564,7 @@ def new_or_continue():
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
                     if os.path.exists(file_prefix + HISTORY_LOG_FILE): os.remove(file_prefix + HISTORY_LOG_FILE)
+                    if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
@@ -1566,6 +1576,7 @@ def new_or_continue():
 		
 def menu():
     try:
+        global COINS_MAX_VOLUME, COINS_MIN_VOLUME
         global SCREEN_MODE, PAUSEBOT_MANUAL
         END = False
         LOOP = True
@@ -1770,7 +1781,7 @@ if __name__ == '__main__':
             historic_profit_incfees_total = bot_stats['historicProfitIncFees_Total']
             trade_wins = bot_stats['tradeWins']
             trade_losses = bot_stats['tradeLosses']
-            session_USDT_EARNED = bot_stats['session_USDT_EARNED']
+            session_USDT_EARNED = float(bot_stats['session_' + PAIR_WITH + '_EARNED'])
 
             if total_capital != total_capital_config:
                 historic_profit_incfees_perc = (historic_profit_incfees_total / total_capital_config) * 100
