@@ -818,96 +818,100 @@ def set_exparis(pairs):
             f.writelines(data)
 
 def buy():
-    '''Place Buy market orders for each volatile coin found'''
-    volume, last_price = convert_volume()
-    orders = {}
-    global USED_BNB_IN_SESSION
-    for coin in volume:
-        if coin not in coins_bought and coin.replace(PAIR_WITH,'') not in EX_PAIRS:
-            #litle modification of Sparky
-            volume[coin] = math.floor(volume[coin]*100000)/100000
-            if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
+    try:
+        '''Place Buy market orders for each volatile coin found'''
+        volume, last_price = convert_volume()
+        orders = {}
+        global USED_BNB_IN_SESSION
+        for coin in volume:
+            if coin not in coins_bought and coin.replace(PAIR_WITH,'') not in EX_PAIRS:
+                #litle modification of Sparky
+                volume[coin] = math.floor(volume[coin]*100000)/100000
+                if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
 
-            msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
-            msg_discord(msg1)
-            
-            if TEST_MODE:
-                orders[coin] = [{
-                    'symbol': coin,
-                    'orderId': 0,
-                    'time': datetime.now().timestamp()
-                }]
+                msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
+                msg_discord(msg1)
+                
+                if TEST_MODE:
+                    orders[coin] = [{
+                        'symbol': coin,
+                        'orderId': 0,
+                        'time': datetime.now().timestamp()
+                    }]
 
-           		# Log trade
-                #if LOG_TRADES:
-                BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
-                volumeBuy = format(volume[coin], '.6f')
-                last_price_buy = str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
-                BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
-                coin = '{0:<9}'.format(coin)
-                #["Datetime",                                           "Type", "Coin", "Volume",               "Buy Price",                                     "Amount of Buy",                       "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
-                write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price_buy),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])                
-                write_signallsell(coin.removesuffix(PAIR_WITH))
+                    # Log trade
+                    #if LOG_TRADES:
+                    BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
+                    volumeBuy = format(volume[coin], '.6f')
+                    last_price_buy = str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
+                    BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
+                    coin = '{0:<9}'.format(coin)
+                    #["Datetime",                                           "Type", "Coin", "Volume",               "Buy Price",                                     "Amount of Buy",                       "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
+                    write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price_buy),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])                
+                    write_signallsell(coin.removesuffix(PAIR_WITH))
 
-                continue
+                    continue
 
-        # try to create a real order if the test orders did not raise an exception
-            try:
-                order_details = client.create_order(
-                    symbol = coin,
-                    side = 'BUY',
-                    type = 'MARKET',
-                    quantity = volume[coin]
-                )
+            # try to create a real order if the test orders did not raise an exception
+                try:
+                    order_details = client.create_order(
+                        symbol = coin,
+                        side = 'BUY',
+                        type = 'MARKET',
+                        quantity = volume[coin]
+                    )
 
-        # error handling here in case position cannot be placed
-            except Exception as e:
-                print(f'buy() exception: {e}')
-                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            # error handling here in case position cannot be placed
+                except Exception as e:
+                    print(f'buy() exception: {e}')
+                    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
-        # run the else block if the position has been placed and return order info
-            else:
-                orders[coin] = client.get_all_orders(symbol=coin, limit=1)
-
-            # binance sometimes returns an empty list, the code will wait here until binance returns the order
-                while orders[coin] == []:
-                    if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Binance is being slow in returning the order, calling the API again...')
-
-                    orders[coin] = client.get_all_orders(symbol=coin, limit=1)
-                    time.sleep(1)
-
+            # run the else block if the position has been placed and return order info
                 else:
-                    if DEBUG: print(f'Order returned, saving order to file')
+                    orders[coin] = client.get_all_orders(symbol=coin, limit=1)
 
-                    if not TEST_MODE:
-                        orders[coin] = extract_order_data(order_details)
-						#adding the price in USDT
-                        volumeBuy = float(format(float(volume[coin]), '.6f'))
-                        last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
-                        BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
-                        #improving the presentation of the log file
-                        coin = '{0:<9}'.format(coin)
-                        buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
-                        USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
-                                 #["Datetime",                                 "Type", "Coin", "Volume",              "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
-                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(orders[coin]['avgPrice']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
+                # binance sometimes returns an empty list, the code will wait here until binance returns the order
+                    while orders[coin] == []:
+                        if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Binance is being slow in returning the order, calling the API again...')
+
+                        orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+                        time.sleep(1)
+
                     else:
-						#adding the price in USDT
-                        BuyUSDT = volume[coin] * last_price[coin]['price']
-                        volumeBuy = format(float(volume[coin]), '.6f')
-                        last_price_buy = format(float(last_price[coin]['price']), '.3f')
-                        BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
-                        #improving the presentation of the log file
-                        coin = '{0:<9}'.format(coin)
-                        buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
-                        USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
-                                #(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Sell Price", "Sell Reason", "Profit $"]) "USDTdiff"])
-                        write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price[coin]['price']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
-                    
-                    write_signallsell(coin)
+                        if DEBUG: print(f'Order returned, saving order to file')
 
-        else:
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
+                        if not TEST_MODE:
+                            orders[coin] = extract_order_data(order_details)
+                            #adding the price in USDT
+                            volumeBuy = float(format(float(volume[coin]), '.6f'))
+                            last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
+                            BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
+                            #improving the presentation of the log file
+                            coin = '{0:<9}'.format(coin)
+                            buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
+                            USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
+                                     #["Datetime",                                 "Type", "Coin", "Volume",              "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
+                            write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(orders[coin]['avgPrice']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
+                        else:
+                            #adding the price in USDT
+                            BuyUSDT = volume[coin] * last_price[coin]['price']
+                            volumeBuy = format(float(volume[coin]), '.6f')
+                            last_price_buy = format(float(last_price[coin]['price']), '.3f')
+                            BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
+                            #improving the presentation of the log file
+                            coin = '{0:<9}'.format(coin)
+                            buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
+                            USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
+                                    #(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Sell Price", "Sell Reason", "Profit $"]) "USDTdiff"])
+                            write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price[coin]['price']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
+                        
+                        write_signallsell(coin)
+
+            else:
+                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
+    except Exception as e:
+        print(f'buy() exception: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
     return orders, last_price, volume
 
 
@@ -1777,8 +1781,8 @@ if __name__ == '__main__':
                 print (f'Exception on reading total_capital from {bot_stats_file_path}. Exception: {e}')   
                 total_capital = TRADE_SLOTS * TRADE_TOTAL
 
-            historic_profit_incfees_perc = bot_stats['historicProfitIncFees_Percent']
-            historic_profit_incfees_total = bot_stats['historicProfitIncFees_Total']
+            historic_profit_incfees_perc = float(bot_stats['historicProfitIncFees_Percent'])
+            historic_profit_incfees_total = float(bot_stats['historicProfitIncFees_Total'])
             trade_wins = bot_stats['tradeWins']
             trade_losses = bot_stats['tradeLosses']
             session_USDT_EARNED = float(bot_stats['session_' + PAIR_WITH + '_EARNED'])
