@@ -94,8 +94,7 @@ class txcolors:
     RED = '\033[91m'
     #Blue = '\033[94m'
     #Cyan = '\033[96m'
-    #White = '\033[97m'
-    #Yellow = '\033[93m'
+    MENUOPTION = '\033[97m'
     #Magenta = '\033[95m'
     #Grey = '\033[90m'
     #Black = '\033[90m'
@@ -1649,15 +1648,16 @@ def menu():
             time.sleep(5)
             print(f'')
             print(f'')
-            print(f'[1]Reload Configuration{txcolors.DEFAULT}')
-            print(f'[2]Reload modules{txcolors.DEFAULT}')
-            print(f'[3]Reload Volatily Volume List{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[1]{txcolors.WARNING}Reload Configuration{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[2]{txcolors.WARNING}Reload modules{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[3]{txcolors.WARNING}Reload Volatily Volume List{txcolors.DEFAULT}')
             if PAUSEBOT_MANUAL == False: 
-                print(f'[4]Stop Purchases{txcolors.DEFAULT}')
+                print(f'{txcolors.MENUOPTION}[4]{txcolors.WARNING}Stop Purchases{txcolors.DEFAULT}')
             else:
-                print(f'[4]Start Purchases{txcolors.DEFAULT}')
-            print(f'[5]Sell Specific Coin{txcolors.DEFAULT}')
-            print(f'[6]Exit BOT{txcolors.DEFAULT}')
+                print(f'{txcolors.MENUOPTION}[4]{txcolors.WARNING}Start Purchases{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[5]{txcolors.WARNING}Sell Specific Coin{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[6]{txcolors.WARNING}Sell All Coins{txcolors.DEFAULT}')
+            print(f'{txcolors.MENUOPTION}[7]{txcolors.WARNING}Exit BOT{txcolors.DEFAULT}')
             x = input('Please enter your choice: ')
             x = int(x)
             print(f'')
@@ -1708,21 +1708,32 @@ def menu():
                     sell_coin(x.upper() + PAIR_WITH)
                 load_signal_threads()
                 LOOP = False
+                
             elif x == 6:
+                stop_signal_threads()
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Do you want to sell all coins?[y/n]{txcolors.DEFAULT}')
+                sellall = input("#: ")
+                if sellall.upper() == "Y":
+                    sell_all('Sell all, manual choice!')
+                load_signal_threads()
+                LOOP = False
+            elif x == 7:
                 # stop external signal threads
                 stop_signal_threads()
                 # ask user if they want to sell all coins
-                print(f'\n\n\n')
-                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins?[y/n]{txcolors.DEFAULT}')
-                sellall = input("#: ")
-                if sellall.upper() == "Y":
+                #print(f'\n\n\n')
+                #print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins?[y/n]{txcolors.DEFAULT}')
+                #sellall = input("#: ")
+                #if sellall.upper() == "Y":
                     # sell all coins
-                    sell_all('Program execution ended by user!')
-                    END = True
-                    LOOP = False
-                else:
-                    END = True
-                    LOOP = False
+                    #sell_all('Program execution ended by user!')
+                    #END = True
+                    #LOOP = False
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Program execution ended by user!')
+                sys.exit(0)
+                #else:
+                    #END = True
+                    #LOOP = False
             else:
                 print(f'wrong choice')
                 LOOP = True
