@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 6.1
+Version: 6.2
 
 Disclaimer
 
@@ -102,7 +102,8 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION, PAUSEBOT_MANUAL
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION, PAUSEBOT_MANUAL, sell_specific_coin
+global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses, sell_all_coins, bot_started_datetime
 last_price_global = 0
 session_profit_incfees_perc = 0
 session_profit_incfees_total = 0
@@ -118,9 +119,8 @@ renewlist = 0
 FLAG_PAUSE = True
 USED_BNB_IN_SESSION = 0
 PAUSEBOT_MANUAL = False
-
-global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses
-global sell_all_coins, bot_started_datetime
+sell_specific_coin = False
+sell_all_coins = False
 
 try:
     historic_profit_incfees_perc
@@ -201,8 +201,8 @@ def get_price(add_to_historical=True):
 
             historical_prices[hsp_head] = initial_price
     except Exception as e:
-        print(f'{"get_price"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"get_price"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
         #pass
@@ -291,58 +291,16 @@ def wait_for_price():
                 #(len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
                 volatile_coins[excoin] = 1
                 exnumber +=1
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}External signal received on {excoin}, purchasing ${TRADE_TOTAL} {PAIR_WITH} value of {excoin}!')
                 with open(EXTERNAL_COINS,'a+') as f:
                     f.write(excoin + '\n')
 
         balance_report(last_price)
     except Exception as e:
-        print(f'{"wait_for_price"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"wait_for_price"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
-
-
-def buy_external_signals():
-    external_list = {}
-    #signals = {}
-
-    # check directory and load pairs from files into external_list
-    files = []
-    folder = "signals"
-    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.buy", "/*.exs"]] for item in sublist]
-
-    #signals = glob.glob(mask)  #"signals/*.buy")
-    #print("signals: ", signals)
-    for filename in files: #signals:
-        for line in open(filename):
-            symbol = line.strip()
-            if symbol.replace(PAIR_WITH, "") not in EX_PAIRS:
-                external_list[symbol] = symbol
-        try:
-            os.remove(filename)
-        except:
-            if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
-
-    return external_list
-
-def sell_external_signals():
-    external_list = {}
-    signals = {}
-
-    # check directory and load pairs from files into external_list
-    signals = glob.glob("signals/*.sell")
-    for filename in signals:
-        for line in open(filename):
-            symbol = line.strip()
-            external_list[symbol] = symbol
-            if DEBUG: print(f'{symbol} added to sell_external_signals() list')
-        try:
-            os.remove(filename)
-        except:
-            if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Could not remove external SELL signalling file{txcolors.DEFAULT}')
-
-    return external_list
 
 def get_volume_list():
     try:
@@ -366,13 +324,13 @@ def get_volume_list():
         c = 0
         if os.path.exists(VOLATILE_VOLUME) == False:
             load_settings()
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
             if COINS_MAX_VOLUME.isnumeric() == False and COINS_MIN_VOLUME.isnumeric() == False:
                 infocoinMax = client.get_ticker(symbol=COINS_MAX_VOLUME + PAIR_WITH)
                 infocoinMin = client.get_ticker(symbol=COINS_MIN_VOLUME + PAIR_WITH)
                 COINS_MAX_VOLUME = math.ceil(float(infocoinMax['quoteVolume']))
                 COINS_MIN_VOLUME = round(float(infocoinMin['quoteVolume']))
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}COINS_MAX_VOLUME {COINS_MAX_VOLUME} and COINS_MIN_VOLUME {COINS_MIN_VOLUME} were set from specific currencies...')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}COINS_MAX_VOLUME {COINS_MAX_VOLUME} and COINS_MIN_VOLUME {COINS_MIN_VOLUME} were set from specific currencies...')
         
             for coin in tickers_all:
                 #try:
@@ -386,24 +344,24 @@ def get_volume_list():
                     # continue
                     
             if c <= 0: 
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Cannot continue because there are no coins in the selected range, change the settings and start the bot again...')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Cannot continue because there are no coins in the selected range, change the settings and start the bot again...')
                 sys.exit()
                 
             sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
             
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
             
             for coin in sortedVolumeList:
                 with open(VOLATILE_VOLUME,'a+') as f:
                     f.write(coin[0] + '\n')
         else:
             if ALWAYS_OVERWRITE == False:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
                 print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
     except Exception as e:
-        print(f'{"get_volume_list"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-        print("COIN_ERROR: ", coin + PAIR_WITH)
+        write_log(f'{"get_volume_list"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log("COIN_ERROR: ", coin + PAIR_WITH)
         exit(1)
     return VOLATILE_VOLUME
 
@@ -439,8 +397,8 @@ def print_table_coins_bought():
                 print(my_table)
                 print("\n")
     except Exception as e:
-        print(f'{"print_table_coins_bought"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"print_table_coins_bought"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
 
 
@@ -459,7 +417,6 @@ def balance_report(last_price):
         unrealised_session_profit_incfees_total = 0
         msg1 = ""
         msg2 = ""
-
         BUDGET = TRADE_SLOTS * TRADE_TOTAL
         exposure_calcuated = 0
         for coin in list(coins_bought):
@@ -562,8 +519,8 @@ def balance_report(last_price):
         msg_discord_balance(msg1, msg2)
         history_log(session_profit_incfees_perc, session_profit_incfees_total, unrealised_session_profit_incfees_perc, unrealised_session_profit_incfees_total, session_profit_incfees_perc + unrealised_session_profit_incfees_perc, session_profit_incfees_total+unrealised_session_profit_incfees_total, historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins+trade_losses, trade_wins, trade_losses, WIN_LOSS_PERCENT)
     except Exception as e:
-        print(f'{"balance_report"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"balance_report"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     
     return msg1 + msg2
@@ -613,17 +570,35 @@ def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_pro
             with open(file_prefix + HISTORY_LOG_FILE,'w') as f:
             #f.write(f'{timestamp}\t{len(coins_bought)}\t{TRADE_SLOTS}\t{str(bot_paused)}\t{str(round(sess_profit_perc,2))}\t{str(round(sess_profit,4))}\t{str(round(sess_profit_perc_unreal,2))}\t{str(round(sess_profit_unreal,4))}\t{str(round(sess_profit_perc_total,2))}\t{str(round(sess_profit_total,4))}\t{str(round(alltime_profit_perc,2))}\t{str(round(alltime_profit,4))}\t{str(total_trades)}\t{str(won_trades)}\t{str(lost_trades)}\t{str(winloss_ratio)}\n')
                 f.write(table_txt)
-				
+
 def write_log(logline):
+    try:
+        timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+        if TEST_MODE:
+            file_prefix = 'test_'
+        else:
+            file_prefix = 'live_'
+            
+        with open(file_prefix + LOG_FILE,'a') as f:
+            f.write(timestamp + ' ' + logline + '\n')
+            #f.write(logline)
+            #f.write("n")
+        print(f'{logline}')
+    except Exception as e:
+        print(f'{"write_log"}: Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        exit(1)
+    
+def write_log_trades(logline):
     #timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
     if TEST_MODE:
         file_prefix = 'test_'
     else:
         file_prefix = 'live_'
         
-    if os.path.exists(file_prefix + LOG_FILE):
+    if os.path.exists(file_prefix + TRADES_LOG_FILE):
         LOGTABLE = PrettyTable([])
-        with open(file_prefix + LOG_FILE, "r") as fp: 
+        with open(file_prefix + TRADES_LOG_FILE, "r") as fp: 
             html = fp.read()
         LOGTABLE = from_html_one(html)
         LOGTABLE.format = True
@@ -634,7 +609,7 @@ def write_log(logline):
         LOGTABLE.vrules = 1
         LOGTABLE.add_row(logline)
         #table_txt = LOGTABLE.get_string()
-        LOGTABLE.sortby = "Coin"
+        LOGTABLE.sortby = "Datetime"
         table_txt = LOGTABLE.get_html_string()
     else:
         LOGTABLE = PrettyTable([])
@@ -649,11 +624,11 @@ def write_log(logline):
         LOGTABLE.sortby = "Coin"
         table_txt = LOGTABLE.get_html_string()
         #table_txt = LOGTABLE.get_string()
-        #with open(LOG_FILE,'w') as f:
+        #with open(TRADES_LOG_FILE,'w') as f:
 		#improving the presentation of the log file
             #f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
     if not table_txt == "":
-        with open(file_prefix + LOG_FILE,'w') as f:
+        with open(file_prefix + TRADES_LOG_FILE,'w') as f:
         #f.write(timestamp + ' ' + logline + '\n')
             f.write(table_txt)
 			
@@ -686,21 +661,30 @@ def msg_discord(msg):
 def pause_bot():
     '''Pause the script when external indicators detect a bearish trend in the market'''
     global bot_paused, session_profit_incfees_perc, hsp_head, session_profit_incfees_total, PAUSEBOT_MANUAL
-
+    PAUSEBOT = False
     # start counting for how long the bot has been paused
     start_time = time.perf_counter()
     try:
-        while os.path.exists("signals/pausebot.pause") or PAUSEBOT_MANUAL:
+        files = []
+        folder = "signals"
+        files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause"]] for item in sublist]
+
+        for filename in files:
+            if os.path.exists(filename) == True:
+                PAUSEBOT = True
+                break
+                
+        while PAUSEBOT or PAUSEBOT_MANUAL: #os.path.exists("signals/pausebot.pause") or PAUSEBOT_MANUAL:
 
             # do NOT accept any external signals to buy while in pausebot mode
             remove_external_signals('buy')
 
             if bot_paused == False:
                 if PAUSEBOT_MANUAL:
-                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Purchase paused manually, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Purchase paused manually, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
                     msg = str(datetime.now()) + ' | PAUSEBOT.Purchase paused manually, stop loss and take profit will continue to work...'
                 else:
-                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+                    if not SCREEN_MODE == 0: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Buying paused due to negative market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
                     msg = str(datetime.now()) + ' | PAUSEBOT. Buying paused due to negative market conditions, stop loss and take profit will continue to work.'
                 msg_discord(msg)
 
@@ -725,15 +709,15 @@ def pause_bot():
 
             # resume the bot and ser pause_bot to False
             if  bot_paused == True:
-                if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Resuming buying due to positive market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
+                if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Resuming buying due to positive market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
                 
                 msg = str(datetime.now()) + ' | PAUSEBOT. Resuming buying due to positive market conditions, total sleep time: ' + str(time_elapsed)
                 msg_discord(msg)
-
+                #PAUSEBOT = False
                 bot_paused = False
     except Exception as e:
-        print(f'{"pause_bot"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"pause_bot"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     return
 
@@ -741,7 +725,7 @@ def pause_bot():
 def convert_volume():
     '''Converts the volume given in TRADE_TOTAL from "USDT"(or coin selected) to the each coin's volume'''
     volatile_coins, number_of_coins, last_price = wait_for_price()
- 
+    global TRADE_TOTAL
     lot_size = {}
     volume = {}
     try:
@@ -765,6 +749,7 @@ def convert_volume():
             #try: 
                 #print("COIN: " + str(coin) + " TRADE_TOTAL: " + str(TRADE_TOTAL) + " last_price[coin]['price']: " + str(last_price[coin]['price']))
                 # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
+
             volume[coin] = float(TRADE_TOTAL / float(last_price[coin]['price']))
 
                 # define the volume with the correct step size
@@ -784,8 +769,8 @@ def convert_volume():
             #except KeyboardInterrupt as ki:
                 #pass
     except Exception as e:
-        print(f'convert_volume() exception: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'convert_volume() exception: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
         #pass
@@ -817,6 +802,29 @@ def set_exparis(pairs):
         with open(file_name, 'w') as f:
             f.writelines(data)
 
+def buy_external_signals():
+    external_list = {}
+    #signals = {}
+
+    # check directory and load pairs from files into external_list
+    files = []
+    folder = "signals"
+    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.buy", "/*.exs"]] for item in sublist]
+
+    #signals = glob.glob(mask)  #"signals/*.buy")
+    #print("signals: ", signals)
+    for filename in files: #signals:
+        for line in open(filename):
+            symbol = line.strip()
+            if symbol.replace(PAIR_WITH, "") not in EX_PAIRS:
+                external_list[symbol] = symbol
+        try:
+            os.remove(filename)
+        except:
+            if DEBUG: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
+
+    return external_list
+
 def buy():
     try:
         '''Place Buy market orders for each volatile coin found'''
@@ -827,7 +835,7 @@ def buy():
             if coin not in coins_bought and coin.replace(PAIR_WITH,'') not in EX_PAIRS:
                 #litle modification of Sparky
                 volume[coin] = math.floor(volume[coin]*100000)/100000
-                if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
+                if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
 
                 msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
                 msg_discord(msg1)
@@ -847,7 +855,7 @@ def buy():
                     BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
                     coin = '{0:<9}'.format(coin)
                     #["Datetime",                                           "Type", "Coin", "Volume",               "Buy Price",                                     "Amount of Buy",                       "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
-                    write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price_buy),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])                
+                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(last_price_buy),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])                
                     write_signallsell(coin.removesuffix(PAIR_WITH))
 
                     continue
@@ -863,8 +871,8 @@ def buy():
 
             # error handling here in case position cannot be placed
                 except Exception as e:
-                    print(f'buy() exception: {e}')
-                    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+                    write_log(f'buy() exception: {e}')
+                    write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
             # run the else block if the position has been placed and return order info
                 else:
@@ -872,7 +880,7 @@ def buy():
 
                 # binance sometimes returns an empty list, the code will wait here until binance returns the order
                     while orders[coin] == []:
-                        if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Binance is being slow in returning the order, calling the API again...')
+                        if DEBUG: print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} Binance is being slow in returning the order, calling the API again...')
 
                         orders[coin] = client.get_all_orders(symbol=coin, limit=1)
                         time.sleep(1)
@@ -891,7 +899,7 @@ def buy():
                             buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                             USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
                                      #["Datetime",                                 "Type", "Coin", "Volume",              "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
-                            write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(orders[coin]['avgPrice']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
+                            write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(orders[coin]['avgPrice']),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])
                         else:
                             #adding the price in USDT
                             BuyUSDT = volume[coin] * last_price[coin]['price']
@@ -903,29 +911,35 @@ def buy():
                             buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
                             USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal1
                                     #(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Sell Price", "Sell Reason", "Profit $"]) "USDTdiff"])
-                            write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),5), str(round(float(last_price[coin]['price']),3)), str(round(float(BuyUSDT),3)) + " " + PAIR_WITH, 0, 0, "-", 0])
+                            write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(last_price[coin]['price']),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])
                         
                         write_signallsell(coin)
 
             else:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
     except Exception as e:
-        print(f'buy() exception: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'buy() exception: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
     return orders, last_price, volume
 
 
-def sell_coins(tpsl_override = False):
-    '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
-    global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL, USED_BNB_IN_SESSION  
-    externals = sell_external_signals()
- 
-    last_price = get_price(False) # don't populate rolling window
-    #last_price = get_price(add_to_historical=True) # don't populate rolling window
-    coins_sold = {}
-    BUDGET = TRADE_TOTAL * TRADE_SLOTS
+def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
     try:
+        '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
+        global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL, USED_BNB_IN_SESSION, TRADE_TOTAL, sell_specific_coin
+        externals = sell_external_signals()
+     
+        last_price = get_price(False) # don't populate rolling window
+        #last_price = get_price(add_to_historical=True) # don't populate rolling window
+        coins_sold = {}
+        
+        BUDGET = TRADE_TOTAL * TRADE_SLOTS
+    
         for coin in list(coins_bought):
+        
+            if sell_specific_coin and not specific_coin_to_sell == coin:
+                continue
+                
             LastPrice = float(last_price[coin]['price'])
             sellFee = (LastPrice * (TRADING_FEE/100))
             sellFeeTotal = (coins_bought[coin]['volume'] * LastPrice) * (TRADING_FEE/100)
@@ -946,7 +960,7 @@ def sell_coins(tpsl_override = False):
             
             # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
             
-            if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override:
+            if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override and not sell_specific_coin:
                 # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
                 #add metod from OlorinSledge
                 if PriceChange_Perc >= 0.8:
@@ -969,8 +983,8 @@ def sell_coins(tpsl_override = False):
                 #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
                 #coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
                 # if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
-                #if DEBUG: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.{decimals()}f} and SL {coins_bought[coin]['stop_loss']:.{decimals()}f} accordingly to lock-in profit")
-                if DEBUG: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{coin} TP reached, adjusting TP {str(round(TP,2))} and SL {str(round(SL,2))} accordingly to lock-in profit")
+                #if DEBUG: print(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.{decimals()}f} and SL {coins_bought[coin]['stop_loss']:.{decimals()}f} accordingly to lock-in profit")
+                if DEBUG: print(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}{coin} TP reached, adjusting TP {str(round(TP,2))} and SL {str(round(SL,2))} accordingly to lock-in profit")
                 continue
             # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
             sellCoin = False
@@ -1003,13 +1017,15 @@ def sell_coins(tpsl_override = False):
             if sell_all_coins:
                 sellCoin = True
                 sell_reason = 'Sell All Coins'
+            if sell_specific_coin:
+                sellCoin = True
+                sell_reason = 'Sell Specific Coin'    
             if tpsl_override:
                 sellCoin = True
                 sell_reason = 'Session TPSL Override reached'
 
             if sellCoin:
-                print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees) {PAIR_WITH} earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}{txcolors.DEFAULT}")
-                
+                print(f"{txcolors.WARNING}BOT: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees) {PAIR_WITH} earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}{txcolors.DEFAULT}")
                 msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' ' + PAIR_WITH + ' earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
                 msg_discord(msg1)
 
@@ -1033,7 +1049,7 @@ def sell_coins(tpsl_override = False):
                 # error handling here in case position cannot be placed
                 except Exception as e:
                     #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
-                    if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
+                    write_log(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
 
                 # run the else block if coin has been sold and create a dict for each coin sold
                 else:
@@ -1059,12 +1075,12 @@ def sell_coins(tpsl_override = False):
                         if time_held >= int(MAX_HOLDING_TIME): set_exparis(coin)
                     
                     if DEBUG:
-                        if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
+                        if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
                     
                     # Log trade
                     #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
                     profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
-                    #write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
+                    #write_log_trades(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
                     SellUSDT = coins_sold[coin]['volume'] * LastPrice
                     USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
                     session_USDT_EARNED = session_USDT_EARNED + USDTdiff
@@ -1077,7 +1093,10 @@ def sell_coins(tpsl_override = False):
                     #BuyUSDT = (BuyPrice * coins_sold[coin]['volume']) 
                     #last_price[coin]['price']
                              #["Datetime",                                  "Type", "Coin", "Volume",                  "Buy Price",           "Amount of Buy", "Sell Price",    "Amount of Sell",                            "Sell Reason", "Profit $"] "USDTdiff"])
-                    write_log([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin.replace(PAIR_WITH,""), str(round(float(VolumeSell),5)), str(round(float(BuyPrice),2)), 0, str(round(float(LastPrice),2)), str(round(float(SellUSDT),2)) + " " + PAIR_WITH, sell_reason, str(round(float(USDTdiff),2)) + " " + PAIR_WITH])
+                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin.replace(PAIR_WITH,""), str(round(float(VolumeSell),8)), str(round(float(BuyPrice),8)), 0, str(round(float(LastPrice),8)), str(round(float(SellUSDT),8)) + " " + PAIR_WITH, sell_reason, str(round(float(USDTdiff),8)) + " " + PAIR_WITH])
+                    
+                    #if reinvest_mode:
+                    #    TRADE_TOTAL += (profit_incfees_total / TRADE_SLOTS)
                     
                     #this is good
                     session_profit_incfees_total = session_profit_incfees_total + profit_incfees_total
@@ -1102,7 +1121,8 @@ def sell_coins(tpsl_override = False):
                         trade_losses += 1
 
                     update_bot_stats()
-                    if not sell_all_coins:
+                    
+                    if not sell_all_coins and not sell_specific_coin:
                         # within sell_all_coins, it will print display to screen
                         balance_report(last_price)
 
@@ -1116,19 +1136,67 @@ def sell_coins(tpsl_override = False):
             if hsp_head == 1:
                 if len(coins_bought) > 0:
                     #if not SCREEN_MODE == 2: print(f"Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({(TRADE_TOTAL*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
-                    if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")
-                        
+                    if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}Holding: {coins_bought[coin]['volume']} of {coin} | {LastPrice} - {BuyPrice} | Profit: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}% Est: ({((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH}){txcolors.DEFAULT}")         
         #if hsp_head == 1 and len(coins_bought) == 0: if not SCREEN_MODE == 2: print(f"No trade slots are currently in use")
-
         # if tpsl_override: is_bot_running = False
+                    
     except Exception as e:
-        print(f'{"sell_coins"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"sell_coins"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
         pass
 
     return coins_sold
+    
+def sell_all(msgreason, session_tspl_ovr = False):
+    global sell_all_coins
+
+    msg_discord(f'{str(datetime.now())} | SELL ALL COINS: {msgreason}')
+
+    # stop external signals so no buying/selling/pausing etc can occur
+    stop_signal_threads()
+
+    # sell all coins NOW!
+    sell_all_coins = True
+
+    coins_sold = sell_coins(session_tspl_ovr)
+    remove_from_portfolio(coins_sold)
+    
+    # display final info to screen
+    last_price = get_price()
+    discordmsg = balance_report(last_price)
+    msg_discord(discordmsg)
+    sell_all_coins = False
+
+#extracted from the code of OlorinSledge
+def sell_coin(coin):
+    global sell_specific_coin
+    #print(f'{str(datetime.now())} | SELL SPECIFIC COIN: {coin}')
+    msg_discord(f'{str(datetime.now())} | SELL SPECIFIC COIN: {coin}')
+    # sell all coins NOW!
+    sell_specific_coin = True
+    coins_sold = sell_coins(False, coin)
+    remove_from_portfolio(coins_sold)
+    sell_specific_coin = False
+    
+def sell_external_signals():
+    external_list = {}
+    signals = {}
+
+    # check directory and load pairs from files into external_list
+    signals = glob.glob("signals/*.sell")
+    for filename in signals:
+        for line in open(filename):
+            symbol = line.strip()
+            external_list[symbol] = symbol
+            if DEBUG: print(f'{symbol} added to sell_external_signals() list')
+        try:
+            os.remove(filename)
+        except:
+            if DEBUG: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Could not remove external SELL signalling file{txcolors.DEFAULT}')
+
+    return external_list
 
 def extract_order_data(order_details):
     global TRADING_FEE, STOP_LOSS, TAKE_PROFIT
@@ -1249,7 +1317,7 @@ def update_portfolio(orders, last_price, volume):
                'step_size': float(coin_step_size),
                }
 
-            if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Order for {orders[coin]["symbol"]} with ID {orders[coin]["orderId"]} placed and saved to file.')
+            if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order for {orders[coin]["symbol"]} with ID {orders[coin]["orderId"]} placed and saved to file.')
         else:
             coins_bought[coin] = {
                 'symbol': orders[coin][0]['symbol'],
@@ -1262,7 +1330,7 @@ def update_portfolio(orders, last_price, volume):
                 'step_size': float(coin_step_size),
                 }
 
-            if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Order for {orders[coin][0]["symbol"]} with ID {orders[coin][0]["orderId"]} placed and saved to file.')
+            if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order for {orders[coin][0]["symbol"]} with ID {orders[coin][0]["orderId"]} placed and saved to file.')
 
         # save the coins in a json file in the same directory
         with open(coins_bought_file_path, 'w') as file:
@@ -1310,27 +1378,8 @@ def remove_external_signals(fileext):
             try:
                 os.remove(filename)
             except:
-                if DEBUG: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+                if DEBUG: write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
 
-def sell_all(msgreason, session_tspl_ovr = False):
-    global sell_all_coins
-
-    msg_discord(f'{str(datetime.now())} | SELL ALL COINS: {msgreason}')
-
-    # stop external signals so no buying/selling/pausing etc can occur
-    stop_signal_threads()
-
-    # sell all coins NOW!
-    sell_all_coins = True
-
-    coins_sold = sell_coins(session_tspl_ovr)
-    remove_from_portfolio(coins_sold)
-    
-    # display final info to screen
-    last_price = get_price()
-    discordmsg = balance_report(last_price)
-    msg_discord(discordmsg)
-	
 def load_signal_threads():
  # load signalling modules
     global signalthreads
@@ -1352,19 +1401,19 @@ def load_signal_threads():
 
                     time.sleep(2)
             else:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}No modules to load {SIGNALLING_MODULES}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}No modules to load {SIGNALLING_MODULES}')
     except Exception as e:
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} load_signal_threads: Loading external signals exception: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} load_signal_threads: Loading external signals exception: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 def stop_signal_threads():
     global signalthreads
     try:
         for signalthread in signalthreads:
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Terminating thread {str(signalthread.name)}')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Terminating thread {str(signalthread.name)}')
             signalthread.terminate()
     except Exception as e:
-        print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}{"stop_signal_threads"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}{"stop_signal_threads"}: Exception in function: {e}')
         pass
     except KeyboardInterrupt as ki:
         pass
@@ -1398,17 +1447,19 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES
+    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE
 
     # Default no debugging
     DEBUG = False
 
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
+    #REINVEST_MODE = parsed_config['script_options']['REINVEST_MODE']
     #     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     MAIN_FILES_PATH = parsed_config['script_options'].get('MAIN_FILES_PATH')
-    LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
+    TRADES_LOG_FILE = parsed_config['script_options'].get('TRADES_LOG_FILE')
     HISTORY_LOG_FILE = parsed_config['script_options'].get('HISTORY_LOG_FILE')
+    LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     #HISTORY_LOG_FILE = "history.html"
     COINS_BOUGHT = parsed_config['script_options'].get('COINS_BOUGHT')
     BOT_STATS = parsed_config['script_options'].get('BOT_STATS')
@@ -1452,6 +1503,9 @@ def load_settings():
     # Discord integration
     # Used to push alerts, messages etc to a discord channel
     MSG_DISCORD = parsed_config['trading_options']['MSG_DISCORD']
+    
+    sell_all_coins = False
+    sell_specific_coin = False
     
     # Functionality to "reset / restart" external signal modules(code os OlorinSledge)
     RESTART_MODULES = parsed_config['trading_options']['RESTART_MODULES']
@@ -1497,7 +1551,7 @@ def renew_list():
             if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt" and os.path.exists(VOLATILE_VOLUME_LIST) == True:
                 tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]                
             else:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
                 stop_signal_threads()
                 FLAG_PAUSE = True
                 if TEST_MODE == True:
@@ -1528,7 +1582,7 @@ def renew_list():
                 with open(VOLATILE_VOLUME_LIST,'w') as f:
                     f.writelines(lines)
                     
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list has been created...')
                 FLAG_PAUSE = False
                 #renew_list()
                 load_signal_threads()     
@@ -1536,8 +1590,8 @@ def renew_list():
         else:
             tickers=[line.strip() for line in open(TICKERS_LIST)]
     except Exception as e:
-        print(f'{"renew_list"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{"renew_list"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     
 
@@ -1552,24 +1606,30 @@ def new_or_continue():
         END = False
         while LOOP:
             if ALWAYS_OVERWRITE == False:
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Use previous session exists, do you want to continue it? Otherwise a new session will be created.')
-                x = input('y/n: ')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Do you want to continue previous session?[y/n]{txcolors.DEFAULT}')
+                x = input("#: ")
             else:
                 x = "n"
             if x == "y" or x == "n":
                 if x == "y":
-                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Continuing with the session started ...')
+                    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Continuing with the session started ...{txcolors.DEFAULT}')
                     LOOP = False
                     END = True
                 else:
-                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Deleting previous sessions ...')
+                    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Deleting previous sessions ...')
                     if os.path.exists(file_prefix + COINS_BOUGHT): os.remove(file_prefix + COINS_BOUGHT)
                     if os.path.exists(file_prefix + BOT_STATS): os.remove(file_prefix + BOT_STATS)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
-                    if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
+                    if os.path.exists(file_prefix + TRADES_LOG_FILE): os.remove(file_prefix + TRADES_LOG_FILE)
                     if os.path.exists(file_prefix + HISTORY_LOG_FILE): os.remove(file_prefix + HISTORY_LOG_FILE)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
-                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Session deleted, continuing ...')
+                    if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
+                    files = []
+                    folder = "signals"
+                    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause"]] for item in sublist]
+                    for filename in files:
+                        if os.path.exists(filename): os.remove(filename)
+                    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Session deleted, continuing ...')
                     LOOP = False
                     END = True
             else:
@@ -1596,7 +1656,8 @@ def menu():
                 print(f'[4]Stop Purchases{txcolors.DEFAULT}')
             else:
                 print(f'[4]Start Purchases{txcolors.DEFAULT}')
-            print(f'[5]Exit BOT{txcolors.DEFAULT}')
+            print(f'[5]Sell Specific Coin{txcolors.DEFAULT}')
+            print(f'[6]Exit BOT{txcolors.DEFAULT}')
             x = input('Please enter your choice: ')
             x = int(x)
             print(f'')
@@ -1607,11 +1668,11 @@ def menu():
                 renew_list()
                 LOOP = False
                 load_signal_threads()
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Reaload Completed{txcolors.DEFAULT}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Reaload Completed{txcolors.DEFAULT}')
             elif x == 2:
                 stop_signal_threads()
                 load_signal_threads()
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
                 LOOP = False
             elif x == 3:
                 stop_signal_threads()
@@ -1622,9 +1683,10 @@ def menu():
                     VOLATILE_VOLUME_LIST = get_volume_list()
                     renew_list()
                 else:
-                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}USE_MOST_VOLUME_COINS must be true in config.yml{txcolors.DEFAULT}')
+                    print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}USE_MOST_VOLUME_COINS must be true in config.yml{txcolors.DEFAULT}')
                     LOOP = False
-                print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}VOLATILE_VOLUME_LIST Realoaded Completed{txcolors.DEFAULT}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}VOLATILE_VOLUME_LIST Realoaded Completed{txcolors.DEFAULT}')
+                load_signal_threads()
                 LOOP = False
             elif x == 4:
                 if PAUSEBOT_MANUAL == False:
@@ -1634,11 +1696,25 @@ def menu():
                     PAUSEBOT_MANUAL = False
                     LOOP = False
             elif x == 5:
+                #part of extracted from the code of OlorinSledge
+                stop_signal_threads()
+                while not x == "n":
+                    last_price = get_price()
+                    print_table_coins_bought()
+                    print(f'{txcolors.WARNING}\nType in the Symbol you wish to sell. [n] to continue BOT.{txcolors.DEFAULT}')
+                    x = input("#: ")
+                    if x == "":
+                        break
+                    sell_coin(x.upper() + PAIR_WITH)
+                load_signal_threads()
+                LOOP = False
+            elif x == 6:
                 # stop external signal threads
                 stop_signal_threads()
                 # ask user if they want to sell all coins
                 print(f'\n\n\n')
-                sellall = input(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins (y/N)?{txcolors.DEFAULT}')
+                print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Program execution ended by user!\n\nDo you want to sell all coins?[y/n]{txcolors.DEFAULT}')
+                sellall = input("#: ")
                 if sellall.upper() == "Y":
                     # sell all coins
                     sell_all('Program execution ended by user!')
@@ -1651,8 +1727,8 @@ def menu():
                 print(f'wrong choice')
                 LOOP = True
     except Exception as e:
-        print(f'Exception in menu() 1: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'Exception in menu() 1: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
         menu()
@@ -1667,7 +1743,7 @@ if __name__ == '__main__':
     args = parse_args()
     mymodule = {}
     print(f'')
-    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Initializing, wait a moment...')
+    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Initializing, wait a moment...')
     discord_msg_balance_data = ""
     last_msg_discord_balance_date = datetime.now()
     last_history_log_date = datetime.now()
@@ -1698,8 +1774,8 @@ if __name__ == '__main__':
 			
     # Load creds for correct environment
     if DEBUG:
-        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Loaded config below\n{json.dumps(parsed_config, indent=4)}')
-        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Your credentials have been loaded from {creds_file}')
+        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        if SHOW_INITIAL_CONFIG == True: print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Your credentials have been loaded from {creds_file}')
 		
     if MSG_DISCORD:
         DISCORD_WEBHOOK = load_discord_creds(parsed_creds)
@@ -1708,11 +1784,12 @@ if __name__ == '__main__':
         MSG_DISCORD = True
 
     sell_all_coins = False
+    sell_specific_coin = False
 
     # Authenticate with the client, Ensure API key is good before continuing
     if AMERICAN_USER:
         if PROXY_HTTP != '' or PROXY_HTTPS != '': 
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Using proxy ...')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} Using proxy ...')
             proxies = {
                     'http': PROXY_HTTP,
                     'https': PROXY_HTTPS
@@ -1722,7 +1799,7 @@ if __name__ == '__main__':
             client = Client(access_key, secret_key, tld='us')
     else:
         if PROXY_HTTP != '' or PROXY_HTTPS != '': 
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT} Using proxy ...')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} Using proxy ...')
             proxies = {
                     'http': PROXY_HTTP,
                     'https': PROXY_HTTPS
@@ -1759,7 +1836,7 @@ if __name__ == '__main__':
     bot_stats_file_path = file_prefix + BOT_STATS
 
     # use separate files for testing and live trading
-    #LOG_FILE = file_prefix + LOG_FILE
+    #TRADES_LOG_FILE = file_prefix + TRADES_LOG_FILE
     #HISTORY_LOG_FILE = file_prefix + HISTORY_LOG_FILE
 
     bot_started_datetime = datetime.now()
@@ -1806,8 +1883,8 @@ if __name__ == '__main__':
 
     if not TEST_MODE:
         if not args.notimeout: # if notimeout skip this (fast for dev tests)
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Test mode is disabled in the configuration, you are using _LIVE_ funds.')
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}WARNING: Waiting 10 seconds before live trading as a security measure!')
+            write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}WARNING: Test mode is disabled in the configuration, you are using _LIVE_ funds.')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}WARNING: Waiting 10 seconds before live trading as a security measure!')
             time.sleep(0)
 
     remove_external_signals('buy')
@@ -1825,7 +1902,7 @@ if __name__ == '__main__':
     
     #extract of code of OlorinSledge, Thanks
     thehour = datetime.now().hour  
-    
+    coins_sold = {}
     while is_bot_running:
         try:
             orders, last_price, volume = buy()
@@ -1838,34 +1915,44 @@ if __name__ == '__main__':
             remove_from_portfolio(coins_sold)
             update_bot_stats()
             
+            #coins_sold = sell_coins()
+            #remove_from_portfolio(coins_sold)
+            #update_bot_stats()
+            
             if FLAG_PAUSE == False:
                 #extract of code of OlorinSledge, Thanks
                 if RESTART_MODULES and thehour != datetime.now().hour :
                     stop_signal_threads()
                     load_signal_threads()
                     thehour = datetime.now().hour
-                    print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
+                    print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Modules Realoaded Completed{txcolors.DEFAULT}')
         except ReadTimeout as rt:
             TIMEOUT_COUNT += 1
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')
+            write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}We got a timeout error from Binance. Re-loop. Connection Timeouts so far: {TIMEOUT_COUNT}')
         except ConnectionError as ce:
             READ_CONNECTERR_COUNT += 1
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
+            write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}We got a connection error from Binance. Re-loop. Connection Errors so far: {READ_CONNECTERR_COUNT}')
         except BinanceAPIException as bapie:
             BINANCE_API_EXCEPTION += 1
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}We got an API error from Binance. Re-loop. API Errors so far: {BINANCE_API_EXCEPTION}.\nException:\n{bapie}')											
+            write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}We got an API error from Binance. Re-loop. API Errors so far: {BINANCE_API_EXCEPTION}.\nException:\n{bapie}')											
         except KeyboardInterrupt as ki:
             if menu() == True: sys.exit(0)
+    try:
+        if not is_bot_running:
+            if SESSION_TPSL_OVERRIDE:
+                print(f'')
+                print(f'')
+                print(f'{txcolors.WARNING}{session_tpsl_override_msg}{txcolors.DEFAULT}')            
+                sell_all(session_tpsl_override_msg, True)
+                sys.exit(0)
 
-    if not is_bot_running:
-        if SESSION_TPSL_OVERRIDE:
-            print(f'')
-            print(f'')
-            print(f'{txcolors.WARNING}{session_tpsl_override_msg}{txcolors.DEFAULT}')            
-            sell_all(session_tpsl_override_msg, True)
-            sys.exit(0)
-
-        else:
-            print(f'')
-            print(f'')
-            print(f'{txcolors.WARNING}BINANCE DETECT MOONINGS: {txcolors.DEFAULT}Bot terminated for some reason.')
+            else:
+                print(f'')
+                print(f'')
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Bot terminated for some reason.')
+    except Exception as e:
+        write_log(f'Exception in main() 1: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
+    except KeyboardInterrupt as ki:
+        pass
