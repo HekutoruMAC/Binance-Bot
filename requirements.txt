@@ -15,7 +15,7 @@ PyYAML==5.4.1
 regex==2021.7.6
 requests==2.26.0
 six==1.16.0
-tradingview-ta==3.2.9
+tradingview-ta==3.2.4
 typing-extensions==3.10.0.0
 tzlocal==2.1
 ujson==4.0.2
@@ -24,6 +24,4 @@ websockets==9.1
 yarl==1.6.3
 numpy~=1.21.2
 prettytable==2.2.1
-pandas-ta==0.3.14b0
-ccxt==1.58.23
-asyncio==3.4.3
+bt==0.2.9
