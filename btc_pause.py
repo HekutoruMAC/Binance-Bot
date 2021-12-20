@@ -26,7 +26,7 @@ import time
 import json
 from datetime import datetime
 
-import bt as bt
+#import bt as bt
 from binance.client import Client, BinanceAPIException
 from helpers.parameters import parse_args, load_config
 import pandas as pd
@@ -167,7 +167,7 @@ def do_work():
 			print(f"paused by BTC")
 
 		else:
-			if os.path.isfile(f'signals/pausebot.{SIGNAL_TYPE}'):
-				os.remove(f'signals/pausebot.{SIGNAL_TYPE}')
+			if os.path.isfile(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}'):
+				os.remove(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}')
 			print(f"Running")
 		time.sleep(30)
