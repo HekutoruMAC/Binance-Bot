@@ -25,7 +25,8 @@ import asyncio
 import time
 import json
 from datetime import datetime
-
+# use if needed to pass args to external modules
+import sys
 #import bt as bt
 from binance.client import Client, BinanceAPIException
 from helpers.parameters import parse_args, load_config
@@ -82,6 +83,8 @@ else:
 # send message to discord
 DISCORD = False
 
+global paused 
+paused = False
 # Strategy Settings
 
 LIMIT = 6
@@ -116,58 +119,73 @@ def msg_discord(msg):
 	response = requests.post(mUrl, json=data)
 
 def analyse_btc():
+    global paused
 	# Normal Scan for LIMIT and INTERVAL
-	exchange = ccxt.binance()
-	try:
-		btc = exchange.fetch_ohlcv("BTC" + PAIR_WITH, timeframe='1m', limit=25)
-		btc = pd.DataFrame(btc, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-		btc['VWAP'] = ((((btc.high + btc.low + btc.close) / 3) * btc.volume) / btc.volume)
+    exchange = ccxt.binance()
+    try:
+        btc = exchange.fetch_ohlcv("BTC" + PAIR_WITH, timeframe='1m', limit=25)
+        btc = pd.DataFrame(btc, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+        btc['VWAP'] = ((((btc.high + btc.low + btc.close) / 3) * btc.volume) / btc.volume)
 		#print(btc)
-	except BinanceAPIException as e:
-		print('CCXT Error')
-		print(e.status_code)
-		print(e.message)
-		print(e.code)
+    except BinanceAPIException as e:
+        print('CCXT Error')
+        print(e.status_code)
+        print(e.message)
+        print(e.code)
 
-	btc2 = btc.ta.sma(length=2)
-	btc3 = btc.ta.sma(length=3)
-	btc4 = btc.ta.sma(length=4)
-	btc5 = btc.ta.sma(length=5)
-	btc10 = btc.ta.sma(length=10)
-	btc20 = btc.ta.sma(length=20)
-    btc200 = btc.ta.sma(length=200)
-    
-	btc2 = btc2.iloc[-1]
-	btc3 = btc3.iloc[-1]
-	btc4 = btc4.iloc[-1]
-	btc5 = btc5.iloc[-1]
-	btc10 = btc10.iloc[-1]
-	btc20 = btc20.iloc[-1]
-    btc200 = btc200.iloc[-1]
-    
-	print(f"{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f}")
+    try:
+        btc2 = btc.ta.sma(length=2)
+        btc3 = btc.ta.sma(length=3)
+        btc4 = btc.ta.sma(length=4)
+        btc5 = btc.ta.sma(length=5)
+        btc10 = btc.ta.sma(length=10)
+        btc20 = btc.ta.sma(length=20)
+        btc200 = btc.ta.sma(length=200)
+        
+        btc2 = btc2.iloc[-1]
+        btc3 = btc3.iloc[-1]
+        btc4 = btc4.iloc[-1]
+        btc5 = btc5.iloc[-1]
+        btc10 = btc10.iloc[-1]
+        btc20 = btc20.iloc[-1]
+        btc200 = btc200.iloc[-1]
+        
+        print(f'{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f} {btc200[2]:.2f}')
 
-	paused = False
-	if btc2 > btc3 > btc4 > btc5 > btc10 > btc20 > btc200:
-		paused = False
-		print(f'{SIGNAL_NAME}: Market looks OK')
+        paused = False
+        if btc2 > btc3 > btc4 > btc5 > btc10 > btc20 > btc200:
+            paused = False
+            print(f'{SIGNAL_NAME}: Market looks OK')
 
-	else:
-		print(f'{SIGNAL_NAME}: Market not looking good')
-		paused = True
-
-	return paused
+        else:
+            print(f'{SIGNAL_NAME}: Market not looking good')
+            paused = True
+    except Exception as e:
+        print(f'{SIGNAL_NAME}: Exception analyse_btc() 1: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
+    except KeyboardInterrupt as ki:
+        pass
+    return paused
 
 def do_work():
-	while True:
-		paused = analyse_btc()
-		if paused:
-			with open(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}', 'a+') as f:
-				f.write('yes')
-			print(f"paused by BTC")
+    global paused
+    while True:
+        try:
+            paused = analyse_btc()
+            if paused:
+                with open(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}', 'a+') as f:
+                    f.write('yes')
+                print(f"paused by BTC")
 
-		else:
-			if os.path.isfile(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}'):
-				os.remove(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}')
-			print(f"Running")
-		time.sleep(30)
+            else:
+                if os.path.isfile(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}'):
+                    os.remove(f'signals/{SIGNAL_NAME}.{SIGNAL_TYPE}')
+                print(f"Running")
+            time.sleep(30)
+        except Exception as e:
+            print(f'{SIGNAL_NAME}: Exception do_work() 1: {e}')
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            continue
+        except KeyboardInterrupt as ki:
+            continue
