@@ -666,7 +666,7 @@ def pause_bot():
     try:
         files = []
         folder = "signals"
-        files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause"]] for item in sublist]
+        files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause", "/*.exc"]] for item in sublist]
 
         for filename in files:
             if os.path.exists(filename) == True:
@@ -1625,7 +1625,7 @@ def new_or_continue():
                     if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
                     files = []
                     folder = "signals"
-                    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause"]] for item in sublist]
+                    files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause", "/*.buy","/*.sell"]] for item in sublist]
                     for filename in files:
                         if os.path.exists(filename): os.remove(filename)
                     print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Session deleted, continuing ...')
