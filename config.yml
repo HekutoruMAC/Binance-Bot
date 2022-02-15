@@ -40,7 +40,7 @@ trading_options:
 
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
-  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB', 'VET', 'AXS', 'NEAR', 'GRT', 'SOL', 'CHR', 'BUSD']
+  EX_PAIRS: ['PAX', 'EUR', 'GBP', 'JPY', 'USD', 'AUD', 'DOWN', 'UP', 'ONE', 'USDC', 'BNB', 'SHIB', 'VET', 'AXS', 'NEAR', 'GRT', 'SOL', 'CHR', 'BUSD', 'WIN']
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
