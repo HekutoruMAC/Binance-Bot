@@ -1,0 +1,12 @@
+# Ensure your keys and values have a space between them
+# Example:
+# Bad:
+#   access_key:myaccess_key
+# Good:
+#   access_key: myaccess_key 
+
+prod:
+    access_key: hvetVnpzr5Z1kj5fULDE48ZFSQdYuCvcLoLBgWjG6JZ3xnEdi619gEluAPhaeR5P
+    secret_key: 3KYiEwKTh4aVJaVhCJ2fh7Eg9hg9UHBYp6hca1yoePXdzKLaw3sViMc0eqyUc6JW
+discord:
+  DISCORD_WEBHOOK: 873162574542307339/mvlJg7iV31R8XCyvZ54q36gaUKTJbnOWFNfgXXKGHL9HoltcV7IiNMqgbewS5XmzH4Iq
