@@ -20,6 +20,8 @@ import pandas as pd
 import pandas_ta as ta
 import ccxt
 import requests
+from prettytable import PrettyTable, from_html_one
+import re
 
 args = parse_args()
 DEFAULT_CONFIG_FILE = 'config.yml'
@@ -59,10 +61,12 @@ class txcolors:
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
 
-global UpperTrendSignal, UnderTrendSignal
+global UpperTrendSignal, UnderTrendSignal, SHOW_TABLE_COINS_BOUGHT, coins_bought
 
+SHOW_TABLE_COINS_BOUGHT = True
 UpperTrendSignal=0 
 UnderTrendSignal=0
+coins_bought = {}
 
 if USE_MOST_VOLUME_COINS == True:        
     TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
@@ -86,7 +90,9 @@ def write_log(logline):
             file_prefix = 'live_'
             
         with open(file_prefix + LOG_FILE,'a') as f:
-            f.write(timestamp + ' ' + logline + '\n')
+            ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+            result = ansi_escape.sub('', logline)
+            f.write(timestamp + ' ' + result + '\n')
         print(f'{logline}')
     except Exception as e:
         print(f'{"write_log"}: Exception in function: {e}')
@@ -96,21 +102,39 @@ def write_log(logline):
 def crossunder(arr1, arr2):
     if arr1 != arr2:
         if arr1 > arr2 and arr2 < arr1:
-            CrossOver = True
+            CrossUnder = True
         else:				
-            CrossOver = False
-    return CrossOver
+            CrossUnder = False
+    else:
+        CrossUnder = False
+    return CrossUnder
 
 def crossover(arr1, arr2):
     if arr1 != arr2:
         if arr1 < arr2 and arr2 > arr1:
-            CrossUnder = True
+            CrossOver = True
         else:				
-            CrossUnder = False
-    return CrossUnder
+            CrossOver = False
+    else:
+        CrossOver = False
+    return CrossOver
+    
+def cross(arr1, arr2):
+    if arr1 == arr2:
+        Cross = True
+    else:				
+        Cross = False
+    return Cross
+    
+def get_analysis(tf, p):
+    exchange = ccxt.binance()
+    c = exchange.fetch_ohlcv(p, timeframe=tf, limit=25)
+    c = pd.DataFrame(c, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+    #coins['VWAP'] = ((((coins.high + coins.low + coins.close) / 3) * coins.volume) / coins.volume)
+    return c        
     
 def analyze(pairs):
-    global UpperTrendSignal, UnderTrendSignal
+    global UpperTrendSignal, UnderTrendSignal, coins_bought
     signal_coins = {}
     analysis = {}
     handler = {}
@@ -118,6 +142,8 @@ def analyze(pairs):
     handler1MIN = {}
     analysis5MIN = {}
     handler5MIN = {}
+    UnderTrendPercentage = 0
+    UpperTrendSignal = 0
     
     if os.path.exists(SIGNAL_FILE_BUY ):
         os.remove(SIGNAL_FILE_BUY )
@@ -143,51 +169,71 @@ def analyze(pairs):
             timeout= 10)
        
     for pair in pairs:
-        exchange = ccxt.binance()
+        #exchange = ccxt.binance()
         try:
-            coins = exchange.fetch_ohlcv(pair, timeframe='1m', limit=25)
-            coins = pd.DataFrame(coins, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-            coins['VWAP'] = ((((coins.high + coins.low + coins.close) / 3) * coins.volume) / coins.volume)
+            #coins = exchange.fetch_ohlcv(pair, timeframe='1m', limit=25)
+            #coins = pd.DataFrame(coins, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+            #coins['VWAP'] = ((((coins.high + coins.low + coins.close) / 3) * coins.volume) / coins.volume)
+            
+            coins = get_analysis("1m", pair)
             
             EMA2 = coins.ta.ema(length=2)
             MA3 = coins.ta.sma(length=3)
             
-            EMA19 = coins.ta.ema(length=19)
-            EMA7 = coins.ta.ema(length=7)
+            coins2 = get_analysis("3m", pair)
+            
+            EMA19 = coins2.ta.ema(length=19)
+            EMA7 = coins2.ta.ema(length=7)
             
             EMA19 = EMA19.iloc[-1]
             EMA7 = EMA7.iloc[-1]
-		
-            UnderTrendSignal = crossunder (EMA19,EMA7)
-            UpperTrendSignal = crossover (EMA19,EMA7)
-
-            if UnderTrendSignal == True:
-                write_log(f'{SIGNAL_NAME}: {txcolors.SELL_LOSS}Current pair {pair} is down...EMA19: {EMA19} > EMA7: {EMA7}{txcolors.DEFAULT}')
-                
-            if UpperTrendSignal == True:
-                write_log(f'{SIGNAL_NAME}: {txcolors.BUY}Current pair {pair} is high...EMA19: {EMA19} < EMA7: {EMA7}{txcolors.DEFAULT}')
             
             EMA2 = EMA2.iloc[-1]
             MA3 = MA3.iloc[-1]
+		
+            UnderTrendSignal = crossunder (EMA19,EMA7)
+            UpperTrendSignal = crossover (EMA19,EMA7)
             
-            for i in range(4):
-                analysis = handler[pair].get_analysis()
-                analysis1MIN = handler1MIN[pair].get_analysis()
-                analysis5MIN = handler5MIN[pair].get_analysis()
-                p = analysis.indicators["close"]
+            buySignal =  crossunder (EMA2,MA3)
+            sellSignal = crossover (EMA2,MA3)
+            
+            if UnderTrendSignal == True:
+                print(f'{SIGNAL_NAME}: {txcolors.SELL_LOSS}Current pair {pair} is down...EMA19: {round(EMA19,4)} > EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
+                EMA2UnderTrendPercentage = round((EMA2*100)/MA3,4)
+                EMA7UnderTrendPercentage = round((EMA7*100)/EMA19,4)
+                #print(f'{SIGNAL_NAME}:{txcolors.DIM} The percentage of EMA2 is {UnderTrendPercentage}{txcolors.DEFAULT}')
                 
-            RSI = round(analysis.indicators['RSI'],2)
-            RSI1 = round(analysis.indicators['RSI[1]'],2)
-            STOCH_K = round(analysis.indicators['Stoch.K'],2)
-            STOCH_D = round(analysis.indicators['Stoch.D'],2)
-            RSI_DIFF = round(RSI - RSI1,2)
+            if UpperTrendSignal == True:
+                print(f'{SIGNAL_NAME}: {txcolors.BUY}Current pair {pair} is high...EMA19: {round(EMA19,4)} < EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
+                EMA2UpperTrendPercentage = round((EMA2*100)/MA3,4)
+                EMA7UpperTrendPercentage = round((EMA7*100)/EMA19,4)
+                #print(f'{SIGNAL_NAME}:{txcolors.DIM} The percentage of EMA2 is {UpperTrendPercentage}{txcolors.DEFAULT}')
             
-            buySignal =  UnderTrendSignal and crossunder(EMA2,MA3) #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
-            sellSignal = UpperTrendSignal and crossover(EMA2,MA3) #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
+            #for i in range(4):
+            #analysis = handler[pair].get_analysis()
+            #analysis1MIN = handler1MIN[pair].get_analysis()
+            #analysis5MIN = handler5MIN[pair].get_analysis()
+            #p = analysis.indicators["close"]
+                
+            #RSI = round(analysis.indicators['RSI'],2)
+            #RSI1 = round(analysis.indicators['RSI[1]'],2)
+            #STOCH_K = round(analysis.indicators['Stoch.K'],2)
+            #STOCH_D = round(analysis.indicators['Stoch.D'],2)
+            #RSI_DIFF = round(RSI - RSI1,2)
+            
+            #if cross(EMA2,MA3) == True:
+                #write_log(f'{SIGNAL_NAME}: {txcolors.BUY}{pair} Cross EMA2:{EMA2} == MA3:{MA3}{txcolors.DEFAULT}')
+            
+            #write_log(f'{SIGNAL_NAME}: {txcolors.BUY}{pair} Cross EMA2:{EMA2} == MA3:{MA3}{txcolors.DEFAULT}')
+            
+            buySignal =  UnderTrendSignal and buySignal #and EMA2UnderTrendPercentage >= 100.009 #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
+            sellSignal = UpperTrendSignal and sellSignal #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
 
             if buySignal == True:
                 signal_coins[pair] = pair
-                write_log(f'{SIGNAL_NAME}: {txcolors.BUY}{pair} - Buy Signal Detected - crossover EMA19:{EMA19} > EMA7:{EMA7} crossover MA3:{MA3} > EMA2:{EMA2}{txcolors.DEFAULT}') #and STOCH_K:{STOCH_K} >= STOCH_MIN:{STOCH_MIN} and STOCH_K:{STOCH_K} <= STOCH_MAX:{STOCH_MAX} and STOCH_D:{STOCH_D} >= STOCH_MIN:{STOCH_MIN} and STOCH_D:{STOCH_D} <= STOCH_MAX:{STOCH_MAX}{txcolors.DEFAULT}')
+                write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA2 is {EMA2UnderTrendPercentage}{txcolors.DEFAULT}')
+                write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA7 is {EMA7UnderTrendPercentage}{txcolors.DEFAULT}')
+                write_log(f'{SIGNAL_NAME}:{txcolors.BUY}{pair} - Buy Signal Detected \n{txcolors.DEFAULT}') #and STOCH_K:{STOCH_K} >= STOCH_MIN:{STOCH_MIN} and STOCH_K:{STOCH_K} <= STOCH_MAX:{STOCH_MAX} and STOCH_D:{STOCH_D} >= STOCH_MIN:{STOCH_MIN} and STOCH_D:{STOCH_D} <= STOCH_MAX:{STOCH_MAX}{txcolors.DEFAULT}')
                 with open(SIGNAL_FILE_BUY,'a+') as f:
                     f.write(pair + '\n')
             
@@ -197,8 +243,8 @@ def analyze(pairs):
                     if SELL_ON_SIGNAL_ONLY == True:
                         with open(SIGNAL_FILE_SELL,'a+') as f:
                             f.write(pair + '\n')
-            #time.sleep(5)
-                
+            time.sleep(60)
+            
         except Exception as e:
             print(SIGNAL_NAME + ":")
             print("Exception:")
