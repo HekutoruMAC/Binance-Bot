@@ -836,8 +836,8 @@ def buy():
                 volume[coin] = math.floor(volume[coin]*100000)/100000
                 if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
 
-                msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
-                msg_discord(msg1)
+                #msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
+                #msg_discord(msg1)
                 
                 if TEST_MODE:
                     orders[coin] = [{
@@ -1025,8 +1025,8 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
 
             if sellCoin:
                 print(f"{txcolors.WARNING}BOT: {txcolors.SELL_PROFIT if PriceChangeIncFees_Perc >= 0. else txcolors.SELL_LOSS}Sell: {coins_bought[coin]['volume']} of {coin} | {sell_reason} | ${float(LastPrice):g} - ${float(BuyPrice):g} | Profit: {PriceChangeIncFees_Perc:.2f}% Est: {((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100:.{decimals()}f} {PAIR_WITH} (Inc Fees) {PAIR_WITH} earned: {(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))}{txcolors.DEFAULT}")
-                msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' ' + PAIR_WITH + ' earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
-                msg_discord(msg1)
+                #msg1 = str(datetime.now()) + '| SELL: ' + coin + '. R:' +  sell_reason + ' P%:' + str(round(PriceChangeIncFees_Perc,2)) + ' P$:' + str(round(((float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))*PriceChangeIncFees_Perc)/100,4)) + ' ' + PAIR_WITH + ' earned:' + str(float(coins_bought[coin]['volume'])*float(coins_bought[coin]['bought_at']))
+                #msg_discord(msg1)
 
                 # try to create a real order          
                 try:
