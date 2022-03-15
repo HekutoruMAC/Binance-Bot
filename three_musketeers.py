@@ -35,19 +35,29 @@ SELL_ON_SIGNAL_ONLY = parsed_config['trading_options']['SELL_ON_SIGNAL_ONLY']
 TEST_MODE = parsed_config['script_options']['TEST_MODE']
 LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
 
-INTERVAL = Interval.INTERVAL_1_MINUTE
-INTERVAL1MIN = Interval.INTERVAL_1_MINUTE
-INTERVAL5MIN = Interval.INTERVAL_5_MINUTES
+#INTERVAL1MIN = Interval.INTERVAL_1_MINUTE
+#INTERVAL5MIN = Interval.INTERVAL_5_MINUTES
 
-OSC_INDICATORS = ['RSI', 'Stoch.RSI', 'Mom', 'MACD', 'UO', 'BBP']
+    # INTERVAL_1_MINUTE = "1m"
+    # INTERVAL_5_MINUTES = "5m"
+    # INTERVAL_15_MINUTES = "15m"
+    # INTERVAL_30_MINUTES = "30m"
+    # INTERVAL_1_HOUR = "1h"
+    # INTERVAL_2_HOURS = "2h"
+    # INTERVAL_4_HOURS = "4h"
+    # INTERVAL_1_DAY = "1d"
+    # INTERVAL_1_WEEK = "1W"
+    # INTERVAL_1_MONTH = "1M"
 
-RSI_MIN = 10
-RSI_MAX = 60
-STOCH_MIN = 10
-STOCH_MAX = 60
+#OSC_INDICATORS = ['RSI', 'Stoch.RSI', 'Mom', 'MACD', 'UO', 'BBP']
 
-RSI_BUY = 0.3
-STOCH_BUY = 10
+#RSI_MIN = 10
+#RSI_MAX = 60
+#STOCH_MIN = 10
+#STOCH_MAX = 60
+
+#RSI_BUY = 0.3
+#STOCH_BUY = 10
 
 
 class txcolors:
@@ -63,7 +73,6 @@ SCREENER = 'CRYPTO'
 
 global UpperTrendSignal, UnderTrendSignal, SHOW_TABLE_COINS_BOUGHT, coins_bought
 
-SHOW_TABLE_COINS_BOUGHT = True
 UpperTrendSignal=0 
 UnderTrendSignal=0
 coins_bought = {}
@@ -120,7 +129,7 @@ def crossover(arr1, arr2):
     return CrossOver
     
 def cross(arr1, arr2):
-    if arr1 == arr2:
+    if round(arr1,4) == round(arr2,4):
         Cross = True
     else:				
         Cross = False
@@ -136,37 +145,37 @@ def get_analysis(tf, p):
 def analyze(pairs):
     global UpperTrendSignal, UnderTrendSignal, coins_bought
     signal_coins = {}
-    analysis = {}
-    handler = {}
-    analysis1MIN = {}
-    handler1MIN = {}
-    analysis5MIN = {}
-    handler5MIN = {}
+    #analysis = {}
+    #handler = {}
+    #analysis1MIN = {}
+    #handler1MIN = {}
+    #analysis5MIN = {}
+    #handler5MIN = {}
     UnderTrendPercentage = 0
     UpperTrendSignal = 0
     
     if os.path.exists(SIGNAL_FILE_BUY ):
         os.remove(SIGNAL_FILE_BUY )
 
-    for pair in pairs:
-        handler[pair] = TA_Handler(
-            symbol=pair,
-            exchange=EXCHANGE,
-            screener=SCREENER,
-            interval=INTERVAL,
-            timeout= 10)
-        handler1MIN[pair] = TA_Handler(
-            symbol=pair,
-            exchange=EXCHANGE,
-            screener=SCREENER,
-            interval=INTERVAL1MIN,
-            timeout= 10)
-        handler5MIN[pair] = TA_Handler(
-            symbol=pair,
-            exchange=EXCHANGE,
-            screener=SCREENER,
-            interval=INTERVAL5MIN,
-            timeout= 10)
+    # for pair in pairs:
+        # handler[pair] = TA_Handler(
+            # symbol=pair,
+            # exchange=EXCHANGE,
+            # screener=SCREENER,
+            # interval=INTERVAL,
+            # timeout= 10)
+        # handler1MIN[pair] = TA_Handler(
+            # symbol=pair,
+            # exchange=EXCHANGE,
+            # screener=SCREENER,
+            # interval=INTERVAL1MIN,
+            # timeout= 10)
+        # handler5MIN[pair] = TA_Handler(
+            # symbol=pair,
+            # exchange=EXCHANGE,
+            # screener=SCREENER,
+            # interval=INTERVAL5MIN,
+            # timeout= 10)
        
     for pair in pairs:
         #exchange = ccxt.binance()
@@ -180,7 +189,7 @@ def analyze(pairs):
             EMA2 = coins.ta.ema(length=2)
             MA3 = coins.ta.sma(length=3)
             
-            coins2 = get_analysis("3m", pair)
+            coins2 = get_analysis("1m", pair)
             
             EMA19 = coins2.ta.ema(length=19)
             EMA7 = coins2.ta.ema(length=7)
@@ -197,16 +206,21 @@ def analyze(pairs):
             buySignal =  crossunder (EMA2,MA3)
             sellSignal = crossover (EMA2,MA3)
             
+            CrossMA3EMA2 = cross(MA3,EMA2)
+            
+            if CrossMA3EMA2:
+                print(f'{SIGNAL_NAME}: {txcolors.DIM}Current pair {pair} had a cross... MA3: {round(MA3,4)} = EMA2: {round(EMA2,4)}{txcolors.DEFAULT}')
+            
             if UnderTrendSignal == True:
-                print(f'{SIGNAL_NAME}: {txcolors.SELL_LOSS}Current pair {pair} is down...EMA19: {round(EMA19,4)} > EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
-                EMA2UnderTrendPercentage = round((EMA2*100)/MA3,4)
-                EMA7UnderTrendPercentage = round((EMA7*100)/EMA19,4)
+                print(f'{SIGNAL_NAME}: {txcolors.BUY}Current pair {pair} is down...EMA19: {round(EMA19,4)} > EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
+                #EMA2UnderTrendPercentage = round((EMA2*100)/MA3,4)
+                #EMA7UnderTrendPercentage = round((EMA7*100)/EMA19,4)
                 #print(f'{SIGNAL_NAME}:{txcolors.DIM} The percentage of EMA2 is {UnderTrendPercentage}{txcolors.DEFAULT}')
                 
             if UpperTrendSignal == True:
-                print(f'{SIGNAL_NAME}: {txcolors.BUY}Current pair {pair} is high...EMA19: {round(EMA19,4)} < EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
-                EMA2UpperTrendPercentage = round((EMA2*100)/MA3,4)
-                EMA7UpperTrendPercentage = round((EMA7*100)/EMA19,4)
+                print(f'{SIGNAL_NAME}: {txcolors.SELL_LOSS}Current pair {pair} is high...EMA19: {round(EMA19,4)} < EMA7: {round(EMA7,4)}{txcolors.DEFAULT}')
+                #EMA2UpperTrendPercentage = round((EMA2*100)/MA3,4)
+                #EMA7UpperTrendPercentage = round((EMA7*100)/EMA19,4)
                 #print(f'{SIGNAL_NAME}:{txcolors.DIM} The percentage of EMA2 is {UpperTrendPercentage}{txcolors.DEFAULT}')
             
             #for i in range(4):
@@ -226,14 +240,15 @@ def analyze(pairs):
             
             #write_log(f'{SIGNAL_NAME}: {txcolors.BUY}{pair} Cross EMA2:{EMA2} == MA3:{MA3}{txcolors.DEFAULT}')
             
-            buySignal =  UnderTrendSignal and buySignal #and EMA2UnderTrendPercentage >= 100.009 #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
+            buySignal =  UnderTrendSignal and CrossMA3EMA2 #and EMA2UnderTrendPercentage >= 100.009 #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
             sellSignal = UpperTrendSignal and sellSignal #and (STOCH_K >= STOCH_MIN and STOCH_K <= STOCH_MAX) and (STOCH_D >= STOCH_MIN and STOCH_D <= STOCH_MAX)
 
             if buySignal == True:
                 signal_coins[pair] = pair
-                write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA2 is {EMA2UnderTrendPercentage}{txcolors.DEFAULT}')
-                write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA7 is {EMA7UnderTrendPercentage}{txcolors.DEFAULT}')
-                write_log(f'{SIGNAL_NAME}:{txcolors.BUY}{pair} - Buy Signal Detected \n{txcolors.DEFAULT}') #and STOCH_K:{STOCH_K} >= STOCH_MIN:{STOCH_MIN} and STOCH_K:{STOCH_K} <= STOCH_MAX:{STOCH_MAX} and STOCH_D:{STOCH_D} >= STOCH_MIN:{STOCH_MIN} and STOCH_D:{STOCH_D} <= STOCH_MAX:{STOCH_MAX}{txcolors.DEFAULT}')
+                #write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA2 is {EMA2UnderTrendPercentage}{txcolors.DEFAULT}')
+                #write_log(f'{SIGNAL_NAME}:{txcolors.DIM}{pair} - The percentage of EMA7 is {EMA7UnderTrendPercentage}{txcolors.DEFAULT}')
+                write_log(f'{SIGNAL_NAME}:{txcolors.DIM} Current pair {pair} had a cross...MA3: {round(MA3,4)} = EMA2: {round(EMA2,4)}{txcolors.DEFAULT}')
+                write_log(f'{SIGNAL_NAME}:{txcolors.BUY} {pair} - Buy Signal Detected \n{txcolors.DEFAULT}') #and STOCH_K:{STOCH_K} >= STOCH_MIN:{STOCH_MIN} and STOCH_K:{STOCH_K} <= STOCH_MAX:{STOCH_MAX} and STOCH_D:{STOCH_D} >= STOCH_MIN:{STOCH_MIN} and STOCH_D:{STOCH_D} <= STOCH_MAX:{STOCH_MAX}{txcolors.DEFAULT}')
                 with open(SIGNAL_FILE_BUY,'a+') as f:
                     f.write(pair + '\n')
             
@@ -243,14 +258,14 @@ def analyze(pairs):
                     if SELL_ON_SIGNAL_ONLY == True:
                         with open(SIGNAL_FILE_SELL,'a+') as f:
                             f.write(pair + '\n')
-            time.sleep(60)
+            #time.sleep(10)
             
         except Exception as e:
             print(SIGNAL_NAME + ":")
             print("Exception:")
             print(e)
             print (f'Coin: {pair}')
-            print (f'handler: {handler[pair]}')
+            #print (f'handler: {handler[pair]}')
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))            
             
     return signal_coins
