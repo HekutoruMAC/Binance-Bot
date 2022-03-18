@@ -25,3 +25,7 @@ yarl==1.6.3
 numpy~=1.21.2
 prettytable==2.2.1
 bt==0.2.9
+pandas-ta==0.3.14b
+regex==2022.3.15
+ccxt==1.76.38
+ta-lib==0.4.24
