@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 6.3
+Version: 6.4
 
 Disclaimer
 
@@ -37,6 +37,7 @@ import math
 import threading
 import multiprocessing
 import importlib
+import subprocess
 
 # used for directory handling
 import glob
@@ -67,6 +68,9 @@ import json
 #print output tables
 from prettytable import PrettyTable, from_html_one
 #from pretty_html_table import build_table
+
+#for regex
+import re
 
 # Load helper modules
 from helpers.parameters import (
@@ -101,7 +105,7 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION, PAUSEBOT_MANUAL, sell_specific_coin
+global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running, session_USDT_EARNED, last_msg_discord_balance_date, session_USDT_EARNED_TODAY, parsed_creds, TUP,PUP, TDOWN, PDOWN, TNEUTRAL, PNEUTRAL, renewlist, DISABLE_TIMESTAMPS, signalthreads, VOLATILE_VOLUME_LIST, FLAG_PAUSE, coins_up,coins_down,coins_unchanged, SHOW_TABLE_COINS_BOUGHT, USED_BNB_IN_SESSION, PAUSEBOT_MANUAL, sell_specific_coin, lostconnection
 global historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins, trade_losses, sell_all_coins, bot_started_datetime
 last_price_global = 0
 session_profit_incfees_perc = 0
@@ -120,6 +124,7 @@ USED_BNB_IN_SESSION = 0
 PAUSEBOT_MANUAL = False
 sell_specific_coin = False
 sell_all_coins = False
+lostconnection = False
 
 try:
     historic_profit_incfees_perc
@@ -296,8 +301,9 @@ def wait_for_price():
 
         balance_report(last_price)
     except Exception as e:
+        lost_connection(e, "wait_for_price")
         write_log(f'{"wait_for_price"}: Exception in function: {e}')
-        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))        
         pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -399,6 +405,7 @@ def print_table_coins_bought():
                 print(my_table)
                 print("\n")
     except Exception as e:
+        lost_connection(e, "print_table_coins_bought")
         write_log(f'{"print_table_coins_bought"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
@@ -584,9 +591,9 @@ def write_log(logline):
             file_prefix = 'live_'
             
         with open(file_prefix + LOG_FILE,'a') as f:
-            f.write(timestamp + ' ' + logline + '\n')
-            #f.write(logline)
-            #f.write("n")
+            ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+            result = ansi_escape.sub('', logline)
+            f.write(timestamp + ' ' + result + '\n')
         print(f'{logline}')
     except Exception as e:
         print(f'{"write_log"}: Exception in function: {e}')
@@ -773,7 +780,8 @@ def convert_volume():
             #except KeyboardInterrupt as ki:
                 #pass
     except Exception as e:
-        write_log(f'convert_volume() exception: {e}')
+        lost_connection(e, "convert_volume")
+        write_log(f'convert_volume exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
@@ -877,6 +885,7 @@ def buy():
                 except Exception as e:
                     write_log(f'buy() exception: {e}')
                     write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+                    pass
 
             # run the else block if the position has been placed and return order info
                 else:
@@ -922,8 +931,10 @@ def buy():
             else:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
     except Exception as e:
-        write_log(f'buy() exception: {e}')
+        lost_connection(e, "buy")
+        write_log(f'{"buy"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
     return orders, last_price, volume
 
 
@@ -1149,6 +1160,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
         # if tpsl_override: is_bot_running = False
                     
     except Exception as e:
+        lost_connection(e, "sell_coins")
         write_log(f'{"sell_coins"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
@@ -1551,7 +1563,44 @@ def load_settings():
     if DEBUG_SETTING or args.debug:
         DEBUG = True
     access_key, secret_key = load_correct_creds(parsed_creds)
-
+    
+def CheckIfAliveStation(ip_address):
+    # WARNING - Windows Only
+    alive = False
+    ping_output = subprocess.run(['ping', '-n', '1', ip_address],shell=True,stdout=subprocess.PIPE)
+    if (ping_output.returncode == 0):
+        if not ('unreachable' in str(ping_output.stdout)):
+            alive = True
+    return alive
+    
+def lost_connection(error, origin):
+    global lostconnection
+    if "HTTPSConnectionPool" in str(error):
+        #print(f"HTTPSConnectionPool - {origin}")
+        stop_signal_threads()
+        if lostconnection == False:
+            lostconnection = True
+            #print(f"lostconnection: {lostconnection} - {origin}")
+            write_log(f'{txcolors.WARNING}BOT: {origin} - Lost connection, waiting until it is restored...{txcolors.DEFAULT}')
+            while lostconnection:
+                lostconnection = True
+                hostname = "google.com" #example
+                #if "HTTPSConnectionPool" in error:
+                #try:
+                response = CheckIfAliveStation(hostname)
+                #print(f"response: {response}")
+                if response == True:
+                    write_log(f'{txcolors.BUY}BOT: The connection has been reestablished, continuing...{txcolors.DEFAULT}')
+                    lostconnection = False
+                    return
+                else:
+                    #print(f'{txcolors.WARNING}BOT: {origin} Lost connection, waiting 5 seconds until it is restored...{txcolors.DEFAULT}') 
+                    lostconnection = True
+                    time.sleep(5)
+        else:
+            while lostconnection:
+                #print(f'{txcolors.WARNING}BOT: Lost connection, waiting 5 seconds until it is restored...{txcolors.DEFAULT}')
+                time.sleep(5) 
 def renew_list():
     global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE, COINS_MAX_VOLUME, COINS_MIN_VOLUME
     try:
