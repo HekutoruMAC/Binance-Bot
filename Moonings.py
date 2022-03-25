@@ -1575,7 +1575,7 @@ def CheckIfAliveStation(ip_address):
     
 def lost_connection(error, origin):
     global lostconnection
-    if "HTTPSConnectionPool" in str(error):
+    if "HTTPSConnectionPool" in str(error) or "Connection aborted" in str(error):
         #print(f"HTTPSConnectionPool - {origin}")
         stop_signal_threads()
         if lostconnection == False:
@@ -1592,6 +1592,7 @@ def lost_connection(error, origin):
                 if response == True:
                     write_log(f'{txcolors.BUY}BOT: The connection has been reestablished, continuing...{txcolors.DEFAULT}')
                     lostconnection = False
+                    load_signal_threads()
                     return
                 else:
                     #print(f'{txcolors.WARNING}BOT: {origin} Lost connection, waiting 5 seconds until it is restored...{txcolors.DEFAULT}') 
