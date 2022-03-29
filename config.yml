@@ -124,6 +124,7 @@ trading_options:
   COINS_MAX_VOLUME: BTC #ETH  #5000000000
   COINS_MIN_VOLUME: NEAR #GALA #100000000
   
+  #if the losses are equal to or greater than the established percentage, the bot will stop completely. if it is 0 it is deactivated.
   PANIC_STOP: 10
   
   SIGNALLING_MODULES:
