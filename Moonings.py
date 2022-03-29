@@ -205,7 +205,7 @@ def get_price(add_to_historical=True):
 
             historical_prices[hsp_head] = initial_price
     except Exception as e:
-        write_log(f'{"get_price"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"get_price"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
@@ -302,7 +302,7 @@ def wait_for_price():
         balance_report(last_price)
     except Exception as e:
         lost_connection(e, "wait_for_price")
-        write_log(f'{"wait_for_price"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"wait_for_price"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))        
         pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
@@ -364,7 +364,7 @@ def get_volume_list():
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
                 print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
     except Exception as e:
-        write_log(f'{"get_volume_list"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"get_volume_list"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         write_log("COIN_ERROR: ", coin + PAIR_WITH)
         exit(1)
@@ -409,7 +409,7 @@ def print_table_coins_bought():
                 print("\n")
     except Exception as e:
         lost_connection(e, "print_table_coins_bought")
-        write_log(f'{"print_table_coins_bought"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"print_table_coins_bought"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
 
@@ -532,8 +532,9 @@ def balance_report(last_price):
 
         msg_discord_balance(msg1, msg2)
         history_log(session_profit_incfees_perc, session_profit_incfees_total, unrealised_session_profit_incfees_perc, unrealised_session_profit_incfees_total, session_profit_incfees_perc + unrealised_session_profit_incfees_perc, session_profit_incfees_total+unrealised_session_profit_incfees_total, historic_profit_incfees_perc, historic_profit_incfees_total, trade_wins+trade_losses, trade_wins, trade_losses, WIN_LOSS_PERCENT)
+        panic_bot(int(INVESTMENT_TOTAL), trade_losses)
     except Exception as e:
-        write_log(f'{"balance_report"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"balance_report"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     
@@ -599,7 +600,7 @@ def write_log(logline):
             f.write(timestamp + ' ' + result + '\n')
         print(f'{logline}')
     except Exception as e:
-        print(f'{"write_log"}: Exception in function: {e}')
+        print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"write_log"}: Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         exit(1)
     
@@ -672,6 +673,15 @@ def msg_discord(msg):
         #BB
         # print(response.content)
 
+def panic_bot(invest, lost):
+    if PANIC_STOP != 0:
+        lost_percent = (lost*invest)/100
+        if lost_percent >= PANIC_STOP:
+            printf(f'{txcolors.WARNING}BOT: {txcolors.WARNING}PANIC_STOP activated.')
+            stop_signal_threads()
+            printf(f'{txcolors.WARNING}BOT: {txcolors.WARNING}The percentage of losses is greater than or equal to the established one. Bot Stopped.')
+            exit(1)
+    
 def pause_bot():
     '''Pause the script when external indicators detect a bearish trend in the market'''
     global bot_paused, session_profit_incfees_perc, hsp_head, session_profit_incfees_total, PAUSEBOT_MANUAL
@@ -730,7 +740,7 @@ def pause_bot():
                 #PAUSEBOT = False
                 bot_paused = False
     except Exception as e:
-        write_log(f'{"pause_bot"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"pause_bot"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     return
@@ -784,7 +794,7 @@ def convert_volume():
                 #pass
     except Exception as e:
         lost_connection(e, "convert_volume")
-        write_log(f'convert_volume exception: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} {"convert_volume"} exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
@@ -935,7 +945,7 @@ def buy():
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
     except Exception as e:
         lost_connection(e, "buy")
-        write_log(f'{"buy"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"buy"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     return orders, last_price, volume
@@ -1164,7 +1174,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     
     except Exception as e:
         lost_connection(e, "sell_coins")
-        write_log(f'{"sell_coins"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"sell_coins"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
@@ -1217,7 +1227,7 @@ def sell_external_signals():
         try:
             os.remove(filename)
         except:
-            if DEBUG: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Could not remove external SELL signalling file{txcolors.DEFAULT}')
+            if DEBUG: write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} {"sell_external_signals()"}: Could not remove external SELL signalling file{txcolors.DEFAULT}')
 
     return external_list
 
@@ -1269,7 +1279,7 @@ def extract_order_data(order_details):
         else:
             FILLS_QTY = truncate(FILLS_QTY, lot_size)
     except Exception as e:
-        if not SCREEN_MODE == 2: print(f"extract_order_data(): Exception getting coin {order_details['symbol']} step size! Exception: {e}")
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"extract_order_data()"}: Exception getting coin {order_details["symbol"]} step size! Exception: {e}')
     
     # create object with received data from Binance
     transactionInfo = {
@@ -1401,7 +1411,7 @@ def remove_external_signals(fileext):
             try:
                 os.remove(filename)
             except:
-                if DEBUG: write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+                if DEBUG: write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} {"remove_external_signals"}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
 
 def load_signal_threads():
  # load signalling modules
@@ -1424,9 +1434,9 @@ def load_signal_threads():
 
                     time.sleep(2)
             else:
-                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}No modules to load {SIGNALLING_MODULES}')
+                write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"load_signal_threads"}: No modules to load {SIGNALLING_MODULES}')
     except Exception as e:
-        write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} load_signal_threads: Loading external signals exception: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"load_signal_threads"}: Loading external signals exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 def stop_signal_threads():
@@ -1470,7 +1480,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE
+    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP
 
     # Default no debugging
     DEBUG = False
@@ -1560,6 +1570,7 @@ def load_settings():
     PROXY_HTTP = parsed_config['script_options']['PROXY_HTTP']
     PROXY_HTTPS = parsed_config['script_options']['PROXY_HTTPS']
 	
+    PANIC_STOP = parsed_config['script_options']['PANIC_STOP']
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
 
@@ -1651,7 +1662,7 @@ def renew_list():
         else:
             tickers=[line.strip() for line in open(TICKERS_LIST)]
     except Exception as e:
-        write_log(f'{"renew_list"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"renew_list"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     
@@ -1800,7 +1811,7 @@ def menu():
                 print(f'wrong choice')
                 LOOP = True
     except Exception as e:
-        write_log(f'Exception in menu() 1: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} Exception in menu(): {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
@@ -2024,7 +2035,7 @@ if __name__ == '__main__':
                 print(f'')
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Bot terminated for some reason.')
     except Exception as e:
-        write_log(f'Exception in main() 1: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} Exception in main(): {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
