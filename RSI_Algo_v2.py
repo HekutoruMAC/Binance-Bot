@@ -68,7 +68,7 @@ class txcolors:
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
 
-if USE_MOST_VOLUME_COINS == False:
+if USE_MOST_VOLUME_COINS == True:
     TICKERS = "volatile_volume_" + str(date.today()) + ".txt"
 else:
     TICKERS = 'tickers.txt'
