@@ -160,8 +160,8 @@ def load_json(p):
                 value2 = round(float(bought_coin[p]['timestamp']),5)
                 bought_coin = {}
     except Exception as e:
-        print(f'{SIGNAL_NAME}: {txcolors.Red} {"load_json"}: Exception in function: {e}')
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        write_log(f'{SIGNAL_NAME}: {txcolors.Red} {"load_json"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
    
     return value1, value2
     
