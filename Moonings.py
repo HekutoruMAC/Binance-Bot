@@ -1570,7 +1570,7 @@ def load_settings():
     PROXY_HTTP = parsed_config['script_options']['PROXY_HTTP']
     PROXY_HTTPS = parsed_config['script_options']['PROXY_HTTPS']
 	
-    PANIC_STOP = parsed_config['script_options']['PANIC_STOP']
+    PANIC_STOP = parsed_config['trading_options']['PANIC_STOP']
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
 
