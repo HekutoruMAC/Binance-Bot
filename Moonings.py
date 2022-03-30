@@ -301,9 +301,9 @@ def wait_for_price():
 
         balance_report(last_price)
     except Exception as e:
-        lost_connection(e, "wait_for_price")
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"wait_for_price"}: Exception in function: {e}')
-        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))        
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        lost_connection(e, "wait_for_price")        
         pass
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -408,9 +408,9 @@ def print_table_coins_bought():
                 print(my_table)
                 print("\n")
     except Exception as e:
-        lost_connection(e, "print_table_coins_bought")
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"print_table_coins_bought"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        lost_connection(e, "print_table_coins_bought")
         pass
 
 
@@ -793,9 +793,9 @@ def convert_volume():
             #except KeyboardInterrupt as ki:
                 #pass
     except Exception as e:
-        lost_connection(e, "convert_volume")
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} {"convert_volume"} exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        lost_connection(e, "convert_volume")        
         pass
     #except KeyboardInterrupt as ki:
         #pass
@@ -944,9 +944,9 @@ def buy():
             else:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}')
     except Exception as e:
-        lost_connection(e, "buy")
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"buy"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        lost_connection(e, "buy")
         pass
     return orders, last_price, volume
 
@@ -1082,7 +1082,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                 except Exception as e:
                     #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
                     write_log(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}sell_coins() Exception occured on selling the coin! Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
-
+                    write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                 # run the else block if coin has been sold and create a dict for each coin sold
                 else:
                     if not TEST_MODE:
@@ -1173,9 +1173,9 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
         # if tpsl_override: is_bot_running = False
                     
     except Exception as e:
-        lost_connection(e, "sell_coins")
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"sell_coins"}: Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        lost_connection(e, "sell_coins")
         pass
     except KeyboardInterrupt as ki:
         pass
@@ -1280,7 +1280,8 @@ def extract_order_data(order_details):
             FILLS_QTY = truncate(FILLS_QTY, lot_size)
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"extract_order_data()"}: Exception getting coin {order_details["symbol"]} step size! Exception: {e}')
-    
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        
     # create object with received data from Binance
     transactionInfo = {
         'symbol': order_details['symbol'],
@@ -1447,6 +1448,7 @@ def stop_signal_threads():
             signalthread.terminate()
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}{"stop_signal_threads"}: Exception in function: {e}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     except KeyboardInterrupt as ki:
         pass
@@ -1941,13 +1943,15 @@ if __name__ == '__main__':
             try:
                 bot_started_datetime = datetime.strptime(bot_stats['botstart_datetime'], '%Y-%m-%d %H:%M:%S.%f')
             except Exception as e:
-                print (f'Exception on reading botstart_datetime from {bot_stats_file_path}. Exception: {e}')   
+                write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Exception on reading botstart_datetime from {bot_stats_file_path}. Exception: {e}')
+                write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                 bot_started_datetime = datetime.now()
             
             try:
                 total_capital = bot_stats['total_capital']
             except Exception as e:
-                print (f'Exception on reading total_capital from {bot_stats_file_path}. Exception: {e}')   
+                write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Exception on reading total_capital from {bot_stats_file_path}. Exception: {e}')
+                write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                 total_capital = TRADE_SLOTS * TRADE_TOTAL
 
             historic_profit_incfees_perc = float(bot_stats['historicProfitIncFees_Percent'])
