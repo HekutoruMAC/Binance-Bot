@@ -1579,11 +1579,19 @@ def load_settings():
     access_key, secret_key = load_correct_creds(parsed_creds)
     
 def CheckIfAliveStation(ip_address):
-    # WARNING - Windows Only
-    alive = False
-    ping_output = subprocess.run(['ping', '-n', '1', ip_address],shell=True,stdout=subprocess.PIPE)
-    if (ping_output.returncode == 0):
-        if not ('unreachable' in str(ping_output.stdout)):
+    # for windows
+    if name == 'nt':
+        # WARNING - Windows Only
+        alive = False
+        ping_output = subprocess.run(['ping', '-n', '1', ip_address],shell=True,stdout=subprocess.PIPE)
+        if (ping_output.returncode == 0):
+            if not ('unreachable' in str(ping_output.stdout)):
+                alive = True
+    else:
+        alive = False
+        p = os.popen(f'ping -c 1 -W 2 {ip_address}').read()
+        #print(f'output= {p}')
+        if ("PING" in p):
             alive = True
     return alive
     
