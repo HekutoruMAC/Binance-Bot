@@ -114,8 +114,14 @@ trading_options:
   SORT_TABLE_BY: "Time Held"
   REVERSE_SORT: False
   
+  #if true, it will ignore ALWAYS_OVERWRITE and ALWAYS_CONTINUE
+  ASK_ME: True
+  
   #I will no longer ask if you want to continue a new session, I would simply start from 0
   ALWAYS_OVERWRITE: False
+  
+  #ALWAYS_OVERWRITE must be false to use this option, which if TRUE will not ask, and will start the previous session automatically
+  ALWAYS_CONTINUE: True
 
  #Enables the use of currencies with greater or lesser volume
   USE_MOST_VOLUME_COINS: True
