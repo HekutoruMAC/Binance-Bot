@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 6.5
+Version: 6.6
 
 Disclaimer
 
@@ -649,7 +649,8 @@ def write_log_trades(logline):
                 f.write(table_txt)
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}write_log_trades(): Exception in function: {e}')
-        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))     
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
 			
 def msg_discord_balance(msg1, msg2):
     global last_msg_discord_balance_date, discord_msg_balance_data, last_msg_discord_balance_date
@@ -702,9 +703,9 @@ def pause_bot():
             if os.path.exists(filename) == True:
                 PAUSEBOT = True
                 break
-                
-        while PAUSEBOT or PAUSEBOT_MANUAL: #os.path.exists("signals/pausebot.pause") or PAUSEBOT_MANUAL:
-
+       
+        while PAUSEBOT or PAUSEBOT_MANUAL or BUY_PAUSED != 0 and BUY_PAUSED: #os.path.exists("signals/pausebot.pause") or PAUSEBOT_MANUAL:
+            
             # do NOT accept any external signals to buy while in pausebot mode
             remove_external_signals('buy')
 
@@ -805,6 +806,20 @@ def convert_volume():
     #except KeyboardInterrupt as ki:
         #pass
     return volume, last_price
+    
+def set_config(data, value):
+    file_name = "config.yml"
+    parsed_config = load_config(file_name)
+    with open(file_name, 'r') as file:
+        items = file.readlines()
+    c = 0
+    for line in items:
+        c = c + 1
+        if data in line:
+            break
+    items[c-1] = "  " + data + ": " + str(value) + "\n"
+    with open(file_name, 'w') as f:
+        f.writelines(items)
 
 def set_exparis(pairs):
     file_name = "config.yml"
@@ -901,7 +916,7 @@ def buy():
 
             # error handling here in case position cannot be placed
                 except Exception as e:
-                    write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} buy(): In create_order exception: {e}')
+                    write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING} buy(): In create_order exception({coin}): {e}')
                     write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                     pass
 
@@ -912,18 +927,20 @@ def buy():
                 # binance sometimes returns an empty list, the code will wait here until binance returns the order
                     while orders[coin] == []:
                         write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT} Binance is being slow in returning the order, calling the API again...')
-
                         orders[coin] = client.get_all_orders(symbol=coin, limit=1)
                         time.sleep(1)
 
                     else:
-                        write_log(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order returned, saving order to file')
+                        print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order returned, saving order to file')
                         if not TEST_MODE:
                             orders[coin] = extract_order_data(order_details)
+                            #write_log(json.dumps(orders[coin]))
                             #adding the price in USDT
                             BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                             volumeBuy = float(format(float(volume[coin]), '.6f'))
                             last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
+                            #write_log(f'last_price= {float(last_price[coin]["price"])}')
+                            last_price[coin]["price"] = float(orders[coin]['avgPrice'])
                             #BuyUSDT = format(BuyUSDT, '.14f')
                             #improving the presentation of the log file
                             coin = '{0:<9}'.format(coin)
@@ -938,6 +955,7 @@ def buy():
                             volumeBuy = format(float(volume[coin]), '.6f')
                             last_price_buy = format(float(last_price[coin]['price']), '.3f')
                             BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
+                            last_price[coin]["price"] = float(orders[coin]['avgPrice'])
                             #improving the presentation of the log file
                             coin = '{0:<9}'.format(coin)
                             buyFeeTotal1 = (volumeBuy * last_price_buy) * float(TRADING_FEE/100)
@@ -1001,21 +1019,21 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
             if LastPrice > TP and USE_TRAILING_STOP_LOSS and not sell_all_coins and not tpsl_override and not sell_specific_coin:
                 # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
                 #add metod from OlorinSledge
-                if PriceChange_Perc >= 0.8:
+                #if PriceChange_Perc >= 0.8:
                     # price has changed by 0.8% or greater, a big change. Make the STOP LOSS trail closely to the TAKE PROFIT
                     # so you don't lose this increase in price if it falls back
-                    coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT    
-                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                    #coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT    
+                    #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
-                else:
+                #else:
                     # price has changed by less than 0.8%, a small change. Make the STOP LOSS trail loosely to the TAKE PROFIT
                     # so you don't get stopped out of the trade prematurely
-                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-                    coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
+                coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
+                coins_bought[coin]['take_profit'] = PriceChange_Perc + TRAILING_TAKE_PROFIT
 
                 # we've got a negative stop loss - not good, we don't want this.
-                if coins_bought[coin]['stop_loss'] <= 0:
-                    coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] * .25
+                #if coins_bought[coin]['stop_loss'] <= 0:
+                    #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] * .25
 
                 # supress old metod
                 #coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
@@ -1089,6 +1107,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     #if repr(e).upper() == "APIERROR(CODE=-1111): PRECISION IS OVER THE MAXIMUM DEFINED FOR THIS ASSET.":
                     write_log(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}sell_coins(): Exception occured on selling the coin, Coin: {coin}\nSell Volume coins_bought: {coins_bought[coin]['volume']}\nPrice:{LastPrice}\nException: {e}")
                     write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+                    pass
                 # run the else block if coin has been sold and create a dict for each coin sold
                 else:
                     if not TEST_MODE:
@@ -1109,7 +1128,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     
                     time_held = (timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10])).total_seconds())/3600
                     
-                    if not int(MAX_HOLDING_TIME) == 0: 
+                    if int(MAX_HOLDING_TIME) != 0: 
                         if time_held >= int(MAX_HOLDING_TIME): set_exparis(coin)
                     
                     if DEBUG:
@@ -1287,7 +1306,7 @@ def extract_order_data(order_details):
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}extract_order_data(): Exception getting coin {order_details["symbol"]} step size! Exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-        
+        pass
     # create object with received data from Binance
     transactionInfo = {
         'symbol': order_details['symbol'],
@@ -1340,7 +1359,7 @@ def update_portfolio(orders, last_price, volume):
                         )['stepSize'])
         except Exception as ExStepSize:
             coin_step_size = .1
-
+            pass
 
         if not TEST_MODE:
             coins_bought[coin] = {
@@ -1445,6 +1464,7 @@ def load_signal_threads():
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}load_signal_threads(): Loading external signals exception: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
 
 def stop_signal_threads():
     global signalthreads
@@ -1488,7 +1508,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME
+    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME, BUY_PAUSED
 
     # Default no debugging
     DEBUG = False
@@ -1581,6 +1601,8 @@ def load_settings():
     PROXY_HTTPS = parsed_config['script_options']['PROXY_HTTPS']
 	
     PANIC_STOP = parsed_config['trading_options']['PANIC_STOP']
+    BUY_PAUSED = parsed_config['script_options']['BUY_PAUSED']
+   
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
 
@@ -1734,11 +1756,10 @@ def new_or_continue():
                 LOOP = True
         return END
 		
-		
 def menu():
     try:
         global COINS_MAX_VOLUME, COINS_MIN_VOLUME
-        global SCREEN_MODE, PAUSEBOT_MANUAL
+        global SCREEN_MODE, PAUSEBOT_MANUAL, BUY_PAUSED
         END = False
         LOOP = True
         stop_signal_threads()
@@ -1749,7 +1770,7 @@ def menu():
             print(f'{txcolors.MENUOPTION}[1]{txcolors.WARNING}Reload Configuration{txcolors.DEFAULT}')
             print(f'{txcolors.MENUOPTION}[2]{txcolors.WARNING}Reload modules{txcolors.DEFAULT}')
             print(f'{txcolors.MENUOPTION}[3]{txcolors.WARNING}Reload Volatily Volume List{txcolors.DEFAULT}')
-            if PAUSEBOT_MANUAL == False: 
+            if BUY_PAUSED == False: #PAUSEBOT_MANUAL == False or 
                 print(f'{txcolors.MENUOPTION}[4]{txcolors.WARNING}Stop Purchases{txcolors.DEFAULT}')
             else:
                 print(f'{txcolors.MENUOPTION}[4]{txcolors.WARNING}Start Purchases{txcolors.DEFAULT}')
@@ -1787,11 +1808,19 @@ def menu():
                 load_signal_threads()
                 LOOP = False
             elif x == 4:
-                if PAUSEBOT_MANUAL == False:
+                if BUY_PAUSED == False:
+                    set_config("BUY_PAUSED", True)
                     PAUSEBOT_MANUAL = True
+                    BUY_PAUSED = True
+                    stop_signal_threads()
+                    load_signal_threads()                  
                     LOOP = False
                 else:
                     PAUSEBOT_MANUAL = False
+                    set_config("BUY_PAUSED", False)
+                    BUY_PAUSED = False
+                    stop_signal_threads()
+                    load_signal_threads()
                     LOOP = False
             elif x == 5:
                 #part of extracted from the code of OlorinSledge
@@ -1961,6 +1990,8 @@ if __name__ == '__main__':
                 write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Exception on reading botstart_datetime from {bot_stats_file_path}. Exception: {e}')
                 write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                 bot_started_datetime = datetime.now()
+                #if continue fails
+                pass
             
             try:
                 total_capital = bot_stats['total_capital']
@@ -1968,6 +1999,7 @@ if __name__ == '__main__':
                 write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Exception on reading total_capital from {bot_stats_file_path}. Exception: {e}')
                 write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
                 total_capital = TRADE_SLOTS * TRADE_TOTAL
+                pass
 
             historic_profit_incfees_perc = float(bot_stats['historicProfitIncFees_Percent'])
             historic_profit_incfees_total = float(bot_stats['historicProfitIncFees_Total'])
@@ -2016,6 +2048,7 @@ if __name__ == '__main__':
     coins_sold = {}
     while is_bot_running:
         try:
+            coins_sold = {}
             orders, last_price, volume = buy()
             update_portfolio(orders, last_price, volume)
             
