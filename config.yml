@@ -144,6 +144,7 @@ trading_options:
     - RSI_Algo
     #- RSI_Algo_v2
     #- RSI_Algo_v3
+    #- RSI_Algo_v3.1
     #- ScalperPro
     #- supertrend
     #- custsignalmod
