@@ -382,19 +382,19 @@ def print_table_coins_bought():
                 my_table.field_names = ["Symbol", "Volume", "Bought At", "Now At", "TP %", "SL %", "Change %", "Profit $", "Time Held"]
                 last_price = get_price(False)
                 for coin in list(coins_bought):
-                    LastPriceT = round(float(last_price[coin]['price']),3)
+                    LastPriceT = float(last_price[coin]['price'])#,8)
                     sellFeeT = (LastPriceT * (TRADING_FEE/100))
                     sellFeeTotal = (coins_bought[coin]['volume'] * LastPriceT) * (TRADING_FEE/100)
                     LastPriceLessFeesT = LastPriceT - sellFeeT
                     LastPricePlusFeesT = LastPriceT + sellFeeT
-                    BuyPriceT = round(float(coins_bought[coin]['bought_at']),3)
+                    BuyPriceT = float(coins_bought[coin]['bought_at'])#,8)
                     buyFeeT = (BuyPriceT * (TRADING_FEE/100))
                     buyFeeTotal = (coins_bought[coin]['volume'] * BuyPriceT) * (TRADING_FEE/100)
                     BuyPricePlusFeesT = BuyPriceT + buyFeeT
-                    ProfitAfterFees = round((LastPricePlusFeesT - BuyPricePlusFeesT), 2)
+                    ProfitAfterFees = (LastPricePlusFeesT - BuyPricePlusFeesT)#, 8)
                     #PriceChangeIncFees_Perc = round(float(((LastPriceLessFees - BuyPricePlusFees) / BuyPricePlusFees) * 100), 3)
-                    PriceChangeIncFees_PercT = round(float(((LastPricePlusFeesT - BuyPricePlusFeesT) / BuyPricePlusFeesT) * 100), 3) 
-                    PriceChange_PercT = round(float(((LastPriceT - BuyPriceT) / BuyPriceT) * 100), 3)
+                    PriceChangeIncFees_PercT = float(((LastPricePlusFeesT - BuyPricePlusFeesT) / BuyPricePlusFeesT) * 100)#, 8) 
+                    PriceChange_PercT = float(((LastPriceT - BuyPriceT) / BuyPriceT) * 100)#, 8)
                     #if PriceChangeIncFees_Perc == -100: PriceChangeIncFees_Perc = 0
                     time_held = timedelta(seconds=datetime.now().timestamp()-int(str(coins_bought[coin]['timestamp'])[:10]))
                     #if IGNORE_FEE: 
