@@ -541,50 +541,56 @@ def balance_report(last_price):
     return msg1 + msg2
 
 def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_profit_unreal, sess_profit_perc_total, sess_profit_total, alltime_profit_perc, alltime_profit, total_trades, won_trades, lost_trades, winloss_ratio):
-    global last_history_log_date
-    
-    time_between_insertion = datetime.now() - last_history_log_date
-    if TEST_MODE:
-        file_prefix = 'test_'
-    else:
-        file_prefix = 'live_'
-    # only log balance to log file once every 60 seconds
-    if time_between_insertion.seconds > 60:
-        last_history_log_date = datetime.now()
-        timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
-
-        if os.path.exists(file_prefix + HISTORY_LOG_FILE):
-            HISTORY_LOG_TABLE = PrettyTable([])
-            with open(file_prefix + HISTORY_LOG_FILE, "r") as fp: 
-                html = fp.read()
-            HISTORY_LOG_TABLE = from_html_one(html)
-            HISTORY_LOG_TABLE.format = True
-            HISTORY_LOG_TABLE.border = True
-            HISTORY_LOG_TABLE.align = "c"
-            HISTORY_LOG_TABLE.valign = "m"
-            HISTORY_LOG_TABLE.hrules = 1
-            HISTORY_LOG_TABLE.vrules = 1
-            HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
-            table_txt = HISTORY_LOG_TABLE.get_html_string()
-            #table_txt = HISTORY_LOG_TABLE.get_string()
+    if HISTORY_LOG_FILE == '': return
+    try:
+        global last_history_log_date    
+        time_between_insertion = datetime.now() - last_history_log_date
+        if TEST_MODE:
+            file_prefix = 'test_'
         else:
-            HISTORY_LOG_TABLE = PrettyTable([])
-            HISTORY_LOG_TABLE = PrettyTable(["Datetime", "Coins Holding", "Trade Slots", "Pausebot Active", "Session Profit %", "Session Profit $", "Session Profit Unrealised %", "Session Profit Unrealised $", "Session Profit Total %", "Session Profit Total $", "All Time Profit %", "All Time Profit $", "Total Trades", "Won Trades", "Lost Trades", "Win Loss Ratio"])
-            HISTORY_LOG_TABLE.format = True
-            HISTORY_LOG_TABLE.border = True
-            HISTORY_LOG_TABLE.align = "c"
-            HISTORY_LOG_TABLE.valign = "m"
-            HISTORY_LOG_TABLE.hrules = 1
-            HISTORY_LOG_TABLE.vrules = 1
-        #    with open(HISTORY_LOG_FILE,'a+') as f:
-        #        f.write('Datetime\tCoins Holding\tTrade Slots\tPausebot Active\tSession Profit %\tSession Profit $\tSession Profit Unrealised %\tSession Profit Unrealised $\tSession Profit Total %\tSession Profit Total $\tAll Time Profit %\tAll Time Profit $\tTotal Trades\tWon Trades\tLost Trades\tWin Loss Ratio\n')    
-            HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
-            table_txt = HISTORY_LOG_TABLE.get_html_string()
-            #table_txt = HISTORY_LOG_TABLE.get_string()
-        if not table_txt == "":
-            with open(file_prefix + HISTORY_LOG_FILE,'w') as f:
-            #f.write(f'{timestamp}\t{len(coins_bought)}\t{TRADE_SLOTS}\t{str(bot_paused)}\t{str(round(sess_profit_perc,2))}\t{str(round(sess_profit,4))}\t{str(round(sess_profit_perc_unreal,2))}\t{str(round(sess_profit_unreal,4))}\t{str(round(sess_profit_perc_total,2))}\t{str(round(sess_profit_total,4))}\t{str(round(alltime_profit_perc,2))}\t{str(round(alltime_profit,4))}\t{str(total_trades)}\t{str(won_trades)}\t{str(lost_trades)}\t{str(winloss_ratio)}\n')
-                f.write(table_txt)
+            file_prefix = 'live_'
+        # only log balance to log file once every 60 seconds
+        if time_between_insertion.seconds > 60:
+            last_history_log_date = datetime.now()
+            timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+
+            if os.path.exists(file_prefix + HISTORY_LOG_FILE):
+                HISTORY_LOG_TABLE = PrettyTable([])
+                with open(file_prefix + HISTORY_LOG_FILE, "r") as fp: 
+                    html = fp.read()
+                HISTORY_LOG_TABLE = from_html_one(html)
+                HISTORY_LOG_TABLE.format = True
+                HISTORY_LOG_TABLE.border = True
+                HISTORY_LOG_TABLE.align = "c"
+                HISTORY_LOG_TABLE.valign = "m"
+                HISTORY_LOG_TABLE.hrules = 1
+                HISTORY_LOG_TABLE.vrules = 1
+                HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
+                table_txt = HISTORY_LOG_TABLE.get_html_string()
+                #table_txt = HISTORY_LOG_TABLE.get_string()
+            else:
+                HISTORY_LOG_TABLE = PrettyTable([])
+                HISTORY_LOG_TABLE = PrettyTable(["Datetime", "Coins Holding", "Trade Slots", "Pausebot Active", "Session Profit %", "Session Profit $", "Session Profit Unrealised %", "Session Profit Unrealised $", "Session Profit Total %", "Session Profit Total $", "All Time Profit %", "All Time Profit $", "Total Trades", "Won Trades", "Lost Trades", "Win Loss Ratio"])
+                HISTORY_LOG_TABLE.format = True
+                HISTORY_LOG_TABLE.border = True
+                HISTORY_LOG_TABLE.align = "c"
+                HISTORY_LOG_TABLE.valign = "m"
+                HISTORY_LOG_TABLE.hrules = 1
+                HISTORY_LOG_TABLE.vrules = 1
+            #    with open(HISTORY_LOG_FILE,'a+') as f:
+            #        f.write('Datetime\tCoins Holding\tTrade Slots\tPausebot Active\tSession Profit %\tSession Profit $\tSession Profit Unrealised %\tSession Profit Unrealised $\tSession Profit Total %\tSession Profit Total $\tAll Time Profit %\tAll Time Profit $\tTotal Trades\tWon Trades\tLost Trades\tWin Loss Ratio\n')    
+                HISTORY_LOG_TABLE.add_row([timestamp, len(coins_bought), TRADE_SLOTS, str(bot_paused), str(round(sess_profit_perc,2)), str(round(sess_profit,4)), str(round(sess_profit_perc_unreal,2)), str(round(sess_profit_unreal,4)), str(round(sess_profit_perc_total,2)), str(round(sess_profit_total,4)), str(round(alltime_profit_perc,2)), str(round(alltime_profit,4)), str(total_trades), str(won_trades), str(lost_trades), str(winloss_ratio)])
+                table_txt = HISTORY_LOG_TABLE.get_html_string()
+                #table_txt = HISTORY_LOG_TABLE.get_string()
+            if not table_txt == "":
+                with open(file_prefix + HISTORY_LOG_FILE,'w') as f:
+                #f.write(f'{timestamp}\t{len(coins_bought)}\t{TRADE_SLOTS}\t{str(bot_paused)}\t{str(round(sess_profit_perc,2))}\t{str(round(sess_profit,4))}\t{str(round(sess_profit_perc_unreal,2))}\t{str(round(sess_profit_unreal,4))}\t{str(round(sess_profit_perc_total,2))}\t{str(round(sess_profit_total,4))}\t{str(round(alltime_profit_perc,2))}\t{str(round(alltime_profit,4))}\t{str(total_trades)}\t{str(won_trades)}\t{str(lost_trades)}\t{str(winloss_ratio)}\n')
+                    f.write(table_txt)
+                del HISTORY_LOG_TABLE
+    except Exception as e:
+        print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}history_log(): Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+
 
 def write_log(logline):
     try:
