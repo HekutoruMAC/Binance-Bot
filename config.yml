@@ -9,7 +9,8 @@ script_options:
   MAIN_FILES_PATH: ""
   LOG_FILE: 'log.txt'
   TRADES_LOG_FILE: 'trades.html'
-  HISTORY_LOG_FILE: 'history.html'
+  #if it is empty no information will be saved
+  HISTORY_LOG_FILE: '' #'history.html'
   COINS_BOUGHT: 'coins_bought.json'
   BOT_STATS: 'bot_stats.json'
   #This file will show the currencies contributed by the module or the compa modules for the bot
