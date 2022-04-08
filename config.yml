@@ -16,6 +16,7 @@ script_options:
   #This file will show the currencies contributed by the module or the compa modules for the bot
   EXTERNAL_COINS: 'excoin.txt'
   DEBUG: True
+  BUY_PAUSED: 0
   
   #all binance requests from our bot will be proxied
   PROXY_HTTP: '' #'http://localhost:8090'
