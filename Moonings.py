@@ -707,9 +707,9 @@ def panic_bot(invest, lost):
         lost_percent = (lost*invest)/100
         print(f'invest= {invest} lost= {lost} lost_percent= {lost_percent}')
         if lost_percent >= PANIC_STOP:
-            printf(f'{txcolors.WARNING}BOT: {txcolors.WARNING}PANIC_STOP activated.')
+            print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}PANIC_STOP activated.')
             stop_signal_threads()
-            printf(f'{txcolors.WARNING}BOT: {txcolors.WARNING}The percentage of losses is greater than or equal to the established one. Bot Stopped.')
+            print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}The percentage of losses is greater than or equal to the established one. Bot Stopped.')
             exit(1)
     
 def pause_bot():
