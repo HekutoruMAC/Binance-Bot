@@ -129,6 +129,8 @@ trading_options:
   #the list is updated every n number of minutes. by default it is updated every 24 hours (1440 minutes). 
   #Sweethackercasper's idea, thanks mate.
   UPDATE_MOST_VOLUME_COINS: 1440
+  #It should not be touched here, used as record.
+  VOLATILE_VOLUME: ""
   #idea from my psychologist, thanks Sebastian V.
   #Two different currencies can be used as a range (within the market table in Binance ordered from highest to lowest)
   COINS_MAX_VOLUME: BTC #ETH  #5000000000
