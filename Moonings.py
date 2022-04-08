@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 6.6
+Version: 6.7
 
 Disclaimer
 
@@ -310,15 +310,13 @@ def wait_for_price():
 def get_volume_list():
     try:
         global COINS_MAX_VOLUME, COINS_MIN_VOLUME
-        VOLATILE_VOLUME = "volatile_volume_" + str(date.today()) + ".txt"
+        
+        now = datetime.now()
+        dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")        
+        VOLATILE_VOLUME = "volatile_volume_" + dt_string + ".txt"
+        
         most_volume_coins = {}
         tickers_all = []
-        #    os.remove(VOLATILE_VOLUME)
-        #try:
-        #if os.path.exists("tickers_all.txt") == True:
-            #tickers_all=[line.strip() for line in open("tickers_all.txt")]
-        #else:
-            #VOLATILE_VOLUME = ""
         
         prices = client.get_all_tickers()
         
@@ -329,19 +327,20 @@ def get_volume_list():
         c = 0
         if os.path.exists(VOLATILE_VOLUME) == False:
             load_settings()
-            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Creating volatile list, wait a moment...')
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Creating volatile list, wait a moment(3 minutes approximately)...')
             if COINS_MAX_VOLUME.isnumeric() == False and COINS_MIN_VOLUME.isnumeric() == False:
                 infocoinMax = client.get_ticker(symbol=COINS_MAX_VOLUME + PAIR_WITH)
                 infocoinMin = client.get_ticker(symbol=COINS_MIN_VOLUME + PAIR_WITH)
-                COINS_MAX_VOLUME = math.ceil(float(infocoinMax['quoteVolume']))
-                COINS_MIN_VOLUME = round(float(infocoinMin['quoteVolume']))
-                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}COINS_MAX_VOLUME {COINS_MAX_VOLUME} and COINS_MIN_VOLUME {COINS_MIN_VOLUME} were set from specific currencies...')
-        
+                COINS_MAX_VOLUME1 = float(infocoinMax['quoteVolume']) #math.ceil(float(infocoinMax['quoteVolume']))
+                COINS_MIN_VOLUME1 = float(infocoinMin['quoteVolume'])
+                most_volume_coins.update({COINS_MAX_VOLUME : COINS_MAX_VOLUME1})
+                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}COINS_MAX_VOLUME {round(COINS_MAX_VOLUME1)} and COINS_MIN_VOLUME {round(COINS_MIN_VOLUME1)} were set from specific currencies...')
+            
             for coin in tickers_all:
                 #try:
                 infocoin = client.get_ticker(symbol= coin + PAIR_WITH)
                 volumecoin = float(infocoin['quoteVolume']) #/ 1000000                
-                if volumecoin <= COINS_MAX_VOLUME and volumecoin >= COINS_MIN_VOLUME and coin not in EX_PAIRS and coin not in most_volume_coins:
+                if volumecoin <= COINS_MAX_VOLUME1 and volumecoin >= COINS_MIN_VOLUME1 and coin not in EX_PAIRS and coin not in most_volume_coins:
                     most_volume_coins.update({coin : volumecoin})  					
                     c = c + 1
                 # except Exception as e:
@@ -354,17 +353,22 @@ def get_volume_list():
                 
             sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
             
-            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...')
+            now = datetime.now()
+            dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")        
+            VOLATILE_VOLUME = "volatile_volume_" + dt_string + ".txt" 
+            
+            print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Saving {str(c)} coins to {VOLATILE_VOLUME} ...{txcolors.DEFAULT}')
             
             for coin in sortedVolumeList:
                 with open(VOLATILE_VOLUME,'a+') as f:
                     f.write(coin[0] + '\n')
+
         else:
             if ALWAYS_OVERWRITE == False:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}There is already a recently created list, if you want to create a new list, stop the bot and delete the previous one.')
                 print(f'{txcolors.WARNING}REMEMBER: {txcolors.DEFAULT}if you create a new list when continuing a previous session, it may not coincide with the previous one and give errors...')
     except Exception as e:
-        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_volume_list: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_volume_list(): Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         write_log("COIN_ERROR: ", coin + PAIR_WITH)
         exit(1)
@@ -1514,7 +1518,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME, BUY_PAUSED
+    global DEBUG, TEST_MODE, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME, BUY_PAUSED, UPDATE_MOST_VOLUME_COINS
 
     # Default no debugging
     DEBUG = False
@@ -1608,7 +1612,8 @@ def load_settings():
 	
     PANIC_STOP = parsed_config['trading_options']['PANIC_STOP']
     BUY_PAUSED = parsed_config['script_options']['BUY_PAUSED']
-   
+    
+    UPDATE_MOST_VOLUME_COINS = parsed_config['trading_options']['UPDATE_MOST_VOLUME_COINS']
     #BNB_FEE = parsed_config['trading_options']['BNB_FEE']
     #TRADING_OTHER_FEE = parsed_config['trading_options']['TRADING_OTHER_FEE']
 
@@ -1666,7 +1671,13 @@ def renew_list():
     global tickers, VOLATILE_VOLUME_LIST, FLAG_PAUSE, COINS_MAX_VOLUME, COINS_MIN_VOLUME
     try:
         if USE_MOST_VOLUME_COINS == True:
-            if VOLATILE_VOLUME_LIST == "volatile_volume_" + str(date.today()) + ".txt" and os.path.exists(VOLATILE_VOLUME_LIST) == True:
+            now = datetime.now()
+            dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")
+            timestampNOW = now.timestamp()
+            dt_string_old = datetime.strptime(VOLATILE_VOLUME_LIST.replace("(", " ").replace(")", "").replace("volatile_volume_", "").replace(".txt",""),"%d-%m-%Y %H_%M_%S") + timedelta(minutes = UPDATE_MOST_VOLUME_COINS)
+            tuple2 = dt_string_old.timetuple()
+            timestamp2 = time.mktime(tuple2)
+            if timestampNOW < timestamp2:
                 tickers=[line.strip() for line in open(VOLATILE_VOLUME_LIST)]                
             else:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list will be created...')
@@ -1708,7 +1719,7 @@ def renew_list():
         else:
             tickers=[line.strip() for line in open(TICKERS_LIST)]
     except Exception as e:
-        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"renew_list"}: Exception in function: {e}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}renew_list(): Exception in function: {e}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     
