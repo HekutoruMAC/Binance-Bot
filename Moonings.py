@@ -319,18 +319,28 @@ def get_volume_list():
     try:
         today = "volatile_volume_" + str(date.today()) + ".txt"
         global COINS_MAX_VOLUME, COINS_MIN_VOLUME, VOLATILE_VOLUME, tickers
-        if USE_MOST_VOLUME_COINS == True:
+        volatile_volume_empty = False
+        volatile_volume_time = False
+        if USE_MOST_VOLUME_COINS:
+            today = "volatile_volume_" + str(date.today()) + ".txt"
             now = datetime.now()
-            dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")
-            timestampNOW = now.timestamp()
-            dt_string_old = datetime.strptime(VOLATILE_VOLUME.replace("(", " ").replace(")", "").replace("volatile_volume_", ""),"%d-%m-%Y %H_%M_%S") + timedelta(minutes = UPDATE_MOST_VOLUME_COINS)               
-            tuple2 = dt_string_old.timetuple()
-            timestamp2 = time.mktime(tuple2)
-            
-            if VOLATILE_VOLUME == "" or os.path.exists(today) == False or timestampNOW > timestamp2:       
-                #now = datetime.now()
-                #dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")        
-                VOLATILE_VOLUME = "volatile_volume_" + dt_string
+            now_str = now.strftime("%d-%m-%Y %H_%M_%S")
+            dt_string = datetime.strptime(now_str,"%d-%m-%Y %H_%M_%S")
+            if VOLATILE_VOLUME == "":
+                volatile_volume_empty = True
+            else:
+                tuple1 = dt_string.timetuple()
+                timestamp1 = time.mktime(tuple1)
+                
+                dt_string_old = datetime.strptime(VOLATILE_VOLUME.replace("(", " ").replace(")", "").replace("volatile_volume_", ""),"%d-%m-%Y %H_%M_%S") + timedelta(minutes = UPDATE_MOST_VOLUME_COINS)               
+                tuple2 = dt_string_old.timetuple()
+                timestamp2 = time.mktime(tuple2)                    
+                
+                if timestamp1 > timestamp2:
+                    volatile_volume_time = True
+                        
+            if volatile_volume_empty or volatile_volume_time or os.path.exists(today) == False:             
+                VOLATILE_VOLUME = "volatile_volume_" + str(dt_string)
                 
                 most_volume_coins = {}
                 tickers_all = []
@@ -371,8 +381,8 @@ def get_volume_list():
                     sortedVolumeList = sorted(most_volume_coins.items(), key=lambda x: x[1], reverse=True)
                     
                     now = datetime.now()
-                    dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")        
-                    VOLATILE_VOLUME = "volatile_volume_" + dt_string
+                    now_str = now.strftime("%d-%m-%Y(%H_%M_%S)")
+                    VOLATILE_VOLUME = "volatile_volume_" + now_str
                     
                     print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Saving {str(c)} coins to {today} ...{txcolors.DEFAULT}')
                     
@@ -394,7 +404,7 @@ def get_volume_list():
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_volume_list(): Exception in function: {e}{txcolors.DEFAULT}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-        write_log("COIN_ERROR: ", coin + PAIR_WITH)
+        print("COIN_ERROR: ", coin + PAIR_WITH)
         exit(1)
     return VOLATILE_VOLUME
 
@@ -489,6 +499,7 @@ def balance_report(last_price):
         if (trade_wins > 0) and (trade_losses == 0):
             WIN_LOSS_PERCENT = 100
         strplus = "+"
+        print_banner()
         if STATIC_MAIN_INFO == True: clear()
         if SCREEN_MODE < 2: print(f'')
         if SCREEN_MODE == 2: print(f'')
@@ -1695,17 +1706,28 @@ def lost_connection(error, origin):
                 #print(f'{txcolors.WARNING}BOT: Lost connection, waiting 5 seconds until it is restored...{txcolors.DEFAULT}')
                 time.sleep(5) 
 def renew_list(in_init=False):
-    global tickers, VOLATILE_VOLUME, FLAG_PAUSE, COINS_MAX_VOLUME, COINS_MIN_VOLUME
     try:
+        global tickers, VOLATILE_VOLUME, FLAG_PAUSE, COINS_MAX_VOLUME, COINS_MIN_VOLUME
+        volatile_volume_empty = False
+        volatile_volume_time = False
         if USE_MOST_VOLUME_COINS == True:
             today = "volatile_volume_" + str(date.today()) + ".txt"
-            now = datetime.now()
-            dt_string = now.strftime("%d-%m-%Y(%H_%M_%S)")
-            timestampNOW = now.timestamp()
-            dt_string_old = datetime.strptime(VOLATILE_VOLUME.replace("(", " ").replace(")", "").replace("volatile_volume_", ""),"%d-%m-%Y %H_%M_%S") + timedelta(minutes = UPDATE_MOST_VOLUME_COINS)               
-            tuple2 = dt_string_old.timetuple()
-            timestamp2 = time.mktime(tuple2)
-            if VOLATILE_VOLUME == "" or os.path.exists(today) == False or timestampNOW > timestamp2:
+            if VOLATILE_VOLUME == "":
+                volatile_volume_empty = True
+            else:
+                now = datetime.now()
+                dt_string = datetime.strptime(now.strftime("%d-%m-%Y %H_%M_%S"),"%d-%m-%Y %H_%M_%S")
+                tuple1 = dt_string.timetuple()
+                timestamp1 = time.mktime(tuple1)
+
+                #timestampNOW = now.timestamp()
+                dt_string_old = datetime.strptime(VOLATILE_VOLUME.replace("(", " ").replace(")", "").replace("volatile_volume_", ""),"%d-%m-%Y %H_%M_%S") + timedelta(minutes = UPDATE_MOST_VOLUME_COINS)               
+                tuple2 = dt_string_old.timetuple()
+                timestamp2 = time.mktime(tuple2)
+                if timestamp1 > timestamp2:
+                    volatile_volume_time = True
+
+            if volatile_volume_time or volatile_volume_empty or os.path.exists(today) == False:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list will be created...{txcolors.DEFAULT}')
                 stop_signal_threads()
                 FLAG_PAUSE = True
@@ -1744,10 +1766,10 @@ def renew_list(in_init=False):
                     with open(today,'w') as f:
                         f.writelines(lines_today)
 
-                print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list has been created, {len(list(coins_bought_list))} coin(s) added...{txcolors.DEFAULT}')
-                FLAG_PAUSE = False
-                #renew_list()
-                load_signal_threads()     
+                    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}A new Volatily Volume list has been created, {len(list(coins_bought_list))} coin(s) added...{txcolors.DEFAULT}')
+                    FLAG_PAUSE = False
+                    #renew_list()
+                    load_signal_threads()     
                 
         else:
             if in_init:
@@ -1969,11 +1991,11 @@ def menu():
     
 def print_banner():
     __header__='''
-\033[92m  ___ _                        __   __   _      _   _ _ _ _          _____            _ _             ___     _   
-\033[92m | _ (_)_ _  __ _ _ _  __ ___  \ \ / ___| |__ _| |_(_| (_| |_ _  _  |_   __ _ __ _ __| (_)_ _  __ _  | _ )___| |_ 
-\033[92m | _ | | ' \/ _` | ' \/ _/ -_)  \ V / _ | / _` |  _| | | |  _| || |   | || '_/ _` / _` | | ' \/ _` | | _ / _ |  _|
-\033[92m |___|_|_||_\__,_|_||_\__\___|   \_/\___|_\__,_|\__|_|_|_|\__|\_, |   |_||_| \__,_\__,_|_|_||_\__, | |___\___/\__|
-\033[92m  In intensive collaboration with Ak535Ak                      |__/                            |___/ by Pantersxx3'''
+\033[92m ___ _                        __   __   _      _   _ _ _ _          _____            _ _             ___     _   
+\033[92m| _ (_)_ _  __ _ _ _  __ ___  \ \ / ___| |__ _| |_(_| (_| |_ _  _  |_   __ _ __ _ __| (_)_ _  __ _  | _ )___| |_ 
+\033[92m| _ | | ' \/ _` | ' \/ _/ -_)  \ V / _ | / _` |  _| | | |  _| || |   | || '_/ _` / _` | | ' \/ _` | | _ / _ |  _|
+\033[92m|___|_|_||_\__,_|_||_\__\___|   \_/\___|_\__,_|\__|_|_|_|\__|\_, |   |_||_| \__,_\__,_|_|_||_\__, | |___\___/\__|
+\033[92m In intensive collaboration with Ak535Ak                      |__/                            |___/ by Pantersxx3'''
     print(__header__)
     
 if __name__ == '__main__':
