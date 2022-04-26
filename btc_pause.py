@@ -118,7 +118,7 @@ def analyse_btc():
         print (f'handler: {handler1MIN[pair]}')
         pass
 
-    SMA200 = round(analysis1MIN.indicators['SMA200'],2)
+    btc200 = round(analysis1MIN.indicators['SMA200'],2)
     
     if PAIR_WITH != "BTC":
         # Normal Scan for LIMIT and INTERVAL
@@ -141,16 +141,17 @@ def analyse_btc():
             btc5 = btc.ta.sma(length=5)
             btc10 = btc.ta.sma(length=10)
             btc20 = btc.ta.sma(length=20)
-            btc200 = btc.ta.sma(length=200)
+            #btc200 = btc.ta.sma(length=200)
             btc2 = round(float(btc2.iloc[-1]),2)
             btc3 = round(float(btc3.iloc[-1]),2)
             btc4 = round(float(btc4.iloc[-1]),2)
             btc5 = round(float(btc5.iloc[-1]),2)
             btc10 = round(float(btc10.iloc[-1]),2)
             btc20 = round(float(btc20.iloc[-1]),2)
-            #btc200 = round(float(btc200.iloc[-1]),2)
-            
-            print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f} {btc200[2]:.2f}{txcolors.DEFAULT}')
+            #btc200_1 = btc200.iloc[-1]
+
+            #print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f} {btc200[2]:.2f}{txcolors.DEFAULT}')
+            print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2} {btc3} {btc4} {btc5} {btc10} {btc20} {btc200}{txcolors.DEFAULT}')
 
             paused = False
             if btc2 > btc3 > btc4 > btc5 > btc10 > btc20 > btc200:
