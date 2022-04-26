@@ -151,7 +151,7 @@ def analyse_btc():
             #btc200_1 = btc200.iloc[-1]
 
             #print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f} {btc200[2]:.2f}{txcolors.DEFAULT}')
-            print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2} {btc3} {btc4} {btc5} {btc10} {btc20} {btc200}{txcolors.DEFAULT}')
+            print(f'{SIGNAL_NAME}: {txcolors.BUY}sma2:{btc2} sma3:{btc3} sma4:{btc4} sma5:{btc5} sma10:{btc10} sma20:{btc20} sma200:{btc200}{txcolors.DEFAULT}')
 
             paused = False
             if btc2 > btc3 > btc4 > btc5 > btc10 > btc20 > btc200:
