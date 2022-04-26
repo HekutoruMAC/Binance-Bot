@@ -30,6 +30,7 @@ import sys
 #import bt as bt
 from binance.client import Client, BinanceAPIException
 from helpers.parameters import parse_args, load_config
+from tradingview_ta import TA_Handler, Interval, Exchange
 import pandas as pd
 import pandas_ta as ta
 import ccxt
@@ -73,7 +74,8 @@ paused = False
 LIMIT = 6
 INTERVAL = '1m'
 percent = 1
-
+EXCHANGE = 'BINANCE'
+SCREENER = 'CRYPTO'
 SIGNAL_NAME = 'btc_pause'
 SIGNAL_TYPE = 'pause'
 
@@ -94,11 +96,35 @@ def msg_discord(msg):
 
 def analyse_btc():
     global paused
+    signal_coins = {}
+
+    analysis1MIN = {}
+    handler1MIN = {}
+
+    pair = "BTC" + PAIR_WITH
+    handler1MIN[pair] = TA_Handler(
+        symbol=pair,
+        exchange=EXCHANGE,
+        screener=SCREENER,
+        interval=INTERVAL,
+        timeout= 10)
+                        
+    try:
+        analysis1MIN = handler1MIN[pair].get_analysis()
+    except Exception as e:
+        print(f'{SIGNAL_NAME}Exception:')
+        print(e)
+        print (f'Coin: {pair}')
+        print (f'handler: {handler1MIN[pair]}')
+        pass
+
+    SMA200 = round(analysis1MIN.indicators['SMA200'],2)
+    
     if PAIR_WITH != "BTC":
         # Normal Scan for LIMIT and INTERVAL
         exchange = ccxt.binance()
         try:
-            btc = exchange.fetch_ohlcv("BTC" + PAIR_WITH, timeframe='1h', limit=25)
+            btc = exchange.fetch_ohlcv("BTC" + PAIR_WITH, timeframe=INTERVAL, limit=25)
             btc = pd.DataFrame(btc, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
             btc['VWAP'] = ((((btc.high + btc.low + btc.close) / 3) * btc.volume) / btc.volume)
             #print(btc)
@@ -116,14 +142,13 @@ def analyse_btc():
             btc10 = btc.ta.sma(length=10)
             btc20 = btc.ta.sma(length=20)
             btc200 = btc.ta.sma(length=200)
-            
-            btc2 = btc2.iloc[-1]
-            btc3 = btc3.iloc[-1]
-            btc4 = btc4.iloc[-1]
-            btc5 = btc5.iloc[-1]
-            btc10 = btc10.iloc[-1]
-            btc20 = btc20.iloc[-1]
-            btc200 = btc200.iloc[-1]
+            btc2 = round(float(btc2.iloc[-1]),2)
+            btc3 = round(float(btc3.iloc[-1]),2)
+            btc4 = round(float(btc4.iloc[-1]),2)
+            btc5 = round(float(btc5.iloc[-1]),2)
+            btc10 = round(float(btc10.iloc[-1]),2)
+            btc20 = round(float(btc20.iloc[-1]),2)
+            #btc200 = round(float(btc200.iloc[-1]),2)
             
             print(f'{SIGNAL_NAME}: {txcolors.BUY}{btc2:.2f} {btc3:.2f} {btc4:.2f} {btc5:.2f} {btc10:.2f} {btc20:.2f} {btc200[2]:.2f}{txcolors.DEFAULT}')
 
@@ -138,8 +163,6 @@ def analyse_btc():
         except Exception as e:
             print(f'{SIGNAL_NAME}: Exception analyse_btc() 1: {e}{txcolors.DEFAULT}')
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-            pass
-        except KeyboardInterrupt as ki:
             pass
     return paused
 
@@ -162,7 +185,7 @@ def do_work():
             else:
                 print(f'{SIGNAL_NAME}: {txcolors.SELL_LOSS}This module cannot run under its own currency as a base, closing the module......{txcolors.DEFAULT}')
         except Exception as e:
-            print(f'{SIGNAL_NAME}: Exception do_work() 1: {e}{txcolors.DEFAULT}')
+            print(f'{SIGNAL_NAME}: Exception do_work(): {e}{txcolors.DEFAULT}')
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
             continue
         except KeyboardInterrupt as ki:
