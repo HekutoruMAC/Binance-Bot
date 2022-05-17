@@ -83,6 +83,8 @@ from helpers.handle_creds import (
     load_discord_creds
 )
 
+#pandas library
+import pandas as pd
 
 # for colourful logging to the console
 class txcolors:
@@ -165,15 +167,97 @@ def decimals():
     else:
         return 8
 
-def get_price(add_to_historical=True):
-    '''Return the current price for all coins on binance'''
-    global historical_prices, hsp_head
+# def get_historical_data(symbol, interval):
+    # try:
+        # data_symbol = {}
+        # url = 'https://api.binance.com/api/v3/klines'
+        # url = 
+        # "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1642647600000&endTime=1642906800000&limit=500
+        # start = str(int(datetime(2022,1,20).timestamp()*1000))
+        # end = str(int(datetime(2022, 1, 23).timestamp()*1000))
+        # print("start:", start, "end:", end)
+        # par = {'symbol': symbol, 'interval': interval, 'startTime': start, 'endTime': end, 'limit': 500}
+        # response_data = requests.get(url)
+        # print("response_data:", response_data.json())
+        # data_symbol = pd.DataFrame(json.loads(response_data.text))
+        # start_str=str((pd.to_datetime('today')-pd.Timedelta(str(past_days)+' days')).date())
+        # if not PAIR_WITH in symbol: symbol = symbol + PAIR_WITH
+        # print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}get_historical_data(): {symbol} - Downloading')        
+        # klines = client.get_historical_klines(symbol=symbol, start_str=start, end_str=end, interval=interval)
+        # klines = client.get_historical_klines(symbol, choice['1m'], "10 day ago UTC")
+        # data_symbol = pd.DataFrame(data_symbol, columns=['Date', 'Open','High', 'Low', 'Close', 'Volume', 'Close_time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume','Ignore'])
+        # data_symbol.index = [datetime.fromtimestamp(x / 1000.0) for x in data_symbol.Close_time]
+        # data_symbol = data_symbol.drop(data_symbol.columns[[5, 6, 7, 8, 9, 10, 11]], axis=1)
+        # data_symbol.set_index('Date', inplace=True, drop=True)
+        # print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}get_historical_data(): {symbol} - OK')
+    # except Exception as e:
+        # write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Exception in function get_historical_data(): {e}{txcolors.DEFAULT}')
+        # write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        # print(symbol)
+        # pass
+    # return data_symbol
 
-    initial_price = {}    
-    prices = client.get_all_tickers()
-    
-    renew_list()
+# def get_historical_price():
+    # try:
+        # choice = {
+            # '1m' : Client.KLINE_INTERVAL_1MINUTE,
+            # '3m' : Client.KLINE_INTERVAL_3MINUTE,
+            # '5m' : Client.KLINE_INTERVAL_5MINUTE,
+            # '15m' : Client.KLINE_INTERVAL_15MINUTE,
+            # '30m' : Client.KLINE_INTERVAL_30MINUTE,
+            # '1h' : Client.KLINE_INTERVAL_1HOUR,
+            # '2h' : Client.KLINE_INTERVAL_2HOUR,
+            # '4h' : Client.KLINE_INTERVAL_4HOUR,
+            # '6h' : Client.KLINE_INTERVAL_6HOUR,
+            # '8h' : Client.KLINE_INTERVAL_8HOUR,
+            # '12h' : Client.KLINE_INTERVAL_12HOUR,
+            # '1d' : Client.KLINE_INTERVAL_1DAY,
+            # '3d' : Client.KLINE_INTERVAL_3DAY,
+            # '1w' : Client.KLINE_INTERVAL_1WEEK,
+            # '1m' : Client.KLINE_INTERVAL_1MONTH,
+            # }
+        # data = {}
+        # temp_data = {}
+        # today = "volatile_volume_" + str(date.today()) + ".txt"
+        
+        # if USE_MOST_VOLUME_COINS:
+            # coins=[line.strip() for line in open(today)]
+        # else:
+            # coins=[line.strip() for line in open(TICKERS_LIST)]
+        
+        # for coin in coins:
+            # print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}get_historical_price: {coin}')
+            # if not coin == "":
+                # if not os.path.exists(coin + PAIR_WITH + ".csv"):
+                    # temp_data = get_historical_data(coin + PAIR_WITH, choice['1m'])
+                    # if not temp_data.shape[0] == 0:
+                    # temp_data.to_csv(coin + PAIR_WITH + ".csv")
+                    # temp_data = {}
+                    # print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}get_historical_price: {coin} - OK')
+                    # time.sleep(10)
+                # else:
+                    # print("Working...")    
+                
+            # data = pd.concat(data, temp_data)
+    # except Exception as e:
+        # write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_price: Exception in function get_historical_price(): {e}{txcolors.DEFAULT}')
+        # write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        # print(coin)
+        # pass
+    # return data
+
+def get_price(add_to_historical=True):
     try:
+        '''Return the current price for all coins on binance'''
+        global historical_prices, hsp_head
+        
+        data = {}
+        initial_price = {}    
+        prices = client.get_all_tickers()
+        renew_list()
+        #print("get_price")
+        #data = get_historical_price()
+
         for coin in prices:
             if CUSTOM_LIST and USE_MOST_VOLUME_COINS == False:
                 # intickers = False
@@ -212,7 +296,7 @@ def get_price(add_to_historical=True):
 
             historical_prices[hsp_head] = initial_price
     except Exception as e:
-        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_price: Exception in function(): {e}{txcolors.DEFAULT}')
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}get_price: Exception in function get_price(): {e}{txcolors.DEFAULT}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         pass
     #except KeyboardInterrupt as ki:
@@ -1057,7 +1141,8 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
 
             # define stop loss and take profit
             TP = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['take_profit']) / 100))
-            SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
+            #SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
+            SL = float(coins_bought[coin]['bought_at']) - ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
             
             # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
             
@@ -2086,6 +2171,8 @@ if __name__ == '__main__':
     
     renew_list(True)
 
+    #null = get_historical_price()
+    
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
 
