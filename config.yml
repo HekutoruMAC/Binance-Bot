@@ -83,7 +83,7 @@ trading_options:
 
   # Let a signalling module control sell of coin
   # NOTE - If USE_TRAILING_STOP_LOSS: True then this needs to be False
-  SELL_ON_SIGNAL_ONLY: False
+  SELL_ON_SIGNAL_ONLY: True
 
   # Trading fee in % per trade.
   # If using 0.075% (using BNB for fees) you must have BNB in your account to cover trading fees.
