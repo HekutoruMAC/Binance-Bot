@@ -1,6 +1,6 @@
 """
 Horacio Oscar Fanelli - Pantersxx3
-Version: 6.10
+Version: 6.10.1
 
 Disclaimer
 
@@ -32,6 +32,7 @@ from os import system, name
 
 # used for math functions
 import math
+from random import *
 
 # used to create threads & dynamic loading of modules
 import threading
@@ -71,6 +72,20 @@ from prettytable import PrettyTable, from_html_one
 
 #for regex
 import re
+
+#module external
+global CREATE_BUY_SELL_FILES
+CREATE_BUY_SELL_FILES = True
+
+#import external module
+try:
+    import megatronmod
+except ImportError or ModuleNotFoundError:
+    CREATE_BUY_SELL_FILES = False
+    pass
+    
+#for read or write files csv
+import csv
 
 # Load helper modules
 from helpers.parameters import (
@@ -599,18 +614,18 @@ def balance_report(last_price):
         if SCREEN_MODE == 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
+        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {txcolors.SELL_LOSS}{str(len(coins_bought)).zfill(4)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{"{0:<5}".format(int(INVESTMENT_TOTAL))} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT}')
+        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT} | {txcolors.DEFAULT}WIN/LOSS: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {txcolors.SELL_LOSS}{"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
         #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WINS/LOSSSES: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}')
+        #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}WIN/LOSS: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}PENDING : {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,3)).center(8)}% Est:${str(round(unrealised_session_profit_incfees_total,3)).center(8)} {PAIR_WITH.center(6)}{txcolors.DEFAULT}{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}PENDING: {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,2))}% EST $:{str(round(unrealised_session_profit_incfees_total,2))} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT}')
+        #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}PENDING: {txcolors.SELL_PROFIT if unrealised_session_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{str(round(unrealised_session_profit_incfees_perc,2))}% EST $:{str(round(unrealised_session_profit_incfees_total,2))} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+')
@@ -629,7 +644,7 @@ def balance_report(last_price):
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL, 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".4f"))} {txcolors.DEFAULT}{PAIR_WITH} | {txcolors.DEFAULT}LOSS: {txcolors.BOT_LOSSES}{str(format(float(session_USDT_LOSS), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | {txcolors.DEFAULT}WON: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_WON), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | PROFIT %: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}')
+        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".4f"))} {txcolors.DEFAULT}{PAIR_WITH} | {txcolors.DEFAULT}LOSS: {txcolors.BOT_LOSSES}{str(format(float(session_USDT_LOSS), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | {txcolors.DEFAULT}WON: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_WON), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | PROFIT %: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
@@ -1014,6 +1029,26 @@ def buy_external_signals():
 
     return external_list
 
+def random_without_repeating():
+    if TEST_MODE:
+        file_prefix = 'test_'
+    else:
+        file_prefix = 'live_'
+    if CREATE_BUY_SELL_FILES:
+        if megatronmod.CREATE_BUY_SELL_FILES:
+            if os.path.exists(file_prefix+'megatronmod.buy'):
+                with open(file_prefix+'megatronmod.buy', newline='') as csvfile1:
+                    list1 = list(csv.reader(csvfile1, delimiter=',')) 
+                    RandOrderId = int(list1[-1][1].replace("OrderID:", "")) + 1
+            else:
+                RandOrderId = 1000
+        else:
+            RandOrderId = randint(1000, 9999)
+    else:
+        RandOrderId = randint(1000, 9999)
+        
+    return RandOrderId
+
 def buy():
     try:
         '''Place Buy market orders for each volatile coin found'''
@@ -1025,17 +1060,20 @@ def buy():
                 #litle modification of Sparky
                 #volume[coin] = math.floor(volume[coin]*100000)/100000
                 if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
-
+                coins = {}
+                coins[coin] = coin + PAIR_WITH
                 #msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
                 #msg_discord(msg1)
-                
                 if TEST_MODE:
+                    RandOrderId = random_without_repeating()
                     orders[coin] = [{
                         'symbol': coin,
-                        'orderId': 0,
+                        'orderId': RandOrderId, #0,
                         'time': datetime.now().timestamp()
                     }]
-
+                    if CREATE_BUY_SELL_FILES:
+                        if megatronmod.CREATE_BUY_SELL_FILES:
+                            megatronmod.analyze(coins, RandOrderId)
                     # Log trade
                     #if LOG_TRADES:
                     BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
@@ -1078,6 +1116,7 @@ def buy():
                         print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order returned, saving order to file')
                         if not TEST_MODE:
                             orders[coin] = extract_order_data(order_details)
+                            #megatronmod.analyze(coins, orders[coin]['orderId'])
                             #write_log(json.dumps(orders[coin]))
                             #adding the price in USDT
                             BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
@@ -1108,7 +1147,6 @@ def buy():
                             write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), str(round(float(volumeBuy),8)), str(round(float(last_price[coin]['price']),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, "0", "0", "-", "0"])
                         
                         write_signallsell(coin)
-
             else:
                 print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Signal detected, but there is already an active trade on {coin}{txcolors.DEFAULT}')
     except Exception as e:
@@ -1158,8 +1196,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
 
             # define stop loss and take profit
             TP = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * coins_bought[coin]['take_profit']) / 100)
-            #SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * (coins_bought[coin]['stop_loss']) / 100))
-            SL = float(coins_bought[coin]['bought_at']) - ((float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100)
+            SL = float(coins_bought[coin]['bought_at']) + ((float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100)
             
             # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
             
@@ -1266,10 +1303,14 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
 
                         # update this from the actual Binance sale information
                         #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
-                        PriceChangeIncFees_Unit = float((LastPrice-sellFee) - (BuyPrice+buyFee))
+                        PriceChangeIncFees_Unit = float((LastPrice - sellFee) - (BuyPrice + buyFee))
                     else:
                         coins_sold[coin] = coins_bought[coin]
-
+                        coins = {}
+                        coins[coin] = coin + PAIR_WITH
+                        if CREATE_BUY_SELL_FILES:
+                            if megatronmod.CREATE_BUY_SELL_FILES:
+                                megatronmod.analyze(coins, coins_bought[coin]['orderid'], False)
                     # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                     volatility_cooloff[coin] = datetime.now()
                     
@@ -1285,8 +1326,8 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
                     profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
                     #write_log_trades(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
-                    SellUSDT = coins_sold[coin]['volume'] * LastPrice
-                    USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
+                    SellUSDT = coins_sold[coin]['volume'] * (LastPrice - sellFee)
+                    USDTdiff = SellUSDT - ((BuyPrice + buyFee) * coins_sold[coin]['volume'])
                     session_USDT_EARNED = session_USDT_EARNED + USDTdiff
                     if USDTdiff < 0:
                         session_USDT_LOSS = session_USDT_LOSS + USDTdiff
@@ -1603,18 +1644,19 @@ def load_signal_threads():
         if SIGNALLING_MODULES is not None: 
             if len(SIGNALLING_MODULES) > 0:
                 for module in SIGNALLING_MODULES:
-                    print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Starting {module}{txcolors.DEFAULT}')
-                    mymodule[module] = importlib.import_module(module)
-                    # t = threading.Thread(target=mymodule[module].do_work, args=())
-                    t = multiprocessing.Process(target=mymodule[module].do_work, args=())
-                    t.name = module
-                    t.daemon = True
-                    t.start()
-
-                    # add process to a list. This is so the thread can be terminated at a later time
-                    signalthreads.append(t)
-
-                    time.sleep(2)
+                    if os.path.exists(module+'.py'):
+                        print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Starting {module}{txcolors.DEFAULT}')
+                        mymodule[module] = importlib.import_module(module)
+                        # t = threading.Thread(target=mymodule[module].do_work, args=())
+                        t = multiprocessing.Process(target=mymodule[module].do_work, args=())
+                        t.name = module
+                        t.daemon = True
+                        t.start()
+                        # add process to a list. This is so the thread can be terminated at a later time
+                        signalthreads.append(t)
+                        time.sleep(2)
+                    else:
+                        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Module {module} does not exist... continuing to load other modules{txcolors.DEFAULT}')
             else:
                 write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}{"load_signal_threads"}: No modules to load {SIGNALLING_MODULES}{txcolors.DEFAULT}')
     except Exception as e:
