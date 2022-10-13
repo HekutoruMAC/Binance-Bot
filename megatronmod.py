@@ -5,6 +5,9 @@
 #
 # No future support offered, use this script at own risk - test before using real funds
 # If you lose money using this MOD (and you will at some point) you've only got yourself to blame!
+#This module is actually a collection of all the modules created so far, more than an economic purpose, its purpose is to collect more detailed 
+#information to create new modules.
+#Maybe later you can create modules based on artificial intelligence.
 
 from tradingview_ta import TA_Handler, Interval, Exchange
 from binance.client import Client, BinanceAPIException
