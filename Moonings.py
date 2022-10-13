@@ -23,7 +23,7 @@ Notes:
 
 # use for environment variables
 import os
-
+import shutil
 # use if needed to pass args to external modules
 import sys
 
@@ -517,6 +517,8 @@ def print_table_coins_bought():
                 my_table.border = True
                 my_table.align = "c"
                 my_table.valign = "m"
+                my_table.left_padding_width = 1
+                my_table. right_padding_width = 1
                 my_table.field_names = ["Symbol", "Volume", "Bought At", "Now At", "TP %", "SL %", "Change %", "Profit $", "Time Held"]
                 last_price = get_price(False)
                 for coin in list(coins_bought):
@@ -610,13 +612,25 @@ def balance_report(last_price):
         strplus = "+"
         print_banner()
         if STATIC_MAIN_INFO == True: clear()
+        my_table = PrettyTable()
+        my_table.format = True
+        my_table.border = True
+        my_table.align = "c"
+        my_table.valign = "m"
+        my_table.header = False
+        my_table.padding_width = 17
+        my_table.field_names = ["General Information"]
+        my_table.add_row([f'{txcolors.DEFAULT}STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}'])        
+        my_table.add_row([f'{txcolors.DEFAULT}CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT} | {txcolors.DEFAULT}WIN/LOSS: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}'])
+        my_table.add_row([f'{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".4f"))} {txcolors.DEFAULT}{PAIR_WITH} | {txcolors.DEFAULT}LOSS: {txcolors.BOT_LOSSES}{str(format(float(session_USDT_LOSS), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | {txcolors.DEFAULT}WON: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_WON), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | PROFIT %: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}'])
+        print(my_table)
         #if SCREEN_MODE < 2: print(f'')
-        if SCREEN_MODE == 2: print(f'')
+        ##if SCREEN_MODE == 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}STARTED         : {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]} {txcolors.BORDER}{"+".rjust(15)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
+        ##if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  STARTED: {txcolors.SELL_LOSS}{str(bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | RUNNING FOR: {txcolors.SELL_LOSS}{str(datetime.now() - bot_started_datetime).split(".")[0]}{txcolors.DEFAULT} | BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}CURRENT HOLDS   : {txcolors.SELL_LOSS}{str(len(coins_bought)).zfill(4)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS).zfill(4)} {"{0:>5}".format(int(CURRENT_EXPOSURE))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{"{0:<5}".format(int(INVESTMENT_TOTAL))} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.BORDER}{"+".rjust(32)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT} | {txcolors.DEFAULT}WIN/LOSS: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}')
+        ##if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  CURRENT HOLDS: {txcolors.SELL_LOSS}{str(len(coins_bought))}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{str(TRADE_SLOTS)} {int(CURRENT_EXPOSURE)}{txcolors.DEFAULT}/{txcolors.SELL_LOSS}{int(INVESTMENT_TOTAL)} {txcolors.DEFAULT}{PAIR_WITH}{txcolors.DEFAULT} | {txcolors.DEFAULT}WIN/LOSS: {txcolors.BOT_WINS}{str(trade_wins)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses)}{txcolors.DEFAULT} | WIN %: {txcolors.SELL_PROFIT if WIN_LOSS_PERCENT > 0. else txcolors.BOT_LOSSES}{float(WIN_LOSS_PERCENT):g}%{txcolors.DEFAULT} | TOTAL TRADES: {txcolors.SELL_LOSS}{trade_wins+trade_losses}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BUYING PAUSE    : {txcolors.SELL_LOSS}{"{0:<5}".format(str(bot_paused))}{txcolors.BORDER}{"+".rjust(53)}{txcolors.DEFAULT}')
         #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BUYING PAUSE: {txcolors.SELL_LOSS}{str(bot_paused)}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}WINS / LOSSSES  : {txcolors.BOT_WINS}{str(trade_wins).zfill(5).ljust(5)}{txcolors.DEFAULT}/{txcolors.BOT_LOSSES}{str(trade_losses).zfill(5).ljust(5)} {txcolors.DEFAULT}Win%: {txcolors.SELL_LOSS}{str(int(float(WIN_LOSS_PERCENT))).zfill(3)}%{txcolors.BORDER}{"+".rjust(36)}{txcolors.DEFAULT}')
@@ -644,14 +658,14 @@ def balance_report(last_price):
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{"{0:>5}".format(str(format(float(session_USDT_EARNED), ".14f")))} {txcolors.DEFAULT}{PAIR_WITH.center(6)} |  {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL, 3)}%{txcolors.BORDER}{"+".rjust(33)}{txcolors.DEFAULT}')
-        if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".4f"))} {txcolors.DEFAULT}{PAIR_WITH} | {txcolors.DEFAULT}LOSS: {txcolors.BOT_LOSSES}{str(format(float(session_USDT_LOSS), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | {txcolors.DEFAULT}WON: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_WON), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | PROFIT %: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}')
+        ##if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}\t  TOTAL: {txcolors.SELL_PROFIT if session_USDT_EARNED > 0. else txcolors.BOT_LOSSES}{str(format(float(session_USDT_EARNED), ".4f"))} {txcolors.DEFAULT}{PAIR_WITH} | {txcolors.DEFAULT}LOSS: {txcolors.BOT_LOSSES}{str(format(float(session_USDT_LOSS), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | {txcolors.DEFAULT}WON: {txcolors.SELL_PROFIT}{str(format(float(session_USDT_WON), ".4f"))}{txcolors.DEFAULT} {PAIR_WITH} | PROFIT %: {txcolors.SELL_PROFIT if (session_USDT_EARNED * 100)/INVESTMENT_TOTAL > 0. else txcolors.BOT_LOSSES}{round((session_USDT_EARNED * 100)/INVESTMENT_TOTAL,3)}%{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+{txcolors.DEFAULT}BOT PROFIT  : {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est: ${historic_profit_incfees_total:.4f} {PAIR_WITH.center(6)}{txcolors.BORDER}{"+".rjust(35)}{txcolors.DEFAULT}')
         #if SCREEN_MODE == 2: print(f'{txcolors.DEFAULT}BOT PROFIT: {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est: ${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
         #if SCREEN_MODE < 2: print(f'{txcolors.BORDER}+---------------------------------------------------------------------------+{txcolors.DEFAULT}')
-        print(f'')
+        #print(f'')
         print_table_coins_bought()
         #improving reporting messages
         msg1 = str(datetime.now()) + "\n"
@@ -758,6 +772,34 @@ def write_log(logline):
         print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}write_log(): Exception in function: {e}{txcolors.DEFAULT}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         exit(1)
+
+def read_log_trades(OrderID):
+    try:
+        ret = ""
+        #timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+        if TEST_MODE:
+            file_prefix = 'test_'
+        else:
+            file_prefix = 'live_'
+            
+        if os.path.exists(file_prefix + TRADES_LOG_FILE):
+            LOGTABLE = PrettyTable([])
+            with open(file_prefix + TRADES_LOG_FILE, "r") as fp: 
+                html = fp.read()
+            LOGTABLE = from_html_one(html)
+            for row in LOGTABLE:
+                row.border = False
+                row.header = False
+                r = row.get_string(fields=["OrderID", "Type", "Amount of Buy"]).strip()
+                if str(OrderID) in r and "Buy" in r:
+                    ret = r.replace(OrderID, "").replace("Buy", "")
+                    break
+            #table_txt = LOGTABLE.get_html_string()
+    except Exception as e:
+        write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}read_log_trades(): Exception in function: {e}{txcolors.DEFAULT}')
+        write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        pass
+    return ret
     
 def write_log_trades(logline):
     try:
@@ -784,7 +826,7 @@ def write_log_trades(logline):
             table_txt = LOGTABLE.get_html_string()
         else:
             LOGTABLE = PrettyTable([])
-            LOGTABLE = PrettyTable(["Datetime", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"])
+            LOGTABLE = PrettyTable(["Datetime", "OrderID", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"])
             LOGTABLE.format = True
             LOGTABLE.border = True
             LOGTABLE.align = "c"
@@ -799,6 +841,7 @@ def write_log_trades(logline):
             #improving the presentation of the log file
                 #f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
         if not table_txt == "":
+            #print("logline[1]", logline[1])
             with open(file_prefix + TRADES_LOG_FILE,'w') as f:
             #f.write(timestamp + ' ' + logline + '\n')
                 f.write(table_txt)
@@ -900,7 +943,6 @@ def pause_bot():
             # resume the bot and ser pause_bot to False
             if bot_paused == True:
                 if not SCREEN_MODE == 2: print(f'{txcolors.WARNING}BOT: {txcolors.WARNING}Resuming buying due to positive market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
-                
                 msg = str(datetime.now()) + ' | PAUSEBOT. Resuming buying due to positive market conditions, total sleep time: ' + str(time_elapsed)
                 msg_discord(msg)
                 bot_paused = False
@@ -1081,8 +1123,8 @@ def buy():
                     last_price_buy = str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
                     BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
                     coin = '{0:<9}'.format(coin)
-                    #["Datetime",                                           "Type", "Coin", "Volume",               "Buy Price",                                     "Amount of Buy",                       "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
-                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(last_price_buy),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])                
+                    #["Datetime",                                                               "Type", "Coin", "Volume",               "Buy Price",                                     "Amount of Buy",                       "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"] "USDTdiff"])
+                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), RandOrderId, "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(last_price_buy),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])                
                     write_signallsell(coin.removesuffix(PAIR_WITH))
 
                     continue
@@ -1162,7 +1204,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
         '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
         global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL, USED_BNB_IN_SESSION, TRADE_TOTAL, sell_specific_coin, session_USDT_LOSS, session_USDT_WON, session_USDT_EARNED
         externals = sell_external_signals()
-     
+        OrderID = ""
         last_price = get_price(False) # don't populate rolling window
         #last_price = get_price(add_to_historical=True) # don't populate rolling window
         coins_sold = {}
@@ -1302,15 +1344,15 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                         priceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
                         # update this from the actual Binance sale information
-                        #PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
-                        PriceChangeIncFees_Unit = float((LastPrice - sellFee) - (BuyPrice + buyFee))
-                    else:
+                        PriceChangeIncFees_Unit = float((LastPrice+sellFee) - (BuyPrice+buyFee))
+                    else:     
                         coins_sold[coin] = coins_bought[coin]
                         coins = {}
                         coins[coin] = coin + PAIR_WITH
+                        OrderID = coins_bought[coin]['orderid']
                         if CREATE_BUY_SELL_FILES:
                             if megatronmod.CREATE_BUY_SELL_FILES:
-                                megatronmod.analyze(coins, coins_bought[coin]['orderid'], False)
+                                megatronmod.analyze(coins, OrderID, False)
                     # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                     volatility_cooloff[coin] = datetime.now()
                     
@@ -1323,11 +1365,17 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                         if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.DEFAULT}sell_coins() | Coin: {coin} | Sell Volume: {coins_bought[coin]['volume']} | Price:{LastPrice}")
                     
                     # Log trade
-                    #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))                
+                    #BB profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFeeTotal))  
                     profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
                     #write_log_trades(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
-                    SellUSDT = coins_sold[coin]['volume'] * (LastPrice - sellFee)
-                    USDTdiff = SellUSDT - ((BuyPrice + buyFee) * coins_sold[coin]['volume'])
+                    #SellUSDT = coins_sold[coin]['volume'] * (LastPrice - sellFee)
+                    if IGNORE_FEE:
+                        SellUSDT = coins_sold[coin]['volume'] * (LastPrice)
+                        USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
+                    else:
+                        SellUSDT = coins_sold[coin]['volume'] * (LastPrice - sellFee)
+                        USDTdiff = SellUSDT - ((BuyPrice + buyFee) * coins_sold[coin]['volume'])
+                            
                     session_USDT_EARNED = session_USDT_EARNED + USDTdiff
                     if USDTdiff < 0:
                         session_USDT_LOSS = session_USDT_LOSS + USDTdiff
@@ -1341,9 +1389,8 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     coin = '{0:<9}'.format(coin)
                     #BuyUSDT = (BuyPrice * coins_sold[coin]['volume']) 
                     #last_price[coin]['price']
-                             #["Datetime",                                  "Type", "Coin", "Volume",                  "Buy Price",           "Amount of Buy", "Sell Price",    "Amount of Sell",                            "Sell Reason", "Profit $"] "USDTdiff"])
-                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), "Sell", coin.replace(PAIR_WITH,""), str(round(float(VolumeSell),8)), str(round(float(BuyPrice),8)), 0, str(round(float(LastPrice),8)), str(round(float(SellUSDT),8)) + " " + PAIR_WITH, sell_reason, str(round(float(USDTdiff),8)) + " " + PAIR_WITH])
-                    
+                                    #["Datetime",                                              "OrderID",            "Type",          "Coin",                        "Volume",                  "Buy Price",      "Amount of Buy", "Sell Price",    "Amount of Sell",                            "Sell Reason",          "Profit $"] "USDTdiff"])
+                    write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), str(OrderID), "Sell", coin.replace(PAIR_WITH, ""), str(round(float(VolumeSell),8)), str(round(float(BuyPrice),8)), read_log_trades(str(OrderID)), str(round(float(LastPrice),8)), str(round(float(SellUSDT),8)) + " " + PAIR_WITH, sell_reason, str(round(float(USDTdiff),8)) + " " + PAIR_WITH])
                     #if reinvest_mode:
                     #    TRADE_TOTAL += (profit_incfees_total / TRADE_SLOTS)
                     
@@ -1363,8 +1410,8 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     #    buyFee = 0
                     
                     #if (LastPrice-sellFee) >= (BuyPrice+buyFee):
-                    #if USDTdiff > 0.:
-                    if (LastPrice) >= (BuyPrice):
+                    if USDTdiff > 0.:
+                    #if (LastPrice) >= (BuyPrice):
                         trade_wins += 1
                     else:
                         trade_losses += 1
@@ -1777,7 +1824,11 @@ def load_settings():
     DISABLE_TIMESTAMPS = parsed_config['trading_options']['DISABLE_TIMESTAMPS']
     #PRINT_TO_FILE = parsed_config['trading_options']['PRINT_TO_FILE']
     #ENABLE_PRINT_TO_FILE = parsed_config['trading_options']['ENABLE_PRINT_TO_FILE']
-    TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
+    IGNORE_FEE = parsed_config['trading_options']['IGNORE_FEE']
+    if IGNORE_FEE == False:
+        TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
+    else:
+        TRADING_FEE = 0    
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
 	
     SHOW_INITIAL_CONFIG = parsed_config['trading_options']['SHOW_INITIAL_CONFIG']
@@ -2012,6 +2063,9 @@ def new_or_continue():
                     if os.path.exists(file_prefix + HISTORY_LOG_FILE): os.remove(file_prefix + HISTORY_LOG_FILE)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
+                    if os.path.exists(file_prefix + "megatronmod.buy"): os.remove(file_prefix + "megatronmod.buy")
+                    if os.path.exists(file_prefix + "megatronmod.sell"): os.remove(file_prefix + "megatronmod.sell")
+                    if os.path.exists(file_prefix + "megatronmod.log"): os.remove(file_prefix + "megatronmod.log")
                     files = []
                     folder = "signals"
                     files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause", "/*.buy","/*.sell"]] for item in sublist]
@@ -2143,12 +2197,13 @@ def menu():
     
 def print_banner():
     __header__='''
-\033[92m ___ _                        __   __   _      _   _ _ _ _          _____            _ _             ___     _   
-\033[92m| _ (_)_ _  __ _ _ _  __ ___  \ \ / ___| |__ _| |_(_| (_| |_ _  _  |_   __ _ __ _ __| (_)_ _  __ _  | _ )___| |_ 
-\033[92m| _ | | ' \/ _` | ' \/ _/ -_)  \ V / _ | / _` |  _| | | |  _| || |   | || '_/ _` / _` | | ' \/ _` | | _ / _ |  _|
-\033[92m|___|_|_||_\__,_|_||_\__\___|   \_/\___|_\__,_|\__|_|_|_|\__|\_, |   |_||_| \__,_\__,_|_|_||_\__, | |___\___/\__|
-\033[92m In intensive collaboration with Ak535Ak                      |__/                            |___/ by Pantersxx3'''
-    print(__header__)
+\033[92m   ___ _                        __   __   _      _   _ _ _ _          _____            _ _             ___     _   
+\033[92m  | _ (_)_ _  __ _ _ _  __ ___  \ \ / ___| |__ _| |_(_| (_| |_ _  _  |_   __ _ __ _ __| (_)_ _  __ _  | _ )___| |_ 
+\033[92m  | _ | | ' \/ _` | ' \/ _/ -_)  \ V / _ | / _` |  _| | | |  _| || |   | || '_/ _` / _` | | ' \/ _` | | _ / _ |  _|
+\033[92m  |___|_|_||_\__,_|_||_\__\___|   \_/\___|_\__,_|\__|_|_|_|\__|\_, |   |_||_| \__,_\__,_|_|_||_\__, | |___\___/\__|
+\033[92m   In intensive collaboration with Ak535Ak                      |__/                            |___/ by Pantersxx3'''
+    print(f'{__header__}')
+    print(f'{txcolors.DEFAULT}')
     
 if __name__ == '__main__':
     req_version = (3,9)

@@ -393,11 +393,11 @@ def analyze(pairs, ext_data="", buy= True):
             list_variables = {}
             all_variables = dir()
             for name in all_variables:
-                if name.endswith("_1MIN") and not name.startswith("SMA") and not name.startswith("EMA"):
+                if name.endswith("_1MIN"): #and not name.startswith("SMA") and not name.startswith("EMA"):
                     myvalue = eval(name)
                     list_variables.update({name : myvalue})
-            list_variables_sort = {}
-            list_variables_sort = dict(sorted(list_variables.items(), key=operator.itemgetter(1), reverse=True))
+            #list_variables_sort = {}
+            #list_variables_sort = dict(sorted(list_variables.items(), key=operator.itemgetter(1), reverse=True))
             #print_dic(list_variables_sort)
             
             bought_at, timeHold, coins_bought = load_json(pair)            
@@ -415,7 +415,7 @@ def analyze(pairs, ext_data="", buy= True):
                 buySignal10 = str(RSI14_5MIN <= 40 and STOCH_K_5MIN <= 20 and STOCH_D_5MIN <= 20)
                 buySignal11 = str(CLOSE > SMA200_1MIN and CLOSE < SMA5_1MIN and RSI2_1MIN < 10)
                 buySignal12 = str((RSI2_1MIN < 30) and (STOCH_K_1MIN > STOCH_D_1MIN) and (STOCH_K_1MIN < 50 and STOCH_D_1MIN < 50))
-                buySignal13 = crossover(CCI20_1MIN,cci_min)
+                buySignal13 = str((CCI20_1MIN != cci_min) and (CCI20_1MIN < cci_min) and (cci_min > CCI20_1MIN))
                 
                 dataBuy = {'buySignal0': buySignal0, 'buySignal1': buySignal1, 'buySignal2': buySignal2, 'buySignal3': buySignal3, 'buySignal4': buySignal4, 'buySignal5': buySignal5, 'buySignal6': buySignal6, 'buySignal7': buySignal7, 'buySignal8': buySignal8, 'buySignal9': buySignal9, 'buySignal10': buySignal10, 'buySignal11': buySignal11, 'buySignal12': buySignal12, 'buySignal13': buySignal13}
                 for buyM in dataBuy:
@@ -427,7 +427,8 @@ def analyze(pairs, ext_data="", buy= True):
                         #write_log(json.dumps(buySignal, indent=4), SIGNAL_NAME + ".buy", False)
                         if ext_data != "" and buy == True:
                             #print("Guardando datos...")
-                            write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, True)},{print_dic(list_variables_sort, True)}', SIGNAL_NAME + ".buy", False)
+                            write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, True)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".buy", False)
+                            write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataBuy, True)}', SIGNAL_NAME + "_buy.signals", False)
                             break
                         else:
                             buySignal = {}
@@ -446,27 +447,27 @@ def analyze(pairs, ext_data="", buy= True):
                     TP = float(bought_at) + ((float(bought_at) * float(TAKE_PROFIT)) / 100)
                     
                     TP_sell = str(float(CLOSE) > float(TP) and float(TP) != 0 and float(CLOSE) > float(bought_at))
-                    SL_sell = str(float(CLOSE) < float(SL) and float(SL) != 0)                    
-                    sellSignal0 = str(RSI14_5MIN >= 70 and STOCH_K_5MIN >= 80 and STOCH_D_5MIN >= 80 and float(CLOSE) > float(bought_at))
-                    sellSignal1 = str(RSI10_1MIN > RSI_MAX_RSI10 and RSI5_1MIN > RSI_MAX_RSI5 and RSI15_1MIN > RSI_MAX_RSI15 and float(CLOSE) > float(bought_at))
-                    sellSignal2 = str(RSI2_1MIN > 80 and float(CLOSE) > float(bought_at))
-                    sellSignal3 = str((CLOSE < HMA90_1MIN and float(CLOSE) > float(bought_at)))  
-                    sellSignal4 = str(RSI10_1MIN >= RSI1_MAX and float(CLOSE) > float(bought_at))
+                    SL_sell = str(float(CLOSE) < float(SL) and float(SL) != 0 and float(CLOSE) < float(bought_at))                   
+                    sellSignal0 = str(float(RSI14_5MIN) >= 70 and STOCH_K_5MIN >= 80 and STOCH_D_5MIN >= 80 and float(CLOSE) > float(bought_at))
+                    sellSignal1 = str(float(RSI10_1MIN) > RSI_MAX_RSI10 and RSI5_1MIN > RSI_MAX_RSI5 and RSI15_1MIN > RSI_MAX_RSI15 and float(CLOSE) > float(bought_at))
+                    sellSignal2 = str(float(RSI2_1MIN) > 80 and float(CLOSE) > float(bought_at))
+                    sellSignal3 = str((float(CLOSE) < HMA90_1MIN and float(CLOSE) > float(bought_at)))  
+                    sellSignal4 = str(float(RSI10_1MIN) >= RSI1_MAX and float(CLOSE) > float(bought_at))
                     sellSignal5 = str(crossunder(RSI2_1MIN, RSI1_MAX) and float(CLOSE) > float(bought_at))
                     sellSignal6 = str(crossunder(STOCH_D_1MIN, STOCH_SELL) and float(CLOSE) > float(bought_at))
-                    sellSignal7 = str(RSI2_1MIN > 75 and float(CLOSE) > float(bought_at))
-                    sellSignal8 = str(CCI20_1MIN > 100 and float(CLOSE) > float(bought_at))
+                    sellSignal7 = str(float(RSI2_1MIN) > 75 and float(CLOSE) > float(bought_at))
+                    sellSignal8 = str(float(CCI20_1MIN) > 100 and float(CLOSE) > float(bought_at))
                     
-                    print("sellSignal2", sellSignal2)
-                    
-                    dataSell = {'TP': TP_sell, 'SL': SL_sell, 'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
+                    dataSell = {'TP': TP_sell,'SL': SL_sell,'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
+                    #dataSell = {'TP': TP_sell, 'SL': SL_sell, 'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
                     for sellM in dataSell:
                         if dataSell[sellM] == 'True' and float(bought_at) != 0:
                             #COIN1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
                             #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
                             sellSignal = {'sell_at': CLOSE , 'bought_at': bought_at , 'earned': round(CLOSE - bought_at, 4)} #,'BTC': CLOSEBTC1MIN}
                             if ext_data != "" and buy == False:
-                                write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, True)},{print_dic(list_variables_sort, True)}', SIGNAL_NAME + ".sell", False)
+                                write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, True)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".sell", False)
+                                write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataSell, True)}', SIGNAL_NAME + "_sell.signals", False)
                                 sellSignal = {}
                                 dataSell = {}
                             else:
@@ -475,8 +476,10 @@ def analyze(pairs, ext_data="", buy= True):
                                 break
                     #print(json.dumps(sellSignal, indent=4))                    
         except Exception as e:
-            print(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}')
-            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            write_log(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}', SIGNAL_NAME + ".log", False)
+            #print(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}')
+            #print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno), SIGNAL_NAME + ".log", False)
             pass
     return signal_coins
 
@@ -499,7 +502,11 @@ def do_work():
                 print(f'Signals {SIGNAL_NAME}: {len(signal_coins)} coins of {len(pairs)} with Buy Signals. Waiting for next analysis.{txcolors.DEFAULT}')
                 time.sleep(TIME_TO_WAIT*5)
         except Exception as e:
-            print(f'{SIGNAL_NAME}: {txcolors.Red}: Exception do_work(): {e}{txcolors.DEFAULT}')
+            write_log(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: do_work(): {e}', SIGNAL_NAME + ".log", False)
+            #print(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}')
+            #print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno), SIGNAL_NAME + ".log", False)
+            #print(f'{SIGNAL_NAME}: {txcolors.Red}: Exception do_work(): {e}{txcolors.DEFAULT}')
             pass
         except KeyboardInterrupt as ki:
             pass
