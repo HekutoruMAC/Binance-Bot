@@ -49,7 +49,7 @@ trading_options:
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP). default 6
-  RECHECK_INTERVAL: 15
+  RECHECK_INTERVAL: 20
 
   # the difference in % between the first and second checks for the price. default 0.25
   CHANGE_IN_PRICE: 100
@@ -92,7 +92,7 @@ trading_options:
   TRADING_FEE: 0.075 
   
   #if it is activated, the commission is ignored in WIN = (SELL_PRICE + FEE) >= (BUY_PRICE + FEE)
-  IGNORE_FEE: False
+  IGNORE_FEE: True
   
   # Discord integration
   # Used to push alerts, messages etc to a discord channel
@@ -132,7 +132,7 @@ trading_options:
   #Sweethackercasper's idea, thanks mate.
   UPDATE_MOST_VOLUME_COINS: 1440
   #It should not be touched here, used as record.
-  VOLATILE_VOLUME: volatile_volume_12-10-2022(10_53_16)
+  VOLATILE_VOLUME: volatile_volume_14-10-2022(08_57_06)
   #idea from my psychologist, thanks Sebastian V.
   #Two different currencies can be used as a range (within the market table in Binance ordered from highest to lowest)
   COINS_MAX_VOLUME: BTC #ETH  #5000000000

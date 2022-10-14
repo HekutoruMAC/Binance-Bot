@@ -841,7 +841,10 @@ def write_log_trades(logline):
             #improving the presentation of the log file
                 #f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
         if not table_txt == "":
-            #print("logline[1]", logline[1])
+            if len(logline) > 0:
+                A = ','.join([str(i) for i in logline])
+                with open(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv",'a') as g:
+                    g.write(A + '\n')
             with open(file_prefix + TRADES_LOG_FILE,'w') as f:
             #f.write(timestamp + ' ' + logline + '\n')
                 f.write(table_txt)
@@ -1369,6 +1372,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     profit_incfees_total = coins_sold[coin]['volume'] * PriceChangeIncFees_Unit
                     #write_log_trades(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit_incfees_total:.{decimals()}f} {PAIR_WITH} ({PriceChange_Perc:.2f}%)")
                     #SellUSDT = coins_sold[coin]['volume'] * (LastPrice - sellFee)
+                    
                     if IGNORE_FEE:
                         SellUSDT = coins_sold[coin]['volume'] * (LastPrice)
                         USDTdiff = SellUSDT - (BuyPrice * coins_sold[coin]['volume'])
@@ -1405,10 +1409,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                     
                     #if (LastPrice+sellFee) >= (BuyPrice+buyFee):
                     USED_BNB_IN_SESSION = USED_BNB_IN_SESSION + buyFeeTotal
-                    #if IGNORE_FEE:
-                    #    sellFee = 0
-                    #    buyFee = 0
-                    
+
                     #if (LastPrice-sellFee) >= (BuyPrice+buyFee):
                     if USDTdiff > 0.:
                     #if (LastPrice) >= (BuyPrice):
@@ -2060,11 +2061,14 @@ def new_or_continue():
                     if os.path.exists(file_prefix + BOT_STATS): os.remove(file_prefix + BOT_STATS)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + TRADES_LOG_FILE): os.remove(file_prefix + TRADES_LOG_FILE)
+                    if os.path.exists(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv"): os.remove(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv")
                     if os.path.exists(file_prefix + HISTORY_LOG_FILE): os.remove(file_prefix + HISTORY_LOG_FILE)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
                     if os.path.exists(file_prefix + "megatronmod.buy"): os.remove(file_prefix + "megatronmod.buy")
                     if os.path.exists(file_prefix + "megatronmod.sell"): os.remove(file_prefix + "megatronmod.sell")
+                    if os.path.exists(file_prefix + "megatronmod_buy.signals"): os.remove(file_prefix + "megatronmod_buy.signals")
+                    if os.path.exists(file_prefix + "megatronmod_sell.signals"): os.remove(file_prefix + "megatronmod_sell.signals")
                     if os.path.exists(file_prefix + "megatronmod.log"): os.remove(file_prefix + "megatronmod.log")
                     files = []
                     folder = "signals"
