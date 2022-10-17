@@ -129,7 +129,7 @@ def write_log(logline, LOGFILE = LOG_FILE, show = True):
             file_prefix = 'test_'
         else:
             file_prefix = 'live_'
-            
+        #print("LOGFILE", LOGFILE, "type", type(LOGFILE))    
         with open(file_prefix + LOGFILE,'a') as f:
             ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
             result = ansi_escape.sub('', logline)
@@ -428,7 +428,8 @@ def analyze(pairs, ext_data="", buy= True):
                         #write_log(json.dumps(buySignal, indent=4), SIGNAL_NAME + ".buy", False)
                         if ext_data != "" and buy == True:
                             #print("Guardando datos...")
-                            write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".buy", False)
+                            write_log(f'{ext_data},BUY,{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, False)},{print_dic(list_variables, False)}', SIGNAL_NAME + ".buy", False)
+                            #write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".buy", False)
                             write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataBuy, False)}', SIGNAL_NAME + "_buy.signals", False)
                             break
                         else:
@@ -457,24 +458,28 @@ def analyze(pairs, ext_data="", buy= True):
                     sellSignal6 = str(crossunder(STOCH_D_1MIN, STOCH_SELL) and float(CLOSE) > float(bought_at))
                     sellSignal7 = str(float(RSI2_1MIN) > 75 and float(CLOSE) > float(bought_at))
                     sellSignal8 = str(float(CCI20_1MIN) > 100 and float(CLOSE) > float(bought_at))
-                    
+
                     dataSell = {'TP': TP_sell,'SL': SL_sell,'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
                     #dataSell = {'TP': TP_sell,'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
                     #dataSell = {'TP': TP_sell, 'SL': SL_sell, 'sellSignal0': sellSignal0, 'sellSignal1': sellSignal1, 'sellSignal2': sellSignal2, 'sellSignal3': sellSignal3, 'sellSignal4': sellSignal4, 'sellSignal5': sellSignal5, 'sellSignal6': sellSignal6, 'sellSignal7': sellSignal8, 'sellSignal7': sellSignal8}
-                    for sellM in dataSell:
-                        if dataSell[sellM] == 'True' and float(bought_at) != 0:
-                            #COIN1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
-                            #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
-                            sellSignal = {'sell_at': CLOSE , 'bought_at': bought_at , 'earned': round(CLOSE - bought_at, 4)} #,'BTC': CLOSEBTC1MIN}
-                            if ext_data != "" and buy == False:
-                                write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".sell", False)
-                                write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataSell, False)}', SIGNAL_NAME + "_sell.signals", False)
-                                sellSignal = {}
-                                dataSell = {}
-                            else:
-                                with open(SIGNAL_FILE_SELL,'a+') as f:
-                                    f.write(pair + '\n')
-                                break
+
+                    if len(dataSell) > 0 or dataSell != {}:
+                        #print("2len(dataSell)", len(dataSell), "dataSell", dataSell)
+                        for sellM in dataSell:
+                            if dataSell.get(sellM) is not None:
+                                if str(dataSell[sellM]) == 'True' and float(bought_at) != 0:
+                                    #COIN1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
+                                    #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
+                                    sellSignal = {'sell_at': CLOSE , 'bought_at': bought_at , 'earned': round(CLOSE - bought_at, 4)} #,'BTC': CLOSEBTC1MIN}
+                                    if ext_data != "" and buy == False:
+                                        write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".sell", False)
+                                        write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataSell, False)}', SIGNAL_NAME + "_sell.signals", False)
+                                        sellSignal = {}
+                                        dataSell = {}
+                                    else:
+                                        with open(SIGNAL_FILE_SELL,'a+') as f:
+                                            f.write(pair + '\n')
+                                        break
                     #print(json.dumps(sellSignal, indent=4))                    
         except Exception as e:
             write_log(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}', SIGNAL_NAME + ".log", False)
