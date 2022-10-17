@@ -281,7 +281,7 @@ def print_dic(dic, with_key=False):
     except Exception as e:
         print(f'{SIGNAL_NAME}: {txcolors.Red} {"print_dic"}: Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-    return str1[:-1]
+    return str1
     
 def list_indicators():
     try:
