@@ -123,7 +123,7 @@ SIGNAL_FILE_BUY = 'signals/' + SIGNAL_NAME + '.buy'
 SIGNAL_FILE_SELL ='signals/' + SIGNAL_NAME + '.sell'
 JSON_FILE_BOUGHT = SIGNAL_NAME + '.json'
 
-def write_log(logline, LOGFILE = LOG_FILE, show = True):
+def write_log(logline, LOGFILE = LOG_FILE, show = True, time = False):
     try:
         if TEST_MODE:
             file_prefix = 'test_'
@@ -133,16 +133,13 @@ def write_log(logline, LOGFILE = LOG_FILE, show = True):
         with open(file_prefix + LOGFILE,'a') as f:
             ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
             result = ansi_escape.sub('', logline)
-            if show == False:
-                timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
-                f.write(timestamp + ',' + result + '\n')            
-                #timestamp = str(datetime.timestamp(datetime.now()))
-                #f.write("time:" + timestamp + ',' + result + '\n')
+            if show: print(f'{logline}')
+            if time:
+                timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S") + ','                    
             else:
-                timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
-                f.write(timestamp + ' ' + result + '\n')
-        if show:
-            print(f'{logline}')
+                timestamp = ""
+            f.write(timestamp + result + '\n')
+            
     except Exception as e:
         print(f'{"write_log"}: Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))

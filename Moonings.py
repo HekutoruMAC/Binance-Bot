@@ -1084,7 +1084,7 @@ def random_without_repeating():
             if os.path.exists(file_prefix+'megatronmod.buy'):
                 with open(file_prefix+'megatronmod.buy', newline='') as csvfile1:
                     list1 = list(csv.reader(csvfile1, delimiter=',')) 
-                    RandOrderId = int(list1[-1][1].replace("OrderID:", "")) + 1
+                    RandOrderId = int(list1[-1][0].replace("OrderID:", "")) + 1
             else:
                 RandOrderId = 1000
         else:
@@ -2058,12 +2058,12 @@ def new_or_continue():
                                 f.writelines(lines_tickers)
                             os.remove(TICKERS_LIST.replace(".txt",".backup"))     
                     if os.path.exists(file_prefix + COINS_BOUGHT): os.remove(file_prefix + COINS_BOUGHT)
+                    if os.path.exists(file_prefix + COINS_BOUGHT): os.remove(file_prefix + COINS_BOUGHT)
                     if os.path.exists(file_prefix + BOT_STATS): os.remove(file_prefix + BOT_STATS)
                     if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + TRADES_LOG_FILE): os.remove(file_prefix + TRADES_LOG_FILE)
                     if os.path.exists(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv"): os.remove(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv")
                     if os.path.exists(file_prefix + HISTORY_LOG_FILE): os.remove(file_prefix + HISTORY_LOG_FILE)
-                    if os.path.exists(EXTERNAL_COINS): os.remove(EXTERNAL_COINS)
                     if os.path.exists(file_prefix + LOG_FILE): os.remove(file_prefix + LOG_FILE)
                     if os.path.exists(file_prefix + "megatronmod.buy"): os.remove(file_prefix + "megatronmod.buy")
                     if os.path.exists(file_prefix + "megatronmod.sell"): os.remove(file_prefix + "megatronmod.sell")
