@@ -128,8 +128,7 @@ def write_log(logline, LOGFILE = LOG_FILE, show = True, time = False):
         if TEST_MODE:
             file_prefix = 'test_'
         else:
-            file_prefix = 'live_'
-        #print("LOGFILE", LOGFILE, "type", type(LOGFILE))    
+            file_prefix = 'live_'  
         with open(file_prefix + LOGFILE,'a') as f:
             ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
             result = ansi_escape.sub('', logline)
@@ -263,7 +262,7 @@ def isfloat(num):
     except ValueError:
         return False
         
-def print_dic(dic, with_key=False):
+def print_dic(dic, with_key=False, with_value=True):
     try:
         str1 = ""
         for key, value in dic.items():
@@ -273,11 +272,15 @@ def print_dic(dic, with_key=False):
                 else:
                     str1 = str1 + str(value) + ","
             else:
-                if isfloat(value):    
-                    str1 = str1 + str(key) + ":" + str(round(float(value),5)) + ","
+                if with_value:
+                    if isfloat(value):    
+                        str1 = str1 + str(key) + ":" + str(round(float(value),5)) + ","
+                    else:
+                        str1 = str1 + str(key) + ":" + str(value) + ","
                 else:
-                    str1 = str1 + str(key) + ":" + str(value) + ","
+                    str1 = str1 + str(key) + ","
         if with_key == False: str1 = str1[:-1].replace("[","").replace("]","")
+        if with_value == False: str1 = str1[:-1]
     except Exception as e:
         print(f'{SIGNAL_NAME}: {txcolors.Red} {"print_dic"}: Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -288,7 +291,7 @@ def list_indicators():
         list_variables = {}
         all_variables = dir()
         for name in all_variables:
-            if name.endswith("_1MIN") or name.endswith("_5MIN"):
+            if name.endswith("_1MIN") and not name.endswith("_5MIN"):
                 myvalue = round(float(eval(name)), 5)
                 #list_variables = {name : myvalue}
                 list_variables = {myvalue}
@@ -310,9 +313,11 @@ def analyze(pairs, ext_data="", buy= True):
     dataBuy = {}
     dataSell = {}
     sellSignal = {}
-
-    #if os.path.exists(SIGNAL_FILE_BUY ):
-        #os.remove(SIGNAL_FILE_BUY )
+    
+    if TEST_MODE:
+        file_prefix = 'test_'
+    else:
+        file_prefix = 'live_'
     
     for pair in pairs:
         handler15MIN[pair] = TA_Handler(
@@ -424,7 +429,10 @@ def analyze(pairs, ext_data="", buy= True):
                         signal_coins[pair] = pair
                         #write_log(json.dumps(buySignal, indent=4), SIGNAL_NAME + ".buy", False)
                         if ext_data != "" and buy == True:
-                            #print("Guardando datos...")
+                            if os.path.exists(file_prefix + SIGNAL_NAME + ".buy") == False:
+                                write_log(f'OrderID,Type,pair,{print_dic(buySignal, True, False)},{print_dic(list_variables, True, False)}', SIGNAL_NAME + ".buy", False)
+                            if os.path.exists(file_prefix + SIGNAL_NAME + "_buy.signals") == False:    
+                                write_log(f'OrderID,Type,pair,{print_dic(dataBuy, True, False)}', SIGNAL_NAME + "_buy.signals", False)
                             write_log(f'{ext_data},BUY,{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, False)},{print_dic(list_variables, False)}', SIGNAL_NAME + ".buy", False)
                             #write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(buySignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".buy", False)
                             #write_log(f'OrderID:{ext_data},type:BUY,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataBuy, False)}', SIGNAL_NAME + "_buy.signals", False)
@@ -470,6 +478,10 @@ def analyze(pairs, ext_data="", buy= True):
                                     #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
                                     sellSignal = {'sell_at': CLOSE , 'bought_at': bought_at , 'earned': round(CLOSE - bought_at, 4)} #,'BTC': CLOSEBTC1MIN}
                                     if ext_data != "" and buy == False:
+                                        if os.path.exists(file_prefix + SIGNAL_NAME + ".sell") == False:
+                                            write_log(f'OrderID,Type,pair,{print_dic(sellSignal, True, False)},{print_dic(list_variables, True, False)}', SIGNAL_NAME + ".sell", False)
+                                        if os.path.exists(file_prefix + SIGNAL_NAME + "_sell.signals") == False:    
+                                            write_log(f'OrderID,Type,pair,{print_dic(dataSell, True, False)}', SIGNAL_NAME + "_sell.signals", False)                                        
                                         write_log(f'{ext_data},SELL,{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, False)},{print_dic(list_variables, False)}', SIGNAL_NAME + ".sell", False)
                                         #write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(sellSignal, False)},{print_dic(list_variables, True)}', SIGNAL_NAME + ".sell", False)
                                         #write_log(f'OrderID:{ext_data},type:SELL,pair:{pair.replace(PAIR_WITH,"")},{print_dic(dataSell, False)}', SIGNAL_NAME + "_sell.signals", False)
