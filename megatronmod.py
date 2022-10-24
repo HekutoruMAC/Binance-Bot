@@ -282,7 +282,6 @@ def analyze(pairs, ext_data="", buy=True):
     analysis1MIN = {}
     handler1MIN = {}
     buyData = {}
-    buySignalData = {}
     dataBuy = {}
     dataSell = {}
     sellData = {}
