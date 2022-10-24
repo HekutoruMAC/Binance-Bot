@@ -1353,7 +1353,7 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                         coins_sold[coin] = coins_bought[coin]
                         coins = {}
                         coins[coin] = coin + PAIR_WITH
-                        print("coin + PAIR_WITH", coin) #+ PAIR_WITH)
+                        
                         OrderID = coins_bought[coin]['orderid']
                         if CREATE_BUY_SELL_FILES:
                             if megatronmod.CREATE_BUY_SELL_FILES:
