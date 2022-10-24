@@ -1085,7 +1085,6 @@ def random_without_repeating():
                 with open(file_prefix+'megatronmod.buy', newline='') as csvfile1:
                     list1 = list(csv.reader(csvfile1, delimiter=',')) 
                     RandOrderId = int(list1[-1][0].replace("OrderID:", "")) + 1
-                write_log(f'random_without_repeating {RandOrderId}')
             else:
                 RandOrderId = 1000
         else:
