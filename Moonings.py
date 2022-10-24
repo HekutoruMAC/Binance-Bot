@@ -1085,6 +1085,7 @@ def random_without_repeating():
                 with open(file_prefix+'megatronmod.buy', newline='') as csvfile1:
                     list1 = list(csv.reader(csvfile1, delimiter=',')) 
                     RandOrderId = int(list1[-1][0].replace("OrderID:", "")) + 1
+                write_log(f'random_without_repeating {RandOrderId}')
             else:
                 RandOrderId = 1000
         else:
@@ -1118,7 +1119,9 @@ def buy():
                     }]
                     if CREATE_BUY_SELL_FILES:
                         if megatronmod.CREATE_BUY_SELL_FILES:
-                            megatronmod.analyze(coins, RandOrderId)
+                            IsWrite = False
+                            while not IsWrite:
+                                signal_coins, IsWrite = megatronmod.analyze(coins, RandOrderId, True)
                     # Log trade
                     #if LOG_TRADES:
                     BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
@@ -1161,8 +1164,6 @@ def buy():
                         print(f'{txcolors.WARNING}BOT: {txcolors.DEFAULT}Order returned, saving order to file')
                         if not TEST_MODE:
                             orders[coin] = extract_order_data(order_details)
-                            #megatronmod.analyze(coins, orders[coin]['orderId'])
-                            #write_log(json.dumps(orders[coin]))
                             #adding the price in USDT
                             BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
                             volumeBuy = float(format(float(volume[coin]), '.6f'))
@@ -1352,10 +1353,13 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                         coins_sold[coin] = coins_bought[coin]
                         coins = {}
                         coins[coin] = coin + PAIR_WITH
+                        print("coin + PAIR_WITH", coin) #+ PAIR_WITH)
                         OrderID = coins_bought[coin]['orderid']
                         if CREATE_BUY_SELL_FILES:
                             if megatronmod.CREATE_BUY_SELL_FILES:
-                                megatronmod.analyze(coins, OrderID, False)
+                                IsWrite = False
+                                while not IsWrite:
+                                    signal_coins, IsWrite = megatronmod.analyze(coins, OrderID, False)   
                     # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                     volatility_cooloff[coin] = datetime.now()
                     
