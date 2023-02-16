@@ -8,7 +8,7 @@ To run our bot on android it is necessary to have the Termux application, for th
 https://f-droid.org/packages/com.termux/
 
 Here is the direct link to the latest version (09/22/2021)
-https://f-droid.org/repo/com.termux_117.apk
+https://f-droid.org/repo/com.termux_118.apk
 
 once downloaded we install it, it may be necessary to enable the option in android "Unknown sources" (this does not represent any risk for the cell phone)
 Open the installed app and start updating the repositories, and installing the necessary package:
