@@ -3,6 +3,12 @@ script_options:
   # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
   TEST_MODE: True
+  #In this mode, the price information of a cryptocurrency will be downloaded during a given period of time. 
+  #TEST_MODE is required to be true.
+  OFFLINE_MODE: True
+  OFFLINE_MODE_TIMEFRAME: "1m"
+  OFFLINE_MODE_TIME_START: "01/04/2023 00:00:00" #%d/%m/%Y %H:%M:%S
+  OFFLINE_MODE_TIME_END: "21/04/2023 00:00:00" #%d/%m/%Y %H:%M:%S
   LOG_TRADES: True
   #the MAIN_FILES_PATH will be the folder where the LOG_FILE, HISTORY_LOG_FILE, COIN_BOUGHT and BOT_STATS files will be stored. 
   #By default, if it is empty, these files will be housed in the main folder of the Bot. Not yet implemented
@@ -13,10 +19,13 @@ script_options:
   HISTORY_LOG_FILE: '' #'history.html'
   COINS_BOUGHT: 'coins_bought.json'
   BOT_STATS: 'bot_stats.json'
-  #This file will show the currencies contributed by the module or the compa modules for the bot
-  EXTERNAL_COINS: 'excoin.txt'
+  #This file will show the currencies contributed by the module or the compa modules for the bot. If empty are disable
+  #EXTERNAL_COINS: '' #'excoin.txt'
   DEBUG: True
-  
+  #The name of the function will be displayed when it is used in the bot process
+  ENABLE_FUNCTION_NAME: True
+  SHOW_FUNCTION_NAME: False
+  SAVE_FUNCTION_NAME: True
   #all binance requests from our bot will be proxied
   PROXY_HTTP: '' #'http://localhost:8090'
   PROXY_HTTPS: ''
@@ -31,14 +40,19 @@ trading_options:
  
   # select your base currency to use for trading (trade for example USDT pairs)
   PAIR_WITH: USDT
-
+  
+  #When activating this option, as long as the TRADE_SLOTS option is 1, 
+  #it will be bought with all the capital in the wallet.
+  #The method works but not completely, that is, it accumulates a little but not everything.
+  ACCUMULATIVE: True
+  
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  TRADE_TOTAL: 12.25
+  TRADE_TOTAL: 15
   
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
-  TRADE_SLOTS: 4
+  TRADE_SLOTS: 1
 
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
@@ -49,7 +63,7 @@ trading_options:
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP). default 6
-  RECHECK_INTERVAL: 20
+  RECHECK_INTERVAL: 6
 
   # the difference in % between the first and second checks for the price. default 0.25
   CHANGE_IN_PRICE: 100
@@ -58,7 +72,7 @@ trading_options:
   STOP_LOSS: 1
 
   # define in % when to take profit on a profitable coin. default 0.25
-  TAKE_PROFIT: 0.1
+  TAKE_PROFIT: 0.5
 
   # Use custom tickers.txt list for filtering pairs.
   # Name of custom tickers list
@@ -89,7 +103,7 @@ trading_options:
   # If using 0.075% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   
-  TRADING_FEE: 0.075 
+  TRADING_FEE: 0 #0.075 
   
   #if it is activated, the commission is ignored in WIN = (SELL_PRICE + FEE) >= (BUY_PRICE + FEE)
   IGNORE_FEE: True
@@ -127,7 +141,7 @@ trading_options:
   ALWAYS_CONTINUE: True
   
   #Enables the use of currencies with greater or lesser volume
-  USE_MOST_VOLUME_COINS: True
+  USE_MOST_VOLUME_COINS: False
   #the list is updated every n number of minutes. by default it is updated every 24 hours (1440 minutes). 
   #Sweethackercasper's idea, thanks mate.
   UPDATE_MOST_VOLUME_COINS: 1440
