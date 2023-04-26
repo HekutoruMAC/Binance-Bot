@@ -175,10 +175,25 @@ def show_func_name():
         if ENABLE_FUNCTION_NAME:
             fn = str(datetime.now()) + "_" + traceback.extract_stack(None, 2)[0][2]
             #print("SHOW_FUNCTION_NAME: ", SHOW_FUNCTION_NAME, type(SHOW_FUNCTION_NAME))
-            if SHOW_FUNCTION_NAME:                 
-                print(f'{txcolors.WARNING}BOT: {txcolors.RED}{fn}{txcolors.DEFAULT}')
+            if SHOW_FUNCTION_NAME:  
+                if SHOW_VARIABLES_AND_VALUE:
+                    all_variables = dir()
+                    for name in all_variables:                        
+                        #if not name.startswith('__'):
+                        myvalue = eval(name)
+                        print(f'{txcolors.WARNING}BOT: {txcolors.RED}{fn} = {name}: {myvalue}')
+                else:
+                    print(f'{txcolors.WARNING}BOT: {txcolors.RED}{fn} {varnames}{txcolors.DEFAULT}')
             if SAVE_FUNCTION_NAME:
-                write_log(fn, False)
+                if SAVE_VARIABLES_AND_VALUE:
+                    all_variables = dir()
+                    for name in all_variables:                        
+                        #if not name.startswith('__'):
+                        myvalue = eval(name)
+                        write_log(fn + "= " + name + ": " + myvalue, False)
+                        #write_log(fn + ": " + varnames, False)
+                else:
+                    write_log(fn, False)
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}func_name: Exception in function: {e}{txcolors.DEFAULT}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -206,10 +221,8 @@ def decimals():
 
 def get_balance_wallet(crypto):   
     try:
-        balance = 0.0
-        
+        balance = 0.0        
         if not TEST_MODE: #or not OFFLINE_MODE:
-            show_func_name()
             balance = float(client.get_asset_balance(asset=crypto)['free'])
             #print("Balance " + PAIR_WITH + ": ", balance)
             if balance < 10 and not TEST_MODE: #or not OFFLINE_MODE:
@@ -223,7 +236,6 @@ def get_balance_wallet(crypto):
 
 def download_data(coin):
     try:
-        show_func_name()
         end = time.mktime(datetime.strptime(OFFLINE_MODE_TIME_END, "%d/%m/%Y %H:%M:%S").timetuple()) #datetime.now()
         start = time.mktime(datetime.strptime(OFFLINE_MODE_TIME_START, "%d/%m/%Y %H:%M:%S").timetuple()) #pd.to_datetime(end - timedelta(days = 7))
         data = client.get_historical_klines(str(coin), OFFLINE_MODE_TIMEFRAME, int(start) * 1000, int(end) * 1000)#, limit=1000)
@@ -256,7 +268,6 @@ def download_data(coin):
 
 def read_position_csv(coin):
     try:
-        #show_func_name()
         pos1 = 0
         if os.path.exists(coin + '.position'):
             f = open(coin + '.position', 'r')
@@ -270,7 +281,6 @@ def read_position_csv(coin):
 
 def write_position_csv(coin, position):
     try:
-        #show_func_name()
         #if os.path.exists(coin + '.position'):
         f = open(coin + '.position', 'w')
         f.write(position)
@@ -282,7 +292,6 @@ def write_position_csv(coin, position):
         
 def read_next_row_csv(coin):
     try:
-        #show_func_name()
         pos = 0
         position_here = False
         position_read = False
@@ -309,7 +318,6 @@ def read_next_row_csv(coin):
                 
 def get_all_tickers():
     try:
-        show_func_name()
         pairs = {}
         TICKERS = ''
         if USE_MOST_VOLUME_COINS == True:
@@ -335,7 +343,6 @@ def get_all_tickers():
     
 def get_price(add_to_historical=True):
     try:
-        show_func_name()
         '''Return the current price for all coins on binance'''
         global historical_prices, hsp_head
         
@@ -403,7 +410,6 @@ def get_price(add_to_historical=True):
 #use function of the OlorinSledge
 def wait_for_price():
     try:
-        show_func_name()
         '''calls the initial price and ensures the correct amount of time has passed
         before reading the current price again'''
 
@@ -460,11 +466,11 @@ def wait_for_price():
 
                     if len(coins_bought) + len(volatile_coins) < TRADE_SLOTS or TRADE_SLOTS == 0:
                         volatile_coins[coin] = round(threshold_check, 3)
-                        if ACCUMULATIVE and TRADE_SLOTS == 1:
-                            if TEST_MODE: #or OFFLINE_MODE:
-                                TRADE_TOTAL = get_balance_test_mode(True)
-                            else:
-                                TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
+                        # if COMPOUND_INTEREST and TRADE_SLOTS == 1:
+                            # if TEST_MODE: #or OFFLINE_MODE:
+                                # TRADE_TOTAL = get_balance_test_mode(True)
+                            # else:
+                                # TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
                         print(f'{txcolors.WARNING}BOT:{txcolors.BUY} {coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, purchasing ${TRADE_TOTAL} {PAIR_WITH} of {coin}!{txcolors.DEFAULT}')
 
                     else:
@@ -507,7 +513,6 @@ def wait_for_price():
 
 def get_volume_list():
     try:
-        show_func_name()
         today = "volatile_volume_" + str(date.today()) + ".txt"
         global COINS_MAX_VOLUME, COINS_MIN_VOLUME, VOLATILE_VOLUME, tickers
         volatile_volume_empty = False
@@ -601,7 +606,6 @@ def get_volume_list():
 
 def print_table_coins_bought():
     try:
-        #show_func_name()
         if SHOW_TABLE_COINS_BOUGHT:
             if len(coins_bought) > 0:
                 my_table = PrettyTable()
@@ -664,7 +668,6 @@ def clear():
 
 def balance_report(last_price):
     try:
-        show_func_name()
         global TRADE_TOTAL, trade_wins, trade_losses, session_profit_incfees_perc, session_profit_incfees_total, last_price_global, session_USDT_EARNED, session_USDT_LOSS, session_USDT_WON, TUP, TDOWN, TNEUTRAL, session_USDT_LOSS
         global TRADE_TOTAL
         unrealised_session_profit_incfees_perc = 0
@@ -801,7 +804,6 @@ def balance_report(last_price):
 def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_profit_unreal, sess_profit_perc_total, sess_profit_total, alltime_profit_perc, alltime_profit, total_trades, won_trades, lost_trades, winloss_ratio):
     if HISTORY_LOG_FILE == '': return
     try:
-        show_func_name()
         global last_history_log_date    
         time_between_insertion = datetime.now() - last_history_log_date
         if TEST_MODE or OFFLINE_MODE:
@@ -853,7 +855,6 @@ def history_log(sess_profit_perc, sess_profit, sess_profit_perc_unreal, sess_pro
 
 def write_log(logline, show=True):
     try:
-        #show_func_name()
         timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
         if TEST_MODE: #or OFFLINE_MODE:
             file_prefix = 'test_'
@@ -873,7 +874,6 @@ def write_log(logline, show=True):
 
 def read_log_trades(OrderID):
     try:
-        #show_func_name()
         ret = ""
         #timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
         if TEST_MODE: #or OFFLINE_MODE:
@@ -902,49 +902,76 @@ def read_log_trades(OrderID):
     
 def write_log_trades(logline):
     try:
-        #show_func_name()
+        global session_USDT_EARNED
+        table_txt = ""
+        html = ""
         #timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
         if TEST_MODE: #or OFFLINE_MODE:
             file_prefix = 'test_'
         else:
             file_prefix = 'live_'
             
-        if os.path.exists(file_prefix + TRADES_LOG_FILE):
-            LOGTABLE = PrettyTable([])
-            with open(file_prefix + TRADES_LOG_FILE, "r") as fp: 
-                html = fp.read()
-            LOGTABLE = from_html_one(html)
-            LOGTABLE.format = True
-            LOGTABLE.border = True
-            LOGTABLE.align = "c"
-            LOGTABLE.valign = "m"
-            LOGTABLE.hrules = 1
-            LOGTABLE.vrules = 1
-            LOGTABLE.add_row(logline)
+        LOGTABLE = PrettyTable([])           
             #table_txt = LOGTABLE.get_string()
-            LOGTABLE.sortby = "Datetime"
-            table_txt = LOGTABLE.get_html_string()
-        else:
-            LOGTABLE = PrettyTable([])
+            #LOGTABLE.sortby = "Datetime"
+            #table_txt = LOGTABLE.get_html_string()
+        if os.path.exists(file_prefix + TRADES_LOG_FILE):            
+            with open(file_prefix + TRADES_LOG_FILE, "r") as fp: 
+                html = fp.read() 
+            
+            #print("LOGTABLE(exist): ", LOGTABLE)
+            
+        if COMPOUND_INTEREST:
+            LOGTABLE = PrettyTable(["Datetime", "OrderID", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $", "Total"])
+            if session_USDT_EARNED != 0:
+                logline.append(str(get_balance_test_mode(True)))
+                if html != "": LOGTABLE = from_html_one(html)
+                LOGTABLE.add_row(logline)
+                #print("LOGTABLE(COMPOUND_INTEREST !=0): ", LOGTABLE)
+            else:
+                if TEST_MODE:
+                    total = str(get_balance_test_mode(True))
+                else:
+                    total = str(get_balance_wallet())
+                logline.append(total)
+                if html != "": LOGTABLE = from_html_one(html)
+                LOGTABLE.add_row(logline)
+                #print("LOGTABLE(COMPOUND_INTEREST ==0): ", LOGTABLE)
+        else:    
             LOGTABLE = PrettyTable(["Datetime", "OrderID", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $"])
-            LOGTABLE.format = True
-            LOGTABLE.border = True
-            LOGTABLE.align = "c"
-            LOGTABLE.valign = "m"
-            LOGTABLE.hrules = 1
-            LOGTABLE.vrules = 1
+            if html != "": LOGTABLE = from_html_one(html)
             LOGTABLE.add_row(logline)
-            LOGTABLE.sortby = "Coin"
-            table_txt = LOGTABLE.get_html_string()
+            #print("LOGTABLE(not COMPOUND_INTEREST): ", LOGTABLE)
+       
+            
+            # if COMPOUND_INTEREST:
+                # #print("session_USDT_EARNED: ", type(session_USDT_EARNED), str(session_USDT_EARNED))
+                # if session_USDT_EARNED != 0:
+                    # logline.append(str(session_USDT_EARNED))
+                    # LOGTABLE.add_row(logline)
+                # else:
+                    # total = str(TRADE_TOTAL*TRADE_SLOTS)
+                    # logline.append(total)
+                    # LOGTABLE.add_row(logline)
+            # else:
+                # LOGTABLE.add_row(logline)
+        LOGTABLE.format = True
+        LOGTABLE.border = True
+        LOGTABLE.align = "c"
+        LOGTABLE.valign = "m"
+        LOGTABLE.hrules = 1
+        LOGTABLE.vrules = 1
+        LOGTABLE.sortby = "Coin"
+        table_txt = LOGTABLE.get_html_string()
             #table_txt = LOGTABLE.get_string()
             #with open(TRADES_LOG_FILE,'w') as f:
             #improving the presentation of the log file
                 #f.write('Datetime\t\tType\t\tCoin\t\t\tVolume\t\t\tBuy Price\t\tCurrency\t\t\tSell Price\tProfit $\t\tProfit %\tSell Reason\t\t\t\tEarned\n')    
         if not table_txt == "":
-            if len(logline) > 0:
-                A = ','.join([str(i) for i in logline])
-                with open(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv",'a') as g:
-                    g.write(A + '\n')
+            # if len(logline) > 0:
+                # A = ','.join([str(i) for i in logline])
+                # with open(file_prefix + TRADES_LOG_FILE.removesuffix(".html") + ".csv",'a') as g:
+                    # g.write(A + '\n')
             with open(file_prefix + TRADES_LOG_FILE,'w') as f:
             #f.write(timestamp + ' ' + logline + '\n')
                 f.write(table_txt)
@@ -955,7 +982,6 @@ def write_log_trades(logline):
         
 def get_balance_test_mode(update=False):
     try:
-        #show_func_name()
         value1 = 0.0
         value2 = 0.0
         if TEST_MODE: #or OFFLINE_MODE:
@@ -982,7 +1008,6 @@ def get_balance_test_mode(update=False):
 def msg_discord_balance(msg1, msg2):
     global last_msg_discord_balance_date, discord_msg_balance_data, last_msg_discord_balance_date
     time_between_insertion = datetime.now() - last_msg_discord_balance_date
-    #show_func_name()
     # only put the balance message to discord once every 60 seconds and if the balance information has changed since last times
     # message sending time was increased to 2 minutes for more convenience
     if time_between_insertion.seconds > 300:
@@ -1007,7 +1032,6 @@ def msg_discord(msg):
         # print(response.content)
 
 def panic_bot(invest, lost):
-    #show_func_name()
     if PANIC_STOP != 0:
         lost_percent = (lost*invest)/100
         print(f'invest= {invest} lost= {lost} lost_percent= {lost_percent}')
@@ -1018,7 +1042,6 @@ def panic_bot(invest, lost):
             exit(1)
 
 def chek_files_paused():
-    #show_func_name()
     files = []
     folder = "signals"
     files = [item for sublist in [glob.glob(folder + ext) for ext in ["/*.pause", "/*.exc"]] for item in sublist]
@@ -1033,7 +1056,6 @@ def chek_files_paused():
     
 def pause_bot():
     try:
-        show_func_name()
         '''Pause the script when external indicators detect a bearish trend in the market'''
         global bot_paused, session_profit_incfees_perc, hsp_head, session_profit_incfees_total, PAUSEBOT_MANUAL
         PAUSEBOT = False
@@ -1089,11 +1111,9 @@ def convert_volume():
     try:
         '''Converts the volume given in TRADE_TOTAL from "USDT"(or coin selected) to the each coin's volume'''
         volatile_coins, number_of_coins, last_price = wait_for_price()
-        global TRADE_TOTAL
+        global TRADE_TOTAL, session_USDT_EARNED
         lot_size = {}
         volume = {}
-    
-        show_func_name()
         for coin in volatile_coins:
 
             # Find the correct step size for each coin
@@ -1124,13 +1144,14 @@ def convert_volume():
                 #print("COIN: " + str(coin) + " TRADE_TOTAL: " + str(TRADE_TOTAL) + " last_price[coin]['price']: " + str(last_price[coin]['price']))
                 # calculate the volume in coin from TRADE_TOTAL in PAIR_WITH (default)
                 
-            if ACCUMULATIVE and TRADE_SLOTS == 1:
+            if COMPOUND_INTEREST and TRADE_SLOTS == 1:
                 if TEST_MODE: #or OFFLINE_MODE:
                     TRADE_TOTAL = get_balance_test_mode(True)
                 else:
                     TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
-                
+ 
             volume[coin] = float(TRADE_TOTAL / float(last_price[coin]['price']))
+            #print("volume[coin]: ", volume[coin], "TRADE_TOTAL: ", TRADE_TOTAL, "float(last_price[coin]['price']): ", float(last_price[coin]['price']))
 
                 # define the volume with the correct step size
             if coin not in lot_size:
@@ -1145,11 +1166,7 @@ def convert_volume():
                 else:
                         #volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
                     volume[coin] = truncate(volume[coin], lot_size[coin])
-            #except Exception as e:
-                #if not SCREEN_MODE == 2: print(f'convert_volume()2 exception: {e}{txcolors.DEFAULT}')
-                #pass
-            #except KeyboardInterrupt as ki:
-                #pass
+
     except Exception as e:
         write_log(f'{txcolors.WARNING}BOT: {txcolors.WARNING}convert_volume() exception: {e}{txcolors.DEFAULT}')
         write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -1250,12 +1267,11 @@ def buy():
     try:
         '''Place Buy market orders for each volatile coin found'''        
         volume, last_price = convert_volume()
-        show_func_name()
         orders = {}
         #global USED_BNB_IN_SESSION
         for coin in volume:
             if coin not in coins_bought and coin.replace(PAIR_WITH,'') not in EX_PAIRS:
-                if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
+                #if not SCREEN_MODE == 2: print(f"{txcolors.WARNING}BOT: {txcolors.BUY}Preparing to buy {volume[coin]} of {coin} @ ${last_price[coin]['price']}{txcolors.DEFAULT}")
                 coins = {}
                 coins[coin] = coin + PAIR_WITH
                 #msg1 = str(datetime.now()) + ' | BUY: ' + coin + '. V:' +  str(volume[coin]) + ' P$:' + str(last_price[coin]['price']) + ' ' + PAIR_WITH + ' invested:' + str(float(volume[coin])*float(last_price[coin]['price']))
@@ -1275,9 +1291,10 @@ def buy():
                     # Log trade
                     #if LOG_TRADES:
                     BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
-                    volumeBuy = format(volume[coin], '.6f')
-                    last_price_buy = str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
-                    BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
+                    volumeBuy = volume[coin] #format(volume[coin], '.6f')
+                    last_price_buy = last_price[coin]['price'] #str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
+                    print("BuyUSDT: ", BuyUSDT, "volumeBuy: ", volumeBuy, "last_price_buy: ", last_price_buy)
+                    #BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
                     coin = '{0:<9}'.format(coin)
                                                     #"Datetime", "OrderID", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $")
                     write_log_trades([datetime.now().strftime("%y-%m-%d %H:%M:%S"), RandOrderId, "Buy", coin.replace(PAIR_WITH,""), round(float(volumeBuy),8), str(round(float(last_price_buy),8)), str(round(float(BuyUSDT),8)) + " " + PAIR_WITH, 0, 0, "-", 0])                
@@ -1315,9 +1332,9 @@ def buy():
                         if not TEST_MODE: #or not OFFLINE_MODE:
                             orders[coin] = extract_order_data(order_details)
                             #adding the price in USDT
-                            BuyUSDT = str(format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
-                            volumeBuy = float(format(float(volume[coin]), '.6f'))
-                            last_price_buy = float(format(orders[coin]['avgPrice'], '.3f'))
+                            BuyUSDT = str(orders[coin]['volume'] * orders[coin]['avgPrice']) #format(orders[coin]['volume'] * orders[coin]['avgPrice'], '.14f')).zfill(4)
+                            volumeBuy = float(volume[coin]) #float(format(float(volume[coin]), '.6f'))
+                            last_price_buy = orders[coin]['avgPrice'] #float(format(orders[coin]['avgPrice'], '.3f'))
                             #write_log(f'last_price= {float(last_price[coin]["price"])}')
                             last_price[coin]["price"] = float(orders[coin]['avgPrice'])
                             #BuyUSDT = format(BuyUSDT, '.14f')
@@ -1331,9 +1348,9 @@ def buy():
                         else:
                             #adding the price in USDT
                             BuyUSDT = volume[coin] * last_price[coin]['price']
-                            volumeBuy = format(float(volume[coin]), '.6f')
-                            last_price_buy = format(float(last_price[coin]['price']), '.3f')
-                            BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
+                            volumeBuy = volume[coin] #format(float(volume[coin]), '.6f')
+                            last_price_buy = float(last_price[coin]['price']) #format(float(last_price[coin]['price']), '.3f')
+                            #BuyUSDT = str(format(BuyUSDT, '.14f')).zfill(4)
                             last_price[coin]["price"] = float(orders[coin]['avgPrice'])
                             #improving the presentation of the log file
                             coin = '{0:<9}'.format(coin)
@@ -1355,7 +1372,6 @@ def buy():
 
 def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
     try:
-        show_func_name()
         '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
         global hsp_head, session_profit_incfees_perc, session_profit_incfees_total, coin_order_id, trade_wins, trade_losses, historic_profit_incfees_perc, historic_profit_incfees_total, sell_all_coins, session_USDT_EARNED, TUP, TDOWN, TNEUTRAL, USED_BNB_IN_SESSION, TRADE_TOTAL, sell_specific_coin, session_USDT_LOSS, session_USDT_WON, session_USDT_EARNED
 
@@ -1365,11 +1381,11 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
         #last_price = get_price(add_to_historical=True) # don't populate rolling window
         coins_sold = {}
         
-        if ACCUMULATIVE and TRADE_SLOTS == 1:
-            if TEST_MODE: #or OFFLINE_MODE:
-                TRADE_TOTAL = get_balance_test_mode(True)
-            else:
-                TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
+        # if COMPOUND_INTEREST and TRADE_SLOTS == 1:
+            # if TEST_MODE: #or OFFLINE_MODE:
+                # TRADE_TOTAL = get_balance_test_mode(True)
+            # else:
+                # TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
             
         BUDGET = TRADE_TOTAL * TRADE_SLOTS
     
@@ -1578,11 +1594,11 @@ def sell_coins(tpsl_override = False, specific_coin_to_sell = ""):
                         trade_wins += 1
                     else:
                         trade_losses += 1
-                    if ACCUMULATIVE and TRADE_SLOTS == 1:
-                        if TEST_MODE: #or OFFLINE_MODE:
-                            TRADE_TOTAL = get_balance_test_mode()
-                        else:
-                            TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
+                    # if COMPOUND_INTEREST and TRADE_SLOTS == 1:
+                        # if TEST_MODE: #or OFFLINE_MODE:
+                            # TRADE_TOTAL = get_balance_test_mode()
+                        # else:
+                            # TRADE_TOTAL = get_balance_wallet(PAIR_WITH)
                     
                     update_bot_stats()
                     write_log(str(datetime.now()) + " SELL: " + coin, False)
@@ -1951,7 +1967,7 @@ def load_settings():
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    global DEBUG, ENABLE_FUNCTION_NAME, SHOW_FUNCTION_NAME, SAVE_FUNCTION_NAME, TEST_MODE, OFFLINE_MODE, OFFLINE_MODE_TIME_START, OFFLINE_MODE_TIME_END, OFFLINE_MODE_TIMEFRAME, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME, BUY_PAUSED, UPDATE_MOST_VOLUME_COINS, VOLATILE_VOLUME, ACCUMULATIVE
+    global DEBUG, ENABLE_FUNCTION_NAME, SHOW_FUNCTION_NAME, SAVE_FUNCTION_NAME, SHOW_VARIABLES_AND_VALUE, SAVE_VARIABLES_AND_VALUE, TEST_MODE, OFFLINE_MODE, OFFLINE_MODE_TIME_START, OFFLINE_MODE_TIME_END, OFFLINE_MODE_TIMEFRAME, LOG_TRADES, TRADES_LOG_FILE, DEBUG_SETTING, AMERICAN_USER, PAIR_WITH, QUANTITY, MAX_COINS, FIATS, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, STOP_LOSS, TAKE_PROFIT, CUSTOM_LIST, TICKERS_LIST, USE_TRAILING_STOP_LOSS, TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT, TRADING_FEE, SIGNALLING_MODULES, SCREEN_MODE, MSG_DISCORD, HISTORY_LOG_FILE, TRADE_SLOTS, TRADE_TOTAL, SESSION_TPSL_OVERRIDE, SELL_ON_SIGNAL_ONLY, TRADING_FEE, SIGNALLING_MODULES, SHOW_INITIAL_CONFIG, USE_MOST_VOLUME_COINS, COINS_MAX_VOLUME, COINS_MIN_VOLUME, DISABLE_TIMESTAMPS, STATIC_MAIN_INFO, COINS_BOUGHT, BOT_STATS, MAIN_FILES_PATH, PRINT_TO_FILE, ENABLE_PRINT_TO_FILE, EX_PAIRS, RESTART_MODULES, SHOW_TABLE_COINS_BOUGHT, ALWAYS_OVERWRITE, ALWAYS_CONTINUE, SORT_TABLE_BY, REVERSE_SORT, MAX_HOLDING_TIME, IGNORE_FEE, EXTERNAL_COINS, PROXY_HTTP, PROXY_HTTPS, SIGNALLING_MODULES, REINVEST_MODE, LOG_FILE, PANIC_STOP, ASK_ME, BUY_PAUSED, UPDATE_MOST_VOLUME_COINS, VOLATILE_VOLUME, COMPOUND_INTEREST
 
     # Default no debugging
     DEBUG = False
@@ -1975,12 +1991,14 @@ def load_settings():
     ENABLE_FUNCTION_NAME = parsed_config['script_options'].get('ENABLE_FUNCTION_NAME')
     SAVE_FUNCTION_NAME = parsed_config['script_options'].get('SAVE_FUNCTION_NAME')
     SHOW_FUNCTION_NAME = parsed_config['script_options'].get('SHOW_FUNCTION_NAME')
+    SHOW_VARIABLES_AND_VALUE = parsed_config['script_options'].get('SHOW_VARIABLES_AND_VALUE')
+    SAVE_VARIABLES_AND_VALUE = parsed_config['script_options'].get('SAVE_VARIABLES_AND_VALUE')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
     #EXTERNAL_COINS = parsed_config['script_options']['EXTERNAL_COINS']
 
     # Load trading vars
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
-    ACCUMULATIVE = parsed_config['trading_options']['ACCUMULATIVE']
+    COMPOUND_INTEREST = parsed_config['trading_options']['COMPOUND_INTEREST']
     TRADE_TOTAL = parsed_config['trading_options']['TRADE_TOTAL']            
     TRADE_SLOTS = parsed_config['trading_options']['TRADE_SLOTS']
         

@@ -8,7 +8,7 @@ script_options:
   OFFLINE_MODE: True
   OFFLINE_MODE_TIMEFRAME: "1m"
   OFFLINE_MODE_TIME_START: "01/04/2023 00:00:00" #%d/%m/%Y %H:%M:%S
-  OFFLINE_MODE_TIME_END: "21/04/2023 00:00:00" #%d/%m/%Y %H:%M:%S
+  OFFLINE_MODE_TIME_END: "25/04/2023 00:00:00" #%d/%m/%Y %H:%M:%S
   LOG_TRADES: True
   #the MAIN_FILES_PATH will be the folder where the LOG_FILE, HISTORY_LOG_FILE, COIN_BOUGHT and BOT_STATS files will be stored. 
   #By default, if it is empty, these files will be housed in the main folder of the Bot. Not yet implemented
@@ -23,9 +23,11 @@ script_options:
   #EXTERNAL_COINS: '' #'excoin.txt'
   DEBUG: True
   #The name of the function will be displayed when it is used in the bot process
-  ENABLE_FUNCTION_NAME: True
+  ENABLE_FUNCTION_NAME: False
   SHOW_FUNCTION_NAME: False
-  SAVE_FUNCTION_NAME: True
+  SHOW_VARIABLES_AND_VALUE: False
+  SAVE_FUNCTION_NAME: False
+  SAVE_VARIABLES_AND_VALUE: False
   #all binance requests from our bot will be proxied
   PROXY_HTTP: '' #'http://localhost:8090'
   PROXY_HTTPS: ''
@@ -43,8 +45,8 @@ trading_options:
   
   #When activating this option, as long as the TRADE_SLOTS option is 1, 
   #it will be bought with all the capital in the wallet.
-  #The method works but not completely, that is, it accumulates a little but not everything.
-  ACCUMULATIVE: True
+  #The method works....
+  COMPOUND_INTEREST: True
   
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.

@@ -171,8 +171,10 @@ def get_analysis(tf, p, period=False):
             c.columns = ['time', 'Open', 'High', 'Low', 'Close']
             #c.reindex(index=c.index[::-1])
             #c = c.set_index(pd.DatetimeIndex(c['time']))
-            position1 = read_position_csv(p)
-            #print("Megatronmod position: ", position1)            
+            position1 = int(read_position_csv(p))
+            unix = datetime.fromtimestamp(position1/1000)
+            datt = unix.strftime('%d-%m-%Y %H:%M:%S')
+            #print("Megatronmod position: ", datt)            
             f = c.iloc[0].tolist()
             mask = (c['time'] > int(f[0])) & (c['time'] <= int(position1))
             c = c.loc[mask]
