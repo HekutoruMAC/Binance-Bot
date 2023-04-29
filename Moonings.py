@@ -1293,7 +1293,7 @@ def buy():
                     BuyUSDT = str(float(volume[coin]) * float(last_price[coin]['price'])).zfill(9)
                     volumeBuy = volume[coin] #format(volume[coin], '.6f')
                     last_price_buy = last_price[coin]['price'] #str(format(float(last_price[coin]['price']), '.8f')).zfill(3)
-                    print("BuyUSDT: ", BuyUSDT, "volumeBuy: ", volumeBuy, "last_price_buy: ", last_price_buy)
+                    #print("BuyUSDT: ", BuyUSDT, "volumeBuy: ", volumeBuy, "last_price_buy: ", last_price_buy)
                     #BuyUSDT = str(format(float(BuyUSDT), '.14f')).zfill(4)
                     coin = '{0:<9}'.format(coin)
                                                     #"Datetime", "OrderID", "Type", "Coin", "Volume", "Buy Price", "Amount of Buy", "Sell Price", "Amount of Sell", "Sell Reason", "Profit $")

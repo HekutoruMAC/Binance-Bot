@@ -165,8 +165,7 @@ def get_analysis(tf, p, period=False):
         if OFFLINE_MODE:
             while not os.path.exists(p + '.csv'):
                 print(f'{txcolors.SELL_PROFIT}MEGATRONMOD: {txcolors.DEFAULT}Whaiting for Download Data...{txcolors.DEFAULT}')
-                time.sleep(5)
-            
+                time.sleep(5)            
             c = pd.read_csv(p + '.csv')
             c.columns = ['time', 'Open', 'High', 'Low', 'Close']
             #c.reindex(index=c.index[::-1])
@@ -179,27 +178,28 @@ def get_analysis(tf, p, period=False):
             mask = (c['time'] > int(f[0])) & (c['time'] <= int(position1))
             c = c.loc[mask]
             #print("c: ", c.to_string())
-        if period == True:
+        if period:
             #df = pd.DataFrame([])
             #start = pd.to_datetime(datetime.now() - timedelta(days = 1))
             #end = datetime.now()
             klines = client.get_historical_klines(symbol=p, interval=tf, start_str=str(360) + 'min ago UTC', limit=1000)
             #klines = client.get_historical_klines(str(p), tf, int(datetime.timestamp(start) * 1000), int(datetime.timestamp(end) * 1000), limit=1000)
-            df_order = pd.DataFrame(klines)
-            df_order.columns = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime', 'QuoteAssetVolume', 'Trades', 'TakerBuyBase', 'TakerBuyQuote', 'Ignore']
-            df_order['Date'] = pd.to_datetime(df_order.OpenTime, unit='ms')
-            df_order['Close'] = df_order['Close'].apply(lambda x: float(x))
-            df_order['SMA_20'] = df_order['Close'].rolling(window = 20).mean()
-            minimo = df_order['Close'][0]
-            maximo = df_order['Close'][0]
-            for index, row in df_order.sort_values(by=['Date'], ascending=True).iterrows():
-                minimo = (row['Close'] if row['Close'] < minimo else minimo)
-                maximo = (row['Close'] if row['Close'] > maximo else maximo)
-                df_order.at[index, 'Minimo'] = minimo
-                df_order.at[index, 'Maximo'] = maximo
-            c = df_order[['Date', 'Close', 'Minimo', 'Maximo', 'SMA_20']]
-            #print(df_order.tail())
-        if period == False and OFFLINE_MODE == False:
+            c = pd.DataFrame(klines)
+            c.columns = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime', 'QuoteAssetVolume', 'Trades', 'TakerBuyBase', 'TakerBuyQuote', 'Ignore']
+        #if period and el_profe:  
+        c['Date'] = pd.to_datetime(c.OpenTime, unit='ms')
+        c['Close'] = c['Close'].apply(lambda x: float(x))
+        c['SMA_20'] = c['Close'].rolling(window = 20).mean()
+        minimo = c['Close'][0]
+        maximo = c['Close'][0]
+        for index, row in c.sort_values(by=['Date'], ascending=True).iterrows():
+            minimo = (row['Close'] if row['Close'] < minimo else minimo)
+            maximo = (row['Close'] if row['Close'] > maximo else maximo)
+            c.at[index, 'Minimo'] = minimo
+            c.at[index, 'Maximo'] = maximo
+        #c = c[['Date', 'Close', 'Minimo', 'Maximo', 'SMA_20']]
+            #print(c.tail())
+        if period == False and OFFLINE_MODE == False: #and el_profe == False:
         #exchange = ccxt.binance()
         #data = exchange.fetch_ohlcv(p, timeframe=tf, limit=100)
             end = datetime.now()
@@ -262,7 +262,7 @@ def cross(arr1, arr2):
 
 def load_json(p):
     try:
-        bought_COIN1MIN = {}
+        bought_analysis1MIN = {}
         value1 = 0
         value2 = 0
         value3 = 0
@@ -273,15 +273,15 @@ def load_json(p):
         coins_bought_file_path = file_prefix + COINS_BOUGHT
         if os.path.exists(coins_bought_file_path) and os.path.getsize(coins_bought_file_path) > 2:
             with open(coins_bought_file_path,'r') as f:
-                bought_COIN1MIN = json.load(f)
+                bought_analysis1MIN = json.load(f)
 
-            for COIN1MIN in bought_COIN1MIN.keys():
+            for analysis1MIN in bought_analysis1MIN.keys():
                 value3 = value3 + 1
                 
-            if p in bought_COIN1MIN:
-                value1 = round(float(bought_COIN1MIN[p]['bought_at']),5)
-                value2 = round(float(bought_COIN1MIN[p]['timestamp']),5)
-                bought_COIN1MIN = {}
+            if p in bought_analysis1MIN:
+                value1 = round(float(bought_analysis1MIN[p]['bought_at']),5)
+                value2 = round(float(bought_analysis1MIN[p]['timestamp']),5)
+                bought_analysis1MIN = {}
     except Exception as e:
         print(f'{SIGNAL_NAME}: {txcolors.Red} {"load_json"}: Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -338,9 +338,19 @@ def list_indicators():
                 #list_variables = {name : myvalue}
                 list_variables = {myvalue}
     except Exception as e:
-        print(f'{SIGNAL_NAME}: {txcolors.Red} {"list_indicators"}: Exception in function: {e}')
+        print(f'MEGATRONMOD: {txcolors.Red} list_indicators(): Exception in function: {e}')
         print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))             
     return list_variables
+ 
+def stochastic_fast(df, n):
+    try:
+        fastk =[] 
+        fastd = []
+        fastk, fastd = ta.STOCHF(df['High'], df['Low'], df['Close'], fastk_period=n, fastd_period=n, fastd_matype=0)
+    except Exception as e:
+        print(f'MEGATRONMOD: {txcolors.Red} stochastic_fast(): Exception in function: {e}')
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+    return fastk, fastd
     
 def analyze(pairs, ext_data="", buy=True):
     signal_coins = {}
@@ -387,73 +397,78 @@ def analyze(pairs, ext_data="", buy=True):
     for pair in pairs:
         #print(f'{SIGNAL_NAME}: {txcolors.BUY}Analyzing {pair} ...{txcolors.DEFAULT}')
         try:
-            COIN1MIN = get_analysis('1m', pair)
-            CLOSE = round(float(COIN1MIN['Close'].iloc[-1]),5)
-            B1_1MIN, B2_1MIN = bollinger_bands(COIN1MIN, 12)
-
-            # analysis_elprofe1MIN = get_analysis('1m', pair, True)
-            # CLOSE = round(float(analysis_elprofe1MIN['Close'].iloc[-1]),5)
-            # B1_1MIN, B2_1MIN = bollinger_bands(analysis_elprofe1MIN, 12)
-            # RSI12_1MIN = round(ta.RSI(COIN1MIN['Close'], 12).iloc[-1],5)
-            # precio = analysis_elprofe1MIN['Close'].iloc[-1]
-            # precio_anterior = analysis_elprofe1MIN['Close'].iloc[-2]
-            # minimo = analysis_elprofe1MIN['Minimo'].iloc[-1]
-            # maximo = analysis_elprofe1MIN['Maximo'].iloc[-1]
-            # sma_20 = analysis_elprofe1MIN['SMA_20'].iloc[-1]
-            # sma_20_anterior = analysis_elprofe1MIN['SMA_20'].iloc[-2]
-            # media = (minimo+maximo)/2
-            # parte1 = maximo/minimo
-            # parte2 = precio/media
-            # baja = True if (parte1 > 1.1 and parte2 < 0.965) else False           
-
+            if not OFFLINE_MODE:
+                analysis1MIN = handler1MIN[pair].get_analysis()
+                analysis5MIN = handler5MIN[pair].get_analysis()
+                analysis15MIN = handler15MIN[pair].get_analysis()
+            else:
+                analysis1MIN = get_analysis('1m', pair, True)
+                analysis5MIN = get_analysis('5m', pair, True)
+                analysis15MIN = get_analysis('15m', pair, True)
             
-            # analysis1MIN = handler1MIN[pair].get_analysis()
-            # analysis5MIN = handler5MIN[pair].get_analysis()
-            # analysis15MIN = handler15MIN[pair].get_analysis()
+            CLOSE = round(float(analysis1MIN['Close'].iloc[-1]),5)
+            B1_1MIN, B2_1MIN = bollinger_bands(analysis1MIN, 12)
+            B1_1MIN, B2_1MIN = bollinger_bands(analysis1MIN, 12)
+            
+            precio = analysis1MIN['Close'].iloc[-1]
+            precio_anterior = analysis1MIN['Close'].iloc[-2]
+            minimo = analysis1MIN['Minimo'].iloc[-1]
+            maximo = analysis1MIN['Maximo'].iloc[-1]
+            sma_20 = analysis1MIN['SMA_20'].iloc[-1]
+            sma_20_anterior = analysis1MIN['SMA_20'].iloc[-2]
+            media = (minimo+maximo)/2
+            parte1 = maximo/minimo
+            parte2 = precio/media            
+            baja = True if(parte1 > 1.1 and parte2 < 0.965) else False   
 
-            # RSI_1MIN = round(analysis1MIN.indicators['RSI'],5)
-            # RSI_5MIN = round(analysis15MIN.indicators['RSI'],5)
-            # RSI1_15MIN = round(analysis15MIN.indicators['RSI[1]'],5)
-            # RSI2_1MIN = round(ta.RSI(COIN1MIN['Close'], 2).iloc[-1],5)
-            # RSI15_1MIN = round(ta.RSI(COIN1MIN['Close'], 15).iloc[-1],5)
-            # RSI10_1MIN = round(ta.RSI(COIN1MIN['Close'], 10).iloc[-1],5)
-            # RSI5_1MIN = round(ta.RSI(COIN1MIN['Close'], 5).iloc[-1],5)
-            # RSI14_5MIN = round(analysis5MIN.indicators['RSI'],5)
-            # STOCH_K_5MIN = round(analysis5MIN.indicators['Stoch.K'],5)
-            # STOCH_D_5MIN = round(analysis5MIN.indicators['Stoch.D'],5)
-            # STOCH_K_1MIN = round(analysis1MIN.indicators['Stoch.K'],5)
-            # STOCH_D_1MIN = round(analysis1MIN.indicators['Stoch.D'],5)            
-            # EMA2_1MIN = round(pta.ema(COIN1MIN['Close'], length=2).iloc[-1],5)
-            # EMA3_1MIN = round(pta.ema(COIN1MIN['Close'], length=3).iloc[-1],5)
-            # EMA9_1MIN = round(pta.ema(COIN1MIN['Close'], length=9).iloc[-1],5)
-            # EMA21_1MIN = round(pta.ema(COIN1MIN['Close'], length=21).iloc[-1],5)
-            # EMA23_1MIN = round(pta.ema(COIN1MIN['Close'], length=23).iloc[-1],5)
-            # EMA25_1MIN = round(pta.ema(COIN1MIN['Close'], length=25).iloc[-1],5)
-            # EMA50_1MIN = round(pta.ema(COIN1MIN['Close'], length=50).iloc[-1],5)
-            # EMA100_1MIN = round(pta.ema(COIN1MIN['Close'], length=100).iloc[-1],5)
-            # HMA90_1MIN = round(TA_HMA(COIN1MIN['Close'],90).iloc[-1],5)
-            # HMA70_1MIN = round(TA_HMA(COIN1MIN['Close'],70).iloc[-1],5)
-            # CCI20_1MIN =  round(COIN1MIN.ta.cci(length=20).iloc[-1],5)
-            # CCI14_1MIN =  round(COIN1MIN.ta.cci(length=14).iloc[-1],5)
-            # SMA7_1MIN = round(pta.sma(COIN1MIN['Close'],length=7).iloc[-1],5)
-            # SMA9_1MIN = round(pta.sma(COIN1MIN['Close'],length=9).iloc[-1],5)
-            # SMA25_1MIN = round(pta.sma(COIN1MIN['Close'],length=25).iloc[-1],5)
-            # SMA29_1MIN = round(pta.sma(COIN1MIN['Close'],length=29).iloc[-1],5)
-            # SMA26_1MIN = round(pta.sma(COIN1MIN['Close'],length=26).iloc[-1],5)
-            # SMA55_1MIN = round(pta.sma(COIN1MIN['Close'],length=55).iloc[-1],5)
-            # SMA5_1MIN = round(analysis1MIN.indicators['SMA5'],5)
-            # SMA10_1MIN = round(analysis1MIN.indicators['SMA10'],5)            
-            # SMA20_1MIN = round(analysis1MIN.indicators['SMA20'],5)
-            # SMA100_1MIN = round(analysis1MIN.indicators['SMA100'],5)
-            # SMA200_1MIN = round(analysis1MIN.indicators['SMA200'],5)
-            # MACD_1MIN = round(analysis1MIN.indicators["MACD.macd"],5)
-            # SMA5_5MIN = round(analysis5MIN.indicators['SMA5'],5)
-            # SMA10_5MIN = round(analysis5MIN.indicators['SMA10'],5)                                                   
-            # SMA20_5MIN = round(analysis5MIN.indicators['SMA20'],5)
-            # SMA100_5MIN = round(analysis5MIN.indicators['SMA100'],5)
-            # SMA200_5MIN = round(analysis5MIN.indicators['SMA200'],5)
-            # MACD_5MIN = round(analysis1MIN.indicators["MACD.macd"],5)            
-            # STOCH_DIFF_1MIN = round(STOCH_K_1MIN - STOCH_D_1MIN,5)
+            RSI14_1MIN = round(ta.RSI(analysis1MIN['Close'], 14).iloc[-1],5) #round(analysis1MIN.indicators['RSI'],5)
+            #RSI_5MIN = round(ta.RSI(analysis5MIN['Close'], 1).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
+            #RSI1_15MIN = round(ta.RSI(analysis15MIN['Close'], 1).iloc[-1],5) #round(analysis15MIN.indicators['RSI[1]'],5)
+            RSI2_1MIN = round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5)
+            RSI15_1MIN = round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5)
+            RSI10_1MIN = round(ta.RSI(analysis1MIN['Close'], 10).iloc[-1],5)
+            RSI5_1MIN = round(ta.RSI(analysis1MIN['Close'], 5).iloc[-1],5)
+            RSI12_1MIN = round(ta.RSI(analysis1MIN['Close'], 12).iloc[-1],5)
+            RSI14_5MIN = round(ta.RSI(analysis5MIN['Close'], 14).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
+            stochk1m, stochd1m = stochastic_fast(analysis1MIN, 1)
+            stochk5m, stochd5m = stochastic_fast(analysis5MIN, 1)
+            #print("stochk1m: ", stochk1m)
+            STOCH_K_5MIN = stochk5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.K'],5)
+            STOCH_D_5MIN = stochd5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.D'],5)
+            STOCH_K_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.K'],5)
+            STOCH_D_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.D'],5)            
+            EMA2_1MIN = round(pta.ema(analysis1MIN['Close'], length=2).iloc[-1],5)
+            EMA3_1MIN = round(pta.ema(analysis1MIN['Close'], length=3).iloc[-1],5)
+            EMA9_1MIN = round(pta.ema(analysis1MIN['Close'], length=9).iloc[-1],5)
+            EMA21_1MIN = round(pta.ema(analysis1MIN['Close'], length=21).iloc[-1],5)
+            EMA23_1MIN = round(pta.ema(analysis1MIN['Close'], length=23).iloc[-1],5)
+            EMA25_1MIN = round(pta.ema(analysis1MIN['Close'], length=25).iloc[-1],5)
+            EMA50_1MIN = round(pta.ema(analysis1MIN['Close'], length=50).iloc[-1],5)
+            EMA100_1MIN = round(pta.ema(analysis1MIN['Close'], length=100).iloc[-1],5)
+            HMA90_1MIN = round(TA_HMA(analysis1MIN['Close'],90).iloc[-1],5)
+            HMA70_1MIN = round(TA_HMA(analysis1MIN['Close'],70).iloc[-1],5)
+            CCI20_1MIN =  round(analysis1MIN.ta.cci(length=20).iloc[-1],5)
+            CCI14_1MIN =  round(analysis1MIN.ta.cci(length=14).iloc[-1],5)
+            SMA7_1MIN = round(pta.sma(analysis1MIN['Close'],length=7).iloc[-1],5)
+            SMA9_1MIN = round(pta.sma(analysis1MIN['Close'],length=9).iloc[-1],5)
+            SMA25_1MIN = round(pta.sma(analysis1MIN['Close'],length=25).iloc[-1],5)
+            SMA29_1MIN = round(pta.sma(analysis1MIN['Close'],length=29).iloc[-1],5)
+            SMA26_1MIN = round(pta.sma(analysis1MIN['Close'],length=26).iloc[-1],5)
+            SMA55_1MIN = round(pta.sma(analysis1MIN['Close'],length=55).iloc[-1],5)
+            SMA5_1MIN = round(pta.sma(analysis1MIN['Close'],length=5).iloc[-1],5) #round(analysis1MIN.indicators['SMA5'],5)
+            SMA10_1MIN = round(pta.sma(analysis1MIN['Close'],length=10).iloc[-1],5) #round(analysis1MIN.indicators['SMA10'],5)            
+            SMA20_1MIN = round(pta.sma(analysis1MIN['Close'],length=20).iloc[-1],5) #round(analysis1MIN.indicators['SMA20'],5)
+            SMA100_1MIN = round(pta.sma(analysis1MIN['Close'],length=100).iloc[-1],5) #round(analysis1MIN.indicators['SMA100'],5)
+            SMA200_1MIN = round(pta.sma(analysis1MIN['Close'],length=200).iloc[-1],5) #round(analysis1MIN.indicators['SMA200'],5)
+            MACD_1MIN, MACDSIG_1MIN, MACDHIST_1MIN = round(pta.macd(analysis1MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)
+            SMA5_5MIN = round(pta.sma(analysis5MIN['Close'],length=5).iloc[-1],5) #round(analysis5MIN.indicators['SMA5'],5)
+            SMA10_5MIN = round(pta.sma(analysis5MIN['Close'],length=10).iloc[-1],5) #round(analysis5MIN.indicators['SMA10'],5)                                                   
+            SMA20_5MIN = round(pta.sma(analysis5MIN['Close'],length=20).iloc[-1],5) #round(analysis5MIN.indicators['SMA20'],5)
+            
+            #SMA100_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA100'],5)
+            #SMA200_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA200'],5)
+            #MACD_5MIN = round(pta.macd(analysis5MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)            
+            STOCH_DIFF_1MIN = round(STOCH_K_1MIN - STOCH_D_1MIN,5)
             
             list_variables = {}
             all_variables = dir()
@@ -467,24 +482,24 @@ def analyze(pairs, ext_data="", buy=True):
             if buy and ext_data != 0:
                 bought_at, timeHold, coins_bought = load_json(pair)            
                 if coins_bought < TRADE_SLOTS and bought_at == 0:
-                    #buySignal0 = str(RSI14_5MIN <= 40 and STOCH_K_5MIN <= 20 and STOCH_D_5MIN <= 20)
-                    #buySignal1 = str((EMA2_1MIN > EMA3_1MIN) and (RSI2_1MIN < 45) and (STOCH_K_5MIN > STOCH_D_5MIN) and (STOCH_K_5MIN < 70 and STOCH_D_5MIN < 70))
-                    #buySignal2 = str(RSI10_1MIN < RSI_MIN_RSI10 and RSI5_1MIN < RSI_MIN_RSI5 and RSI15_1MIN < RSI_MIN_RSI15)
-                    #buySignal3 = str(cross(EMA9_1MIN, EMA21_1MIN) and (CLOSE > HMA90_1MIN))
-                    #buySignal4 = str((SMA10_1MIN > SMA20_1MIN) and (SMA20_1MIN > SMA200_1MIN) and (MACD_1MIN <= 30))
-                    #buySignal5 = str((SMA5_1MIN > SMA10_1MIN > SMA20_1MIN) and (RSI_5MIN >= RSI_MIN and RSI_5MIN <= RSI_MAX))
-                    #buySignal6 = str(RSI10_1MIN <= RSI_1MIN)
-                    #buySignal7 = str((MACD_1MIN < 0) and (RSI_5MIN < 50))
-                    #buySignal8 = str(crossover(RSI2_1MIN, RSI_1MIN))
-                    #buySignal9 = str((STOCH_DIFF_1MIN >= STOCH_BUY) and (STOCH_K_1MIN >= STOCH_MIN and STOCH_K_1MIN <= STOCH_MAX) and (STOCH_D_1MIN >= STOCH_MIN and STOCH_D_1MIN <= STOCH_MAX) and (RSI10_1MIN >= RSI2_MIN))
-                    #buySignal10 = str(RSI14_5MIN <= 40 and STOCH_K_5MIN <= 20 and STOCH_D_5MIN <= 20)
-                    #buySignal11 = str(CLOSE > SMA200_1MIN and CLOSE < SMA5_1MIN and RSI2_1MIN < 10)
-                    #buySignal12 = str((RSI2_1MIN < 30) and (STOCH_K_1MIN > STOCH_D_1MIN) and (STOCH_K_1MIN < 50 and STOCH_D_1MIN < 50))
-                    #buySignal13 = str((CCI20_1MIN != cci_min) and (CCI20_1MIN < cci_min) and (cci_min > CCI20_1MIN))
-                    #buySignal14 = str(float(EMA50_1MIN) >= float(EMA100_1MIN))
-                    #buySignal15 = str(float(SMA9_1MIN) >= float(SMA29_1MIN))
-                    #buySignal16 = str((precio < (minimo+media)/2 and baja==False) or (baja == True and precio/minimo < 1.05 and precio > precio_anterior and sma_20 > sma_20_anterior))
-                    buySignal17 = str(CLOSE < B2_1MIN) #and RSI12_1MIN <= 40)
+                    # buySignal0 = RSI14_5MIN <= 40 and STOCH_K_5MIN <= 20 and STOCH_D_5MIN <= 20
+                    # buySignal1 = (EMA2_1MIN > EMA3_1MIN) and (RSI2_1MIN < 45) and (STOCH_K_5MIN > STOCH_D_5MIN) and (STOCH_K_5MIN < 70 and STOCH_D_5MIN < 70)
+                    # buySignal2 = RSI10_1MIN < RSI_MIN_RSI10 and RSI5_1MIN < RSI_MIN_RSI5 and RSI15_1MIN < RSI_MIN_RSI15
+                    # buySignal3 = cross(EMA9_1MIN, EMA21_1MIN) and (CLOSE > HMA90_1MIN)
+                    # buySignal4 = (SMA10_1MIN > SMA20_1MIN) and (SMA20_1MIN > SMA200_1MIN) and (MACD_1MIN <= 30)
+                    # buySignal5 = (SMA5_1MIN > SMA10_1MIN > SMA20_1MIN) and (RSI14_5MIN >= RSI_MIN and RSI14_5MIN <= RSI_MAX)
+                    # buySignal6 = (RSI10_1MIN <= RSI14_1MIN)
+                    # buySignal7 = (MACD_1MIN < 0) and (RSI14_5MIN < 50)
+                    # buySignal8 = crossover(RSI2_1MIN, RSI14_1MIN)
+                    # buySignal9 = (STOCH_DIFF_1MIN >= STOCH_BUY) and (STOCH_K_1MIN >= STOCH_MIN and STOCH_K_1MIN <= STOCH_MAX) and (STOCH_D_1MIN >= STOCH_MIN and STOCH_D_1MIN <= STOCH_MAX) and (RSI10_1MIN >= RSI2_MIN)
+                    # buySignal10 = RSI14_5MIN <= 40 and STOCH_K_5MIN <= 20 and STOCH_D_5MIN <= 20
+                    # buySignal11 = CLOSE > SMA200_1MIN and CLOSE < SMA5_1MIN and RSI2_1MIN < 10
+                    # buySignal12 = (RSI2_1MIN < 30) and (STOCH_K_1MIN > STOCH_D_1MIN) and (STOCH_K_1MIN < 50 and STOCH_D_1MIN < 50)
+                    # buySignal13 = (CCI20_1MIN != cci_min) and (CCI20_1MIN < cci_min) and (cci_min > CCI20_1MIN)
+                    # buySignal14 = float(EMA50_1MIN) >= float(EMA100_1MIN)
+                    # buySignal15 = float(SMA9_1MIN) >= float(SMA29_1MIN)
+                    # buySignal16 = (precio < (minimo+media)/2 and baja==False) or (baja == True and precio/minimo < 1.05 and precio > precio_anterior and sma_20 > sma_20_anterior)
+                    buySignal17 = CLOSE < B2_1MIN #and RSI12_1MIN <= 40)
                     #print("buySignal17", buySignal16)
                     dataBuy = {}
                     all_variables = dir()
@@ -493,9 +508,9 @@ def analyze(pairs, ext_data="", buy=True):
                             myvalue = eval(name)
                             dataBuy.update({name : myvalue})                
                     for buyM in dataBuy:
-                        if dataBuy.get(buyM) == 'True':
-                            #COIN1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
-                            #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
+                        if dataBuy.get(buyM):
+                            #analysis1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
+                            #CLOSEBTC1MIN = float(analysis1MIN['Close'].iloc[-1])
                             buyData = {'bought_at': CLOSE} #, 'BTC': CLOSEBTC1MIN }
                             signal_coins[pair] = pair                            
                             if ext_data != "" and buy == True:
@@ -523,21 +538,21 @@ def analyze(pairs, ext_data="", buy=True):
                 if float(bought_at) != 0 and float(coins_bought) != 0 and float(CLOSE) != 0:
                     # SL = float(bought_at) - ((float(bought_at) * float(STOP_LOSS)) / 100)
                     # TP = float(bought_at) + ((float(bought_at) * float(TAKE_PROFIT)) / 100)
-                    # sellSignalTP = str(float(CLOSE) > float(TP) and float(TP) != 0)
-                    # sellSignalSL = str(float(CLOSE) < float(SL) and float(SL) != 0)
-                    #sellSignal0 = str(float(RSI14_5MIN) >= 70 and STOCH_K_5MIN >= 80 and STOCH_D_5MIN >= 80 and float(CLOSE) > float(bought_at))
-                    #sellSignal1 = str(float(RSI10_1MIN) > RSI_MAX_RSI10 and RSI5_1MIN > RSI_MAX_RSI5 and RSI15_1MIN > RSI_MAX_RSI15 and float(CLOSE) > float(bought_at))
-                    #sellSignal2 = str(float(RSI2_1MIN) > 80 and float(CLOSE) > float(bought_at))
-                    #sellSignal3 = str((float(CLOSE) < HMA90_1MIN and float(CLOSE) > float(bought_at)))  
-                    #sellSignal4 = str(float(RSI10_1MIN) >= RSI1_MAX and float(CLOSE) > float(bought_at))
-                    #sellSignal5 = str(crossunder(RSI2_1MIN, RSI1_MAX) and float(CLOSE) > float(bought_at))
-                    #sellSignal6 = str(crossunder(STOCH_D_1MIN, STOCH_SELL) and float(CLOSE) > float(bought_at))
-                    #sellSignal7 = str(float(RSI2_1MIN) > 75 and float(CLOSE) > float(bought_at))
-                    #sellSignal8 = str(float(CCI20_1MIN) > 100 and float(CLOSE) > float(bought_at))
-                    #sellSignal9 = str(float(EMA50_1MIN) <= float(EMA100_1MIN) and float(CLOSE) > float(bought_at))
-                    #sellSignal10 = str(float(SMA9_1MIN) <= float(SMA29_1MIN) and float(CLOSE) > float(bought_at))
-                    #sellSignal11 = str((baja == False and (precio > media) and (sma_20/sma_20_anterior > 1.002) and (precio/precio_anterior > 1.002)) or (baja == True and precio/ultimo_precio > 1.01))
-                    sellSignal112 = str(CLOSE > B1_1MIN and float(CLOSE) > float(bought_at))# and RSI12_1MIN >= 70 )
+                    # sellSignalTP = (float(CLOSE) > float(TP) and float(TP) != 0)
+                    # sellSignalSL = (float(CLOSE) < float(SL) and float(SL) != 0)
+                    # sellSignal0 = (float(RSI14_5MIN) >= 70 and STOCH_K_5MIN >= 80 and STOCH_D_5MIN >= 80 and float(CLOSE) > float(bought_at))
+                    # sellSignal1 = (float(RSI10_1MIN) > RSI_MAX_RSI10 and RSI5_1MIN > RSI_MAX_RSI5 and RSI15_1MIN > RSI_MAX_RSI15 and float(CLOSE) > float(bought_at))
+                    # sellSignal2 = (float(RSI2_1MIN) > 80 and float(CLOSE) > float(bought_at))
+                    # sellSignal3 = ((float(CLOSE) < HMA90_1MIN and float(CLOSE) > float(bought_at)))  
+                    # sellSignal4 = (float(RSI10_1MIN) >= RSI1_MAX and float(CLOSE) > float(bought_at))
+                    # sellSignal5 = (crossunder(RSI2_1MIN, RSI1_MAX) and float(CLOSE) > float(bought_at))
+                    # sellSignal6 = (crossunder(STOCH_D_1MIN, STOCH_SELL) and float(CLOSE) > float(bought_at))
+                    # sellSignal7 = (float(RSI2_1MIN) > 75 and float(CLOSE) > float(bought_at))
+                    # sellSignal8 = (float(CCI20_1MIN) > 100 and float(CLOSE) > float(bought_at))
+                    # sellSignal9 = (float(EMA50_1MIN) <= float(EMA100_1MIN) and float(CLOSE) > float(bought_at))
+                    # sellSignal10 = (float(SMA9_1MIN) <= float(SMA29_1MIN) and float(CLOSE) > float(bought_at))
+                    # sellSignal11 = ((baja == False and (precio > media) and (sma_20/sma_20_anterior > 1.002) and (precio/precio_anterior > 1.002)) or (baja == True and precio/ultimo_precio > 1.01) and float(CLOSE) > float(bought_at))
+                    sellSignal112 = (CLOSE > B1_1MIN and float(CLOSE) > float(bought_at))# and RSI12_1MIN >= 70 )
                     #print("sellSignal9", sellSignal9, "sellSignal10", sellSignal10)
                     dataSell = {}
                     sellData = {}
@@ -550,9 +565,9 @@ def analyze(pairs, ext_data="", buy=True):
                     if len(dataSell) > 0 or dataSell != {}:
                         for sellM in dataSell:                            
                             if dataSell.get(sellM) is not None:                                
-                                if str(dataSell.get(sellM)) == 'True' and float(bought_at) != 0:
-                                    #COIN1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
-                                    #CLOSEBTC1MIN = float(COIN1MIN['Close'].iloc[-1])
+                                if str(dataSell.get(sellM))and float(bought_at) != 0:
+                                    #analysis1MIN = get_analysis('1m', "BTC" + PAIR_WITH)
+                                    #CLOSEBTC1MIN = float(analysis1MIN['Close'].iloc[-1])
                                     sellData = {'bought_at': bought_at , 'sell_at': CLOSE , 'earned': round(CLOSE - bought_at, 4)} #,'BTC': CLOSEBTC1MIN}                                    
                                     if ext_data != "" and buy == False:
                                         if os.path.exists(file_prefix + SIGNAL_NAME + ".sell") == False:
@@ -570,7 +585,7 @@ def analyze(pairs, ext_data="", buy=True):
                                         break                   
         except Exception as e:
             write_log(f'{SIGNAL_NAME}: {txcolors.Red} {pair} - Exception: {e}', SIGNAL_NAME + ".log", False)
-            write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno), SIGNAL_NAME + ".log", False)
+            write_log("Error on line {}".format(sys.exc_info()[-1].tb_lineno), SIGNAL_NAME + ".log", TRUE, False)
             pass
     return signal_coins, Is_Write
 
