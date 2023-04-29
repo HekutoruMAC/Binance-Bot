@@ -410,65 +410,65 @@ def analyze(pairs, ext_data="", buy=True):
             B1_1MIN, B2_1MIN = bollinger_bands(analysis1MIN, 12)
             B1_1MIN, B2_1MIN = bollinger_bands(analysis1MIN, 12)
             
-            precio = analysis1MIN['Close'].iloc[-1]
-            precio_anterior = analysis1MIN['Close'].iloc[-2]
-            minimo = analysis1MIN['Minimo'].iloc[-1]
-            maximo = analysis1MIN['Maximo'].iloc[-1]
-            sma_20 = analysis1MIN['SMA_20'].iloc[-1]
-            sma_20_anterior = analysis1MIN['SMA_20'].iloc[-2]
-            media = (minimo+maximo)/2
-            parte1 = maximo/minimo
-            parte2 = precio/media            
-            baja = True if(parte1 > 1.1 and parte2 < 0.965) else False   
+            # precio = analysis1MIN['Close'].iloc[-1]
+            # precio_anterior = analysis1MIN['Close'].iloc[-2]
+            # minimo = analysis1MIN['Minimo'].iloc[-1]
+            # maximo = analysis1MIN['Maximo'].iloc[-1]
+            # sma_20 = analysis1MIN['SMA_20'].iloc[-1]
+            # sma_20_anterior = analysis1MIN['SMA_20'].iloc[-2]
+            # media = (minimo+maximo)/2
+            # parte1 = maximo/minimo
+            # parte2 = precio/media            
+            # baja = True if(parte1 > 1.1 and parte2 < 0.965) else False   
 
-            RSI14_1MIN = round(ta.RSI(analysis1MIN['Close'], 14).iloc[-1],5) #round(analysis1MIN.indicators['RSI'],5)
-            #RSI_5MIN = round(ta.RSI(analysis5MIN['Close'], 1).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
-            #RSI1_15MIN = round(ta.RSI(analysis15MIN['Close'], 1).iloc[-1],5) #round(analysis15MIN.indicators['RSI[1]'],5)
-            RSI2_1MIN = round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5)
-            RSI15_1MIN = round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5)
-            RSI10_1MIN = round(ta.RSI(analysis1MIN['Close'], 10).iloc[-1],5)
-            RSI5_1MIN = round(ta.RSI(analysis1MIN['Close'], 5).iloc[-1],5)
-            RSI12_1MIN = round(ta.RSI(analysis1MIN['Close'], 12).iloc[-1],5)
-            RSI14_5MIN = round(ta.RSI(analysis5MIN['Close'], 14).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
-            stochk1m, stochd1m = stochastic_fast(analysis1MIN, 1)
-            stochk5m, stochd5m = stochastic_fast(analysis5MIN, 1)
-            #print("stochk1m: ", stochk1m)
-            STOCH_K_5MIN = stochk5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.K'],5)
-            STOCH_D_5MIN = stochd5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.D'],5)
-            STOCH_K_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.K'],5)
-            STOCH_D_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.D'],5)            
-            EMA2_1MIN = round(pta.ema(analysis1MIN['Close'], length=2).iloc[-1],5)
-            EMA3_1MIN = round(pta.ema(analysis1MIN['Close'], length=3).iloc[-1],5)
-            EMA9_1MIN = round(pta.ema(analysis1MIN['Close'], length=9).iloc[-1],5)
-            EMA21_1MIN = round(pta.ema(analysis1MIN['Close'], length=21).iloc[-1],5)
-            EMA23_1MIN = round(pta.ema(analysis1MIN['Close'], length=23).iloc[-1],5)
-            EMA25_1MIN = round(pta.ema(analysis1MIN['Close'], length=25).iloc[-1],5)
-            EMA50_1MIN = round(pta.ema(analysis1MIN['Close'], length=50).iloc[-1],5)
-            EMA100_1MIN = round(pta.ema(analysis1MIN['Close'], length=100).iloc[-1],5)
-            HMA90_1MIN = round(TA_HMA(analysis1MIN['Close'],90).iloc[-1],5)
-            HMA70_1MIN = round(TA_HMA(analysis1MIN['Close'],70).iloc[-1],5)
-            CCI20_1MIN =  round(analysis1MIN.ta.cci(length=20).iloc[-1],5)
-            CCI14_1MIN =  round(analysis1MIN.ta.cci(length=14).iloc[-1],5)
-            SMA7_1MIN = round(pta.sma(analysis1MIN['Close'],length=7).iloc[-1],5)
-            SMA9_1MIN = round(pta.sma(analysis1MIN['Close'],length=9).iloc[-1],5)
-            SMA25_1MIN = round(pta.sma(analysis1MIN['Close'],length=25).iloc[-1],5)
-            SMA29_1MIN = round(pta.sma(analysis1MIN['Close'],length=29).iloc[-1],5)
-            SMA26_1MIN = round(pta.sma(analysis1MIN['Close'],length=26).iloc[-1],5)
-            SMA55_1MIN = round(pta.sma(analysis1MIN['Close'],length=55).iloc[-1],5)
-            SMA5_1MIN = round(pta.sma(analysis1MIN['Close'],length=5).iloc[-1],5) #round(analysis1MIN.indicators['SMA5'],5)
-            SMA10_1MIN = round(pta.sma(analysis1MIN['Close'],length=10).iloc[-1],5) #round(analysis1MIN.indicators['SMA10'],5)            
-            SMA20_1MIN = round(pta.sma(analysis1MIN['Close'],length=20).iloc[-1],5) #round(analysis1MIN.indicators['SMA20'],5)
-            SMA100_1MIN = round(pta.sma(analysis1MIN['Close'],length=100).iloc[-1],5) #round(analysis1MIN.indicators['SMA100'],5)
-            SMA200_1MIN = round(pta.sma(analysis1MIN['Close'],length=200).iloc[-1],5) #round(analysis1MIN.indicators['SMA200'],5)
-            MACD_1MIN, MACDSIG_1MIN, MACDHIST_1MIN = round(pta.macd(analysis1MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)
-            SMA5_5MIN = round(pta.sma(analysis5MIN['Close'],length=5).iloc[-1],5) #round(analysis5MIN.indicators['SMA5'],5)
-            SMA10_5MIN = round(pta.sma(analysis5MIN['Close'],length=10).iloc[-1],5) #round(analysis5MIN.indicators['SMA10'],5)                                                   
-            SMA20_5MIN = round(pta.sma(analysis5MIN['Close'],length=20).iloc[-1],5) #round(analysis5MIN.indicators['SMA20'],5)
+            # RSI14_1MIN = round(ta.RSI(analysis1MIN['Close'], 14).iloc[-1],5) #round(analysis1MIN.indicators['RSI'],5)
+            # #RSI_5MIN = round(ta.RSI(analysis5MIN['Close'], 1).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
+            # #RSI1_15MIN = round(ta.RSI(analysis15MIN['Close'], 1).iloc[-1],5) #round(analysis15MIN.indicators['RSI[1]'],5)
+            # RSI2_1MIN = round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 2).iloc[-1],5)
+            # RSI15_1MIN = round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5) #round(ta.RSI(analysis1MIN['Close'], 15).iloc[-1],5)
+            # RSI10_1MIN = round(ta.RSI(analysis1MIN['Close'], 10).iloc[-1],5)
+            # RSI5_1MIN = round(ta.RSI(analysis1MIN['Close'], 5).iloc[-1],5)
+            # RSI12_1MIN = round(ta.RSI(analysis1MIN['Close'], 12).iloc[-1],5)
+            # RSI14_5MIN = round(ta.RSI(analysis5MIN['Close'], 14).iloc[-1],5) #round(analysis5MIN.indicators['RSI'],5)
+            # stochk1m, stochd1m = stochastic_fast(analysis1MIN, 1)
+            # stochk5m, stochd5m = stochastic_fast(analysis5MIN, 1)
+            # #print("stochk1m: ", stochk1m)
+            # STOCH_K_5MIN = stochk5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.K'],5)
+            # STOCH_D_5MIN = stochd5m.iloc[-1] #round(analysis5MIN.indicators['Stoch.D'],5)
+            # STOCH_K_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.K'],5)
+            # STOCH_D_1MIN = stochk1m.iloc[-1] #round(analysis1MIN.indicators['Stoch.D'],5)            
+            # EMA2_1MIN = round(pta.ema(analysis1MIN['Close'], length=2).iloc[-1],5)
+            # EMA3_1MIN = round(pta.ema(analysis1MIN['Close'], length=3).iloc[-1],5)
+            # EMA9_1MIN = round(pta.ema(analysis1MIN['Close'], length=9).iloc[-1],5)
+            # EMA21_1MIN = round(pta.ema(analysis1MIN['Close'], length=21).iloc[-1],5)
+            # EMA23_1MIN = round(pta.ema(analysis1MIN['Close'], length=23).iloc[-1],5)
+            # EMA25_1MIN = round(pta.ema(analysis1MIN['Close'], length=25).iloc[-1],5)
+            # EMA50_1MIN = round(pta.ema(analysis1MIN['Close'], length=50).iloc[-1],5)
+            # EMA100_1MIN = round(pta.ema(analysis1MIN['Close'], length=100).iloc[-1],5)
+            # HMA90_1MIN = round(TA_HMA(analysis1MIN['Close'],90).iloc[-1],5)
+            # HMA70_1MIN = round(TA_HMA(analysis1MIN['Close'],70).iloc[-1],5)
+            # CCI20_1MIN =  round(analysis1MIN.ta.cci(length=20).iloc[-1],5)
+            # CCI14_1MIN =  round(analysis1MIN.ta.cci(length=14).iloc[-1],5)
+            # SMA7_1MIN = round(pta.sma(analysis1MIN['Close'],length=7).iloc[-1],5)
+            # SMA9_1MIN = round(pta.sma(analysis1MIN['Close'],length=9).iloc[-1],5)
+            # SMA25_1MIN = round(pta.sma(analysis1MIN['Close'],length=25).iloc[-1],5)
+            # SMA29_1MIN = round(pta.sma(analysis1MIN['Close'],length=29).iloc[-1],5)
+            # SMA26_1MIN = round(pta.sma(analysis1MIN['Close'],length=26).iloc[-1],5)
+            # SMA55_1MIN = round(pta.sma(analysis1MIN['Close'],length=55).iloc[-1],5)
+            # SMA5_1MIN = round(pta.sma(analysis1MIN['Close'],length=5).iloc[-1],5) #round(analysis1MIN.indicators['SMA5'],5)
+            # SMA10_1MIN = round(pta.sma(analysis1MIN['Close'],length=10).iloc[-1],5) #round(analysis1MIN.indicators['SMA10'],5)            
+            # SMA20_1MIN = round(pta.sma(analysis1MIN['Close'],length=20).iloc[-1],5) #round(analysis1MIN.indicators['SMA20'],5)
+            # SMA100_1MIN = round(pta.sma(analysis1MIN['Close'],length=100).iloc[-1],5) #round(analysis1MIN.indicators['SMA100'],5)
+            # SMA200_1MIN = round(pta.sma(analysis1MIN['Close'],length=200).iloc[-1],5) #round(analysis1MIN.indicators['SMA200'],5)
+            # MACD_1MIN, MACDSIG_1MIN, MACDHIST_1MIN = round(pta.macd(analysis1MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)
+            # SMA5_5MIN = round(pta.sma(analysis5MIN['Close'],length=5).iloc[-1],5) #round(analysis5MIN.indicators['SMA5'],5)
+            # SMA10_5MIN = round(pta.sma(analysis5MIN['Close'],length=10).iloc[-1],5) #round(analysis5MIN.indicators['SMA10'],5)                                                   
+            # SMA20_5MIN = round(pta.sma(analysis5MIN['Close'],length=20).iloc[-1],5) #round(analysis5MIN.indicators['SMA20'],5)
             
-            #SMA100_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA100'],5)
-            #SMA200_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA200'],5)
-            #MACD_5MIN = round(pta.macd(analysis5MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)            
-            STOCH_DIFF_1MIN = round(STOCH_K_1MIN - STOCH_D_1MIN,5)
+            # #SMA100_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA100'],5)
+            # #SMA200_5MIN = round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) + round(pta.sma(analysis5MIN['Close'],length=50).iloc[-1],5) #round(analysis5MIN.indicators['SMA200'],5)
+            # #MACD_5MIN = round(pta.macd(analysis5MIN['Close'],12, 26, 9).iloc[-1],5) #round(analysis1MIN.indicators["MACD.macd"],5)            
+            # STOCH_DIFF_1MIN = round(STOCH_K_1MIN - STOCH_D_1MIN,5)
             
             list_variables = {}
             all_variables = dir()
